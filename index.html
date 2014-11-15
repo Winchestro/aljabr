@@ -1,0 +1,281 @@
+<!doctype html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+		<title>element-inspector Demo</title>
+
+		<script src="../platform/platform.js"></script>
+		<!--link rel="import" href="element-inspector.html"-->
+		<link rel="import" href="gl-elements.html">
+	</head>
+	<body unresolved fullbleed>
+		<!--element-inspector-->
+		<gl-matrix id="perspective" perspective="90 1 200"></gl-matrix>
+		<gl-matrix id="model" translate="0 0 100"></gl-matrix>
+		<gl-matrix id="view" inverse rotateX="10"></gl-matrix>
+		<gl-geometry id="fsq" src="../gl-mesh/cube.obj"></gl-geometry>
+
+		<script src id="precision">
+			#ifdef GL_ES
+				precision mediump float;
+				precision mediump int;
+			#endif
+		</script>
+		<script src id="attributes">
+			attribute vec4 id_fsq_v;
+			attribute vec2 id_fsq_vt;
+			attribute vec4 id_level_v;
+			attribute vec2 id_level_vt;
+		</script> 
+		<script src id="varyings">
+			varying vec2 texCoords;
+		</script>
+		<script src id="uniforms">
+			uniform sampler2D id_tree;
+			uniform sampler2D id_cat;
+			uniform sampler2D id_array;
+			uniform sampler2D id_framebuffer;
+			uniform vec2 resolution;
+			uniform vec2 mouse;
+			uniform float time;
+			uniform float frames;
+			uniform mat4 id_perspective;
+			uniform mat4 id_model;
+			uniform mat4 id_view;
+		</script>
+		<gl-texture 	id="cat" 	src="textest.jpg"></gl-texture>
+		<gl-texture 	id="tree" 	src="textest.png"></gl-texture>
+		<gl-texture 	id="array" 	data="
+			FF FF FF FF|FF 00 00 FF|00 FF 00 FF|00 00 FF FF|FF FF 00 FF|FF 00 FF FF|00 FF FF FF|00 00 00 FF
+			00 00 00 FF|00 FF FF FF|FF 00 FF FF|FF FF 00 FF|00 00 FF FF|00 FF 00 FF|FF 00 00 FF|FF FF FF FF
+			FF FF FF FF|FF 00 00 FF|00 FF 00 FF|00 00 FF FF|FF FF 00 FF|FF 00 FF FF|00 FF FF FF|00 00 00 FF
+			00 00 00 FF|00 FF FF FF|FF 00 FF FF|FF FF 00 FF|00 00 FF FF|00 FF 00 FF|FF 00 00 FF|FF FF FF FF
+			FF FF FF FF|FF 00 00 FF|00 FF 00 FF|00 00 FF FF|FF FF 00 FF|FF 00 FF FF|00 FF FF FF|00 00 00 FF
+			00 00 00 FF|00 FF FF FF|FF 00 FF FF|FF FF 00 FF|00 00 FF FF|00 FF 00 FF|FF 00 00 FF|FF FF FF FF
+			FF FF FF FF|FF 00 00 FF|00 FF 00 FF|00 00 FF FF|FF FF 00 FF|FF 00 FF FF|00 FF FF FF|00 00 00 FF
+			00 00 00 FF|00 FF FF FF|FF 00 FF FF|FF FF 00 FF|00 00 FF FF|00 FF 00 FF|FF 00 00 FF|FF FF FF FF
+		"></gl-texture>
+		<script src id="sample">
+			varying vec2 texCoords;
+			vec4 sample(sampler2D texture){
+				return texture2D(texture,texCoords);
+			}
+		</script>
+		<script src id="matrixMath">
+			mat4 rotationX(float angle){
+				float s = sin(angle);
+				float c = cos(angle);
+				return mat4(
+					1,	0,	0,	0,
+					0,	c,  s,	0,
+					0, -s,	c,	0,
+					0,	0,	0,	1
+				);
+			}
+			mat4 rotationY(float angle){
+				float s = sin(angle);
+				float c = cos(angle);
+				return mat4(
+					c,	0, -s,	0,
+					0,	1, 	0,	0,
+				    s,	0,	c,	0,
+					0,	0,	0,	1
+				);
+			}
+			mat4 rotationZ(float angle){
+				float s = sin(angle);
+				float c = cos(angle);
+				return mat4(
+					c,	s,	0,	0,
+				   -s,	c,	0,	0,
+					0,	0,	1,	0,
+					0,	0,	0,	1
+				);
+			}
+			mat4 scale(float x,float y,float z){
+				return mat4(
+					x,	0,	0,	0,
+					0,	y,	0,	0,
+					0,	0,	z,	0,
+					0,	0,	0,	1
+				);
+			}
+			mat4 transl(float x,float y,float z){
+				return mat4(
+					1,	0,	0,	0,
+					0,	1,	0,	0,
+					0,	0,	1,	0,
+					x,	y,	z,	1
+				);
+			}
+			mat4 frustrum(float left, float right,float bottom,float top, float near,float far){
+				float x = 2.*near/(right-left);
+				float y = 2.*near/(top-bottom);
+				
+				float a = (right+left)/(right-left);
+				float b = (top+bottom)/(top-bottom);
+				float c = -(far+near)/(far-near);
+				float d = - 2.*far*near/(far-near);
+				
+				return mat4(
+					x,	0,	0,	0,
+					0,	y,	0,	0,
+					a,	b,	c, -1,
+					0,	0,  d,	0
+				);
+			}
+			mat4 perspective(float fov,float aspect,float near,float far){
+				const float PI = 3.14159265359;
+				float ymax = near * tan(fov *PI / 360.);
+				float ymin = -ymax;
+				float xmin = ymin * aspect;
+				float xmax = ymax * aspect;
+
+				return frustrum(
+					xmin,
+					xmax,
+					ymin,
+					ymax,
+					near,
+					far
+				);
+			}
+			mat4 identity(){
+				return mat4(
+					1,0,0,0,
+					0,1,0,0,
+					0,0,1,0,
+					0,0,0,1
+				);
+			}
+			mat4 inverse(mat4 M){
+				float n11=M[0][0];float n21=M[1][0];float n31=M[2][0];float n41=M[3][0];
+				float n12=M[0][1];float n22=M[1][1];float n32=M[2][1];float n42=M[3][1];
+				float n13=M[0][2];float n23=M[1][2];float n33=M[2][2];float n43=M[3][2];
+				float n14=M[0][3];float n24=M[1][3];float n34=M[2][3];float n44=M[3][3];
+
+				M[0][0]	= n23 * n34 * n42 - n24 * n33 * n42 + n24 * n32 * n43 
+						- n22 * n34 * n43 - n23 * n32 * n44 + n22 * n33 * n44;
+				M[0][1]	= n14 * n33 * n42 - n13 * n34 * n42 - n14 * n32 * n43 
+						+ n12 * n34 * n43 + n13 * n32 * n44 - n12 * n33 * n44;
+				M[0][2]	= n13 * n24 * n42 - n14 * n23 * n42 + n14 * n22 * n43 
+						- n12 * n24 * n43 - n13 * n22 * n44 + n12 * n23 * n44;
+				M[0][3]	= n14 * n23 * n32 - n13 * n24 * n32 - n14 * n22 * n33 
+						+ n12 * n24 * n33 + n13 * n22 * n34 - n12 * n23 * n34;
+				M[1][0]	= n24 * n33 * n41 - n23 * n34 * n41 - n24 * n31 * n43 
+						+ n21 * n34 * n43 + n23 * n31 * n44 - n21 * n33 * n44;
+				M[1][1]	= n13 * n34 * n41 - n14 * n33 * n41 + n14 * n31 * n43 
+						- n11 * n34 * n43 - n13 * n31 * n44 + n11 * n33 * n44;
+				M[1][2]	= n14 * n23 * n41 - n13 * n24 * n41 - n14 * n21 * n43 
+						+ n11 * n24 * n43 + n13 * n21 * n44 - n11 * n23 * n44;
+				M[1][3]	= n13 * n24 * n31 - n14 * n23 * n31 + n14 * n21 * n33 
+						- n11 * n24 * n33 - n13 * n21 * n34 + n11 * n23 * n34;
+				M[2][0]	= n22 * n34 * n41 - n24 * n32 * n41 + n24 * n31 * n42 
+						- n21 * n34 * n42 - n22 * n31 * n44 + n21 * n32 * n44;
+				M[2][1]	= n14 * n32 * n41 - n12 * n34 * n41 - n14 * n31 * n42 
+						+ n11 * n34 * n42 + n12 * n31 * n44 - n11 * n32 * n44;
+				M[2][2]	= n12 * n24 * n41 - n14 * n22 * n41 + n14 * n21 * n42 
+						- n11 * n24 * n42 - n12 * n21 * n44 + n11 * n22 * n44;
+				M[2][3]	= n14 * n22 * n31 - n12 * n24 * n31 - n14 * n21 * n32 
+						+ n11 * n24 * n32 + n12 * n21 * n34 - n11 * n22 * n34;
+				M[3][0]	= n23 * n32 * n41 - n22 * n33 * n41 - n23 * n31 * n42 
+						+ n21 * n33 * n42 + n22 * n31 * n43 - n21 * n32 * n43;
+				M[3][1]	= n12 * n33 * n41 - n13 * n32 * n41 + n13 * n31 * n42 
+						- n11 * n33 * n42 - n12 * n31 * n43 + n11 * n32 * n43;
+				M[3][2]	= n13 * n22 * n41 - n12 * n23 * n41 - n13 * n21 * n42 
+						+ n11 * n23 * n42 + n12 * n21 * n43 - n11 * n22 * n43;
+				M[3][3]	= n12 * n23 * n31 - n13 * n22 * n31 + n13 * n21 * n32 
+						- n11 * n23 * n32 - n12 * n21 * n33 + n11 * n22 * n33;
+				float det = n11 * M[0][0] + n21 * M[0][1] + n31 * M[0][2] + n41 * M[0][3];
+				if(det == 0.){
+					return identity();
+				}
+				else{
+					return M * (1./det);
+				}
+			}
+		</script>
+		
+		<gl-context loop depth quality="2" resolution='["width","height"]'>
+			<gl-program>
+				<gl-shader vertex includes="#precision;#attributes;#uniforms;#matrixMath" id="vstest" code="
+					varying vec2 texCoords;
+					
+
+
+					void main(void){
+						mat4 view =
+						rotationX(sin(frames*.01)*2.) * 
+						rotationY(cos(frames*.01)*2.) *
+						transl(mouse.x*100.-50., mouse.y*100.-50.,150.) *
+						identity();
+						gl_Position = id_perspective*id_model*inverse(view)*vec4(id_fsq_v.xyz,1.);
+						texCoords = id_fsq_vt;
+					}
+				"></gl-shader>
+				<gl-shader fragment includes="#precision;#sample;#uniforms" code="
+					
+					void main(void){
+						vec2 uv = texCoords;
+						vec2 sp = gl_FragCoord.xy/resolution;
+						//gl_FragColor = texture2D(id_cat,uv)*vec4(sp.x,sp.y,sp.x*sp.y,1.);
+						
+						gl_FragColor = 1.-(
+							(1.-texture2D(id_cat,uv))
+							*
+							(1.-vec4(sp.x,sp.y,sp.x*sp.y,1.))
+						);
+						
+					}
+				"></gl-shader>
+			</gl-program>
+		</gl-context>
+		<!--/element-inspector-->
+	</body>
+</html>
+<!-- 
+	<gl-framebuffer id="framebuffer">
+		<gl-texture></gl-texture>
+		<gl-program depth>
+			<gl-shader vertex includes="#precision;#attributes" code="
+				varying vec2 texCoords;
+				
+				void main(void){
+					gl_Position = id_fsq_v;
+					texCoords = id_fsq_vt;
+				}
+			"></gl-shader>
+			<gl-shader fragment includes="#precision;#sample;#uniforms;#dist" code="
+				uniform mat4 id_matrix;
+				void main(void){
+					vec2 p = gl_FragCoord.xy / resolution.xy - (vec4(mouse,0,0)*id_matrix).xy;
+					p.x *= resolution.x / resolution.y;
+					float a = atan(p.y, p.x);
+					float r = length(p) + 0.0001;
+
+					float b = 1.9 * sin(8.0 * r - 2.0 * a);
+					b = 0.3125 / r + cos(7.0 * a + b * b) / (100.0 * r);
+					b *= smoothstep(0.0, 0.4, b);
+
+					gl_FragColor = vec4(b * .3, .3 * b + 0.2 * sin(a), b * 0.5, 1.0);
+				}
+			"></gl-shader>
+		</gl-program>
+	</gl-framebuffer>
+	<gl-vertexbuffer id="pos" size="2" data="[
+		-1,-1, 
+		 1,-1, 
+		-1, 1,
+		-1, 1, 
+		 1,-1, 
+		 1, 1
+	]"></gl-vertexbuffer>
+	<gl-vertexbuffer id="color" size="4" data="[
+		1,1,1,1,
+        0,1,0,1,
+        1,0,1,1,
+        1,0,1,1,
+        0,1,0,1,
+        0,0,0,1
+	]"></gl-vertexbuffer> 
+-->
