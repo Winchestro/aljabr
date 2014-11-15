@@ -24,36 +24,55 @@ You can use the elements in pure HTML, without the need to write a single line o
 
 Tier 1 elements are low level wrappers for WebGL objects. All T1 elements need to be initialized with the WebGLRenderingContext they are intended to be used with before any methods on them are invoked or states retrieved. You only need to do this if you want to use them individually with JS.
 
-##gl-context (constructor: glContext) (extends: gl-rendertarget)
+##gl-context 
+###constructor: glContext
+###extends: gl-rendertarget
 
-##gl-framebuffer (constructor: glFramebuffer) (extends: gl-rendertarget)
+##gl-framebuffer
+###constructor: glFramebuffer
+###extends: gl-rendertarget
 
-##gl-rendertarget Interface (extend:s gl-element)
+##gl-rendertarget 
+###Interface 
+###extend:s gl-element
 
-##gl-texture (constructor: glTexture) (extends: gl-element)
+##gl-texture 
+###constructor: glTexture
+###extends: gl-element
 
-##gl-program (constructor: glProgram) (extends: gl-element)
+##gl-program 
+###constructor: glProgram
+###extends: gl-element
 
-##gl-shader (constructor: glShader) (extends:gl-element)
+##gl-shader 
+###constructor: glShader
+###extends:gl-element
 
-##gl-vertexbuffer (constructor: glVertexbuffer) (extends: gl-element)
+##gl-vertexbuffer 
+###constructor: glVertexbuffer
+###extends: gl-element
 
-##gl-renderbuffer (todo)
+##gl-renderbuffer 
+###(todo)
 
-##gl-element Interface (todo)
+##gl-element 
+###Interface 
+###(todo)
 
 
 #Tier 2 Elements Reference
 
 Tier 2 elements either wrap T1 elements for higher levels of abstraction or express other useful concepts and perform calculations. The T2 layer corresponds to concepts found in many other 3d libraries.
 
-##gl-matrix (constructor: glMatrix)
-
+##gl-matrix 
+###constructor: glMatrix
 ###extends: gl-vector
 
-##gl-vector (todo)
+##gl-vector 
+###(todo)
 
-##gl-geometry (constructor: glGeometry)
+##gl-geometry 
+###constructor: glGeometry
 
 
 #Tier 3 Elements (todo)
