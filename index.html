@@ -5,6 +5,8 @@
 		<title>element-inspector Demo</title>
 
 		<script src="../platform/platform.js"></script>
+		<link rel="import" href="../polymer/polymer.html">
+
 		<!--link rel="import" href="element-inspector.html"-->
 		<link rel="import" href="gl-elements.html">
 	</head>
@@ -13,7 +15,7 @@
 		<gl-matrix id="perspective" perspective="90 1 200"></gl-matrix>
 		<gl-matrix id="model" translate="0 0 100"></gl-matrix>
 		<gl-matrix id="view" inverse rotateX="10"></gl-matrix>
-		<gl-geometry id="fsq" src="../gl-mesh/cube.obj"></gl-geometry>
+		<gl-geometry id="fsq" src="cube.obj"></gl-geometry>
 
 		<script src id="precision">
 			#ifdef GL_ES
