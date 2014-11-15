@@ -1,0 +1,886 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="gl-program.html">
+<link rel="import" href="gl-rendertarget.html">
+
+<polymer-element name="gl-context" extends="gl-rendertarget">
+<template>
+	<style>
+		:host{
+			display: block;
+			position:absolute;
+			top:0;
+			bottom:0;
+			left:0;
+			right:0;
+		}
+		canvas{
+			all:inherit;
+			visibility: visible;
+			background:grey;
+			width:100%;
+			height:100%;
+		}
+	</style>
+	<canvas id="canvas" width="{{width / quality}}" height="{{height / quality}}"></canvas>
+</template>
+<script>Polymer(function static(){
+	"use strict;"
+	const GL = WebGLRenderingContext.prototype;
+	const BINDINGS = {
+		lineWidth:{
+			value:function(width){
+				this.gl.lineWidth(width);
+				return this;
+			}
+		},
+		pixelStorei:{
+			value:function(pname,param){
+				this.gl.pixelStorei(pname,param);
+				return this;
+			}
+		},
+		polygonOffset:{
+			value:function(factor,units){
+				this.gl.polygonOffset(factor,units);
+				return this;
+			}
+		},
+		sampleCoverage:{
+			value:function(value,invert){
+				this.gl.sampleCoverage(value,invert);
+				return this;
+			}
+		},
+		enable:{
+			value:function(cap){
+				this.gl.enable(cap);
+				return this;
+			}
+		},
+		disable:{
+			value:function(cap){
+				this.gl.disable(cap);
+				return this;
+			}
+		},
+		depthFunc:{
+			value:function(func){
+				this.gl.depthFunc(func);
+				return this;
+			}
+		},
+		depthMask:{
+			value:function(flag){
+				this.gl.depthMask(flag);
+				return this;
+			}
+		},
+		depthRange:{
+			value:function(zNear,zFar){
+				this.gl.depthRange(zNear,zFar);
+				return this;
+			}
+		},
+		
+		stencilFunc:{
+			value:function(func,ref,mask){
+				this.gl.stencilFunc(func,ref,mask);
+				return this;
+			}
+		},
+		stencilFuncSeparate:{
+			value:function(face,func,ref,mask){
+				this.gl.stencilFuncSeparate(face,func,ref,mask);
+				return this;
+			}
+		},
+		stencilMask:{
+			value:function(mask){
+				this.gl.stencilMask(mask);
+				return this;
+			}
+		},
+		stencilMaskSeparate:{
+			value:function(face,mask){
+				this.gl.stencilMaskSeparate(face,mask);
+				return this;
+			}
+		},
+		stencilOp:{
+			value:function(fail,zfail,zpass){
+				this.gl.stencilOp(fail,zfail,zpass);
+				return this;
+			}
+		},
+		stencilOpSeparate:{
+			value:function(face,fail,zfail,zpass){
+				this.gl.stencilOpSeparate(face,fail,zfail,zpass);
+				return this;
+			}
+		},
+		
+		blendFunc:{
+			value:function(sfactor,dfactor){
+				this.gl.blendFunc(sfactor,dfactor);
+				return this;
+			}
+		},
+		blendFuncSeparate:{
+			value:function(srcRGB,dstRGB,srcAlpha,dstAlpha){
+				this.gl.blendFuncSeparate(srcRGB,dstRGB,srcAlpha,dstAlpha);
+				return this;
+			}
+		},
+		blendEquation:{
+			value:function(mode){
+				this.gl.blendEquation(mode);
+				return this;
+			}
+		},
+		blendEquationSeparate:{
+			value:function(modeRGB,modeAlpha){
+				this.gl.blendEquationSeparate(modeRGB,modeAlpha);
+				return this;
+			}
+		},
+		blendColor:{
+			value:function(r,g,b,a){
+				this.gl.blendColor(r,g,b,a);
+				return this;
+			}
+		},
+		
+		
+		scissor:{
+			value:function(x,y,width,height){
+				this.gl.scissor(x,y,width,height);
+				return this;
+			}
+		},
+		frontFace:{
+			value:function(mode){
+				this.gl.frontFace(mode);
+				return this;
+			}
+		},
+		
+		colorMask:{
+			value:function(red,green,blue,alpha){
+				this.gl.colorMask(red,green,blue,alpha);
+				return this;
+			}
+		},
+		cullFace:{
+			value:function(mode){
+				this.gl.cullFace(mode);
+				return this;
+			}
+		},
+		
+		hint:{
+			value:function(target,mode){
+				this.gl.hint(target,mode);
+				return this;
+			}
+		},
+		getExtension:{
+			value:function(name){
+				return this.gl.getExtension(name);
+			}
+		}
+	};
+	const STATES = {
+		$ACTIVE_TEXTURE:{
+			get:function(){
+				return this.gl.getParameter(GL.ACTIVE_TEXTURE);
+			}
+		},
+		$ALIASED_LINE_WIDTH_RANGE:{
+			get:function(){
+				return this.gl.getParameter(GL.ALIASED_LINE_WIDTH_RANGE);
+			}
+		},
+		$ALIASED_POINT_SIZE_RANGE:{
+			get:function(){
+				return this.gl.getParameter(GL.ALIASED_POINT_SIZE_RANGE);
+			}
+		},
+		$ALPHA_BITS:{
+			get:function(){
+				return this.gl.getParameter(GL.ALPHA_BITS);
+			}
+		},
+		$ARRAY_BUFFER_BINDING:{
+			get:function(){
+				return this.gl.getParameter(GL.ARRAY_BUFFER_BINDING);
+			}
+		},
+		$BLEND:{
+			get:function(){
+				return this.gl.getParameter(GL.BLEND);
+			}
+		},
+		$BLEND_COLOR:{
+			get:function(){
+				return this.gl.getParameter(GL.BLEND_COLOR);
+			}
+		},
+		$BLEND_DST_ALPHA:{
+			get:function(){
+				return this.gl.getParameter(GL.BLEND_DST_ALPHA);
+			}
+		},
+		$BLEND_DST_RGB:{
+			get:function(){
+				return this.gl.getParameter(GL.BLEND_DST_RGB);
+			}
+		},
+		$BLEND_EQUATION_ALPHA:{
+			get:function(){
+				return this.gl.getParameter(GL.BLEND_EQUATION_ALPHA);
+			}
+		},
+		$BLEND_EQUATION_RGB:{
+			get:function(){
+				return this.gl.getParameter(GL.BLEND_EQUATION_RGB);
+			}
+		},
+		$BLEND_SRC_ALPHA:{
+			get:function(){
+				return this.gl.getParameter(GL.BLEND_SRC_ALPHA);
+			}
+		},
+		$BLEND_SRC_RGB:{
+			get:function(){
+				return this.gl.getParameter(GL.BLEND_SRC_RGB);
+			}
+		},
+		$BLUE_BITS:{
+			get:function(){
+				return this.gl.getParameter(GL.BLUE_BITS);
+			}
+		},
+		$COLOR_CLEAR_VALUE:{
+			get:function(){
+				return this.gl.getParameter(GL.COLOR_CLEAR_VALUE);
+			}
+		},
+		$COLOR_WRITEMASK:{
+			get:function(){
+				return this.gl.getParameter(GL.COLOR_WRITEMASK);
+			}
+		},
+		$COMPRESSED_TEXTURE_FORMATS:{
+			get:function(){
+				return this.gl.getParameter(GL.COMPRESSED_TEXTURE_FORMATS);
+			}
+		},
+		$CULL_FACE:{
+			get:function(){
+				return this.gl.getParameter(GL.CULL_FACE);
+			}
+		},
+		$CULL_FACE_MODE:{
+			get:function(){
+				return this.gl.getParameter(GL.CULL_FACE_MODE);
+			}
+		},
+		$CURRENT_PROGRAM:{
+			get:function(){
+				return this.gl.getParameter(GL.CURRENT_PROGRAM);
+			}
+		},
+		$DEPTH_BITS:{
+			get:function(){
+				return this.gl.getParameter(GL.DEPTH_BITS);
+			}
+		},
+		$DEPTH_CLEAR_VALUE:{
+			get:function(){
+				return this.gl.getParameter(GL.DEPTH_CLEAR_VALUE);
+			}
+		},
+		$DEPTH_FUNC:{
+			get:function(){
+				return this.gl.getParameter(GL.DEPTH_FUNC);
+			}
+		},
+		$DEPTH_RANGE:{
+			get:function(){
+				return this.gl.getParameter(GL.DEPTH_RANGE);
+			}
+		},
+		$DEPTH_TEST:{
+			get:function(){
+				return this.gl.getParameter(GL.DEPTH_TEST);
+			}
+		},
+		$DEPTH_WRITEMASK:{
+			get:function(){
+				return this.gl.getParameter(GL.DEPTH_WRITEMASK);
+			}
+		},
+		$DITHER:{
+			get:function(){
+				return this.gl.getParameter(GL.DITHER);
+			}
+		},
+		$ELEMENT_ARRAY_BUFFER_BINDING:{
+			get:function(){
+				return this.gl.getParameter(GL.ELEMENT_ARRAY_BUFFER_BINDING);
+			}
+		},
+		$FRAMEBUFFER_BINDING:{
+			get:function(){
+				return this.gl.getParameter(GL.FRAMEBUFFER_BINDING);
+			}
+		},
+		$FRONT_FACE:{
+			get:function(){
+				return this.gl.getParameter(GL.FRONT_FACE);
+			}
+		},
+		$GENERATE_MIPMAP_HINT:{
+			get:function(){
+				return this.gl.getParameter(GL.GENERATE_MIPMAP_HINT);
+			}
+		},
+		$GREEN_BITS:{
+			get:function(){
+				return this.gl.getParameter(GL.GREEN_BITS);
+			}
+		},
+		$LINE_WIDTH:{
+			get:function(){
+				return this.gl.getParameter(GL.LINE_WIDTH);
+			}
+		},
+		$MAX_COMBINED_TEXTURE_IMAGE_UNITS:{
+			get:function(){
+				return this.gl.getParameter(GL.MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+			}
+		},
+		$MAX_CUBE_MAP_TEXTURE_SIZE:{
+			get:function(){
+				return this.gl.getParameter(GL.MAX_CUBE_MAP_TEXTURE_SIZE);
+			}
+		},
+		$MAX_FRAGMENT_UNIFORM_VECTORS:{
+			get:function(){
+				return this.gl.getParameter(GL.MAX_FRAGMENT_UNIFORM_VECTORS);
+			}
+		},
+		$MAX_RENDERBUFFER_SIZE:{
+			get:function(){
+				return this.gl.getParameter(GL.MAX_RENDERBUFFER_SIZE);
+			}
+		},
+		$MAX_TEXTURE_IMAGE_UNITS:{
+			get:function(){
+				return this.gl.getParameter(GL.MAX_TEXTURE_IMAGE_UNITS);
+			}
+		},
+		$MAX_TEXTURE_SIZE:{
+			get:function(){
+				return this.gl.getParameter(GL.MAX_TEXTURE_SIZE);
+			}
+		},
+		$MAX_VARYING_VECTORS:{
+			get:function(){
+				return this.gl.getParameter(GL.MAX_VARYING_VECTORS);
+			}
+		},
+		$MAX_VERTEX_ATTRIBS:{
+			get:function(){
+				return this.gl.getParameter(GL.MAX_VERTEX_ATTRIBS);
+			}
+		},
+		$MAX_VERTEX_TEXTURE_IMAGE_UNITS:{
+			get:function(){
+				return this.gl.getParameter(GL.MAX_VERTEX_TEXTURE_IMAGE_UNITS);
+			}
+		},
+		$MAX_VERTEX_UNIFORM_VECTORS:{
+			get:function(){
+				return this.gl.getParameter(GL.MAX_VERTEX_UNIFORM_VECTORS);
+			}
+		},
+		$MAX_VIEWPORT_DIMS:{
+			get:function(){
+				return this.gl.getParameter(GL.MAX_VIEWPORT_DIMS);
+			}
+		},
+		$PACK_ALIGNMENT:{
+			get:function(){
+				return this.gl.getParameter(GL.PACK_ALIGNMENT);
+			}
+		},
+		$POLYGON_OFFSET_FACTOR:{
+			get:function(){
+				return this.gl.getParameter(GL.POLYGON_OFFSET_FACTOR);
+			}
+		},
+		$POLYGON_OFFSET_FILL:{
+			get:function(){
+				return this.gl.getParameter(GL.POLYGON_OFFSET_FILL);
+			}
+		},
+		$POLYGON_OFFSET_UNITS:{
+			get:function(){
+				return this.gl.getParameter(GL.POLYGON_OFFSET_UNITS);
+			}
+		},
+		$RED_BITS:{
+			get:function(){
+				return this.gl.getParameter(GL.RED_BITS);
+			}
+		},
+		$RENDERBUFFER_BINDING:{
+			get:function(){
+				return this.gl.getParameter(GL.RENDERBUFFER_BINDING);
+			}
+		},
+		$RENDERER:{
+			get:function(){
+				return this.gl.getParameter(GL.RENDERER);
+			}
+		},
+		$SAMPLE_BUFFERS:{
+			get:function(){
+				return this.gl.getParameter(GL.SAMPLE_BUFFERS);
+			}
+		},
+		$SAMPLE_COVERAGE_INVERT:{
+			get:function(){
+				return this.gl.getParameter(GL.SAMPLE_COVERAGE_INVERT);
+			}
+		},
+		$SAMPLE_COVERAGE_VALUE:{
+			get:function(){
+				return this.gl.getParameter(GL.SAMPLE_COVERAGE_VALUE);
+			}
+		},
+		$SAMPLES:{
+			get:function(){
+				return this.gl.getParameter(GL.SAMPLES);
+			}
+		},
+		$SCISSOR_BOX:{
+			get:function(){
+				return this.gl.getParameter(GL.SCISSOR_BOX);
+			}
+		},
+		$SCISSOR_TEST:{
+			get:function(){
+				return this.gl.getParameter(GL.SCISSOR_TEST);
+			}
+		},
+		$SHADING_LANGUAGE_VERSION:{
+			get:function(){
+				return this.gl.getParameter(GL.SHADING_LANGUAGE_VERSION);
+			}
+		},
+		$STENCIL_BACK_FAIL:{
+			get:function(){
+				return this.gl.getParameter(GL.STENCIL_BACK_FAIL);
+			}
+		},
+		$STENCIL_BACK_FUNC:{
+			get:function(){
+				return this.gl.getParameter(GL.STENCIL_BACK_FUNC);
+			}
+		},
+		$STENCIL_BACK_PASS_DEPTH_FAIL:{
+			get:function(){
+				return this.gl.getParameter(GL.STENCIL_BACK_PASS_DEPTH_FAIL);
+			}
+		},
+		$STENCIL_BACK_PASS_DEPTH_PASS:{
+			get:function(){
+				return this.gl.getParameter(GL.STENCIL_BACK_PASS_DEPTH_PASS);
+			}
+		},
+		$STENCIL_BACK_REF:{
+			get:function(){
+				return this.gl.getParameter(GL.STENCIL_BACK_REF);
+			}
+		},
+		$STENCIL_BACK_VALUE_MASK:{
+			get:function(){
+				return this.gl.getParameter(GL.STENCIL_BACK_VALUE_MASK);
+			}
+		},
+		$STENCIL_BACK_WRITEMASK:{
+			get:function(){
+				return this.gl.getParameter(GL.STENCIL_BACK_WRITEMASK);
+			}
+		},
+		$STENCIL_BITS:{
+			get:function(){
+				return this.gl.getParameter(GL.STENCIL_BITS);
+			}
+		},
+		$STENCIL_CLEAR_VALUE:{
+			get:function(){
+				return this.gl.getParameter(GL.STENCIL_CLEAR_VALUE);
+			}
+		},
+		$STENCIL_FAIL:{
+			get:function(){
+				return this.gl.getParameter(GL.STENCIL_FAIL);
+			}
+		},
+		$STENCIL_FUNC:{
+			get:function(){
+				return this.gl.getParameter(GL.STENCIL_FUNC);
+			}
+		},
+		$STENCIL_PASS_DEPTH_FAIL:{
+			get:function(){
+				return this.gl.getParameter(GL.STENCIL_PASS_DEPTH_FAIL);
+			}
+		},
+		$STENCIL_PASS_DEPTH_PASS:{
+			get:function(){
+				return this.gl.getParameter(GL.STENCIL_PASS_DEPTH_PASS);
+			}
+		},
+		$STENCIL_REF:{
+			get:function(){
+				return this.gl.getParameter(GL.STENCIL_REF);
+			}
+		},
+		$STENCIL_TEST:{
+			get:function(){
+				return this.gl.getParameter(GL.STENCIL_TEST);
+			}
+		},
+		$STENCIL_VALUE_MASK:{
+			get:function(){
+				return this.gl.getParameter(GL.STENCIL_VALUE_MASK);
+			}
+		},
+		$STENCIL_WRITEMASK:{
+			get:function(){
+				return this.gl.getParameter(GL.STENCIL_WRITEMASK);
+			}
+		},
+		$SUBPIXEL_BITS:{
+			get:function(){
+				return this.gl.getParameter(GL.SUBPIXEL_BITS);
+			}
+		},
+		$TEXTURE_BINDING_2D:{
+			get:function(){
+				return this.gl.getParameter(GL.TEXTURE_BINDING_2D);
+			}
+		},
+		$TEXTURE_BINDING_CUBE_MAP:{
+			get:function(){
+				return this.gl.getParameter(GL.TEXTURE_BINDING_CUBE_MAP);
+			}
+		},
+		$UNPACK_ALIGNMENT:{
+			get:function(){
+				return this.gl.getParameter(GL.UNPACK_ALIGNMENT);
+			}
+		},
+		$UNPACK_COLORSPACE_CONVERSION_WEBGL:{
+			get:function(){
+				return this.gl.getParameter(GL.UNPACK_COLORSPACE_CONVERSION_WEBGL);
+			}
+		},
+		$UNPACK_FLIP_Y_WEBGL:{
+			get:function(){
+				return this.gl.getParameter(GL.UNPACK_FLIP_Y_WEBGL);
+			}
+		},
+		$UNPACK_PREMULTIPLY_ALPHA_WEBGL:{
+			get:function(){
+				return this.gl.getParameter(GL.UNPACK_PREMULTIPLY_ALPHA_WEBGL);
+			}
+		},
+		$VENDOR:{
+			get:function(){
+				return this.gl.getParameter(GL.VENDOR);
+			}
+		},
+		$VERSION:{
+			get:function(){
+				return this.gl.getParameter(GL.VERSION);
+			}
+		},
+		$VIEWPORT:{
+			get:function(){
+				return this.gl.getParameter(GL.VIEWPORT);
+			}
+		}
+	};
+	const ACCESSORS = {
+		$canvasContext:{
+			get:function(){
+				var options = {
+					alpha:typeof this.alpha === "string",
+					depth:typeof this.depth === "string",
+					stencil:typeof this.stencil === "string",
+					antialias:this.antialias,
+					premultipliedAlpha:this.premultipliedAlpha,
+					preserveDrawingBuffer:this.preserveDrawingBuffer
+				};
+				return this.$.canvas.getContext("webgl",options)||
+				this.$.canvas.getContext("experimental-webgl",options);
+			}
+		},
+		$CSSContext:{
+			get:function(){
+				var options = {
+					alpha:this.alpha,
+					depth:this.depth,
+					stencil:this.stencil,
+					antialias:this.antialias,
+					premultipliedAlpha:this.premultipliedAlpha,
+					preserveDrawingBuffer:this.preserveDrawingBuffer
+				};
+				return document.getCSSCanvasContext(
+					'webgl',
+					this.cssid,
+					this.w/this.quality,
+					this.h/this.quality,
+					options
+				)||document.getCSSCanvasContext(
+					'experimental-webgl',
+					this.cssid,
+					this.w/this.quality,
+					this.h/this.quality,
+					options
+				);
+			}
+		},
+		$supportedExtensions:{
+			get:function(){
+				return this.gl.getSupportedExtensions();
+			}
+		},
+	};
+	const FACTORIES = {
+		createProgram:{
+			value:function(){
+				var p = new glProgram();
+				p.gl = this.gl;
+				return p;
+			}
+		},
+	};
+	const METHODS = {
+		updateContext:{
+			value:function(){
+				this.gl=this.$canvasContext;
+				return this.gl;
+			}
+		},
+	};
+	const PROTOTYPE = {
+		publish:{
+			width:document.documentElement.clientWidth,
+			height:document.documentElement.clientHeight,
+			quality:1,
+			
+			alpha:null,
+			depth:null,
+			stencil:null,
+
+			cullface:null,
+			polygonoffset:null,
+			samplecoverage:null,
+			
+			antialias:false,
+			premultipliedAlpha:false,
+			preserveDrawingBuffer:false,
+
+			loop:false,
+			gui:false,
+		},
+		observe:{
+			quality:"dimensionsUpdated",
+			width:"dimensionsUpdated",
+			height:"dimensionsUpdated"
+		},
+		toArgs:function(attr){
+			return attr && attr.split(",") || [];
+		},
+		toEnum:function(flag){
+			if(flag !== null && !(flag in this.gl))console.warn(flag+" not found");
+			else return this.gl[flag];
+		},
+		guiChanged:function(o,n){
+			const CTX = this;
+			var gui = this.$.gui
+			if(n)Polymer.import([
+				"../gl-context/gl-context-gui.html"
+			],function(){
+				if(!gui){
+					gui = CTX.$.gui = new glContextGUI;
+					gui.instance = CTX;
+					gui.options = PROTOTYPE.options;
+				}
+				CTX.shadowRoot.appendChild(gui);
+			});
+			else gui.remove();
+		},
+		depthChanged:function(o,n){
+			if(!this.gl)return;
+			
+			const ARGS = this.toArgs(n);
+
+			if(typeof this.depth ==="string")this.enable(GL.DEPTH_TEST).depthFunc(
+				this.toEnum(ARGS[0]||"LEQUAL")
+			).depthRange(
+				Number(ARGS[1])||0,
+				Number(ARGS[2])||1
+			);
+			else this.disable(GL.DEPTH_TEST);
+			if(this.render)this.render();
+			return this;
+		},
+		alphaChanged:function(o,n){
+			if(!this.gl)return;
+			//console.log(n);
+			const ARGS = this.toArgs(n);
+			if(typeof this.alpha === "string")this.enable(GL.BLEND).blendFunc(
+				/*	
+					ZERO
+					ONE
+					SRC_COLOR
+					ONE_MINUS_SRC_COLOR
+					DST_COLOR
+					ONE_MINUS_DST_COLOR
+					SRC_ALPHA
+					ONE_MINUS_SRC_ALPHA
+					DST_ALPHA
+					ONE_MINUS_DST_ALPHA
+					CONSTANT_COLOR
+					ONE_MINUS_CONSTANT_COLOR
+					CONSTANT_ALPHA
+					ONE_MINUS_CONSTANT_ALPHA
+					SRC_ALPHA_SATURATE
+				*/
+				this.toEnum(ARGS[0]||"SRC_ALPHA"),
+				/*
+					ZERO
+					ONE
+					SRC_COLOR
+					ONE_MINUS_SRC_COLOR
+					DST_COLOR
+					ONE_MINUS_DST_COLOR
+					SRC_ALPHA
+					ONE_MINUS_SRC_ALPHA
+					DST_ALPHA
+					ONE_MINUS_DST_ALPHA
+					CONSTANT_COLOR
+					ONE_MINUS_CONSTANT_COLOR
+					CONSTANT_ALPHA
+					ONE_MINUS_CONSTANT_ALPHA
+				*/
+				this.toEnum(ARGS[1]||"ONE_MINUS_SRC_ALPHA")
+			).blendEquation(
+				/*
+					FUNC_ADD
+					FUNC_SUBTRACT
+					FUNC_REVERSE_SUBTRACT
+				*/
+				this.toEnum(ARGS[2]||"FUNC_ADD") 
+			).blendColor(
+				Number(ARGS[3])||0,
+				Number(ARGS[4])||0,
+				Number(ARGS[5])||0,
+				Number(ARGS[6])||0
+			);
+			else this.disable(GL.BLEND);
+			if(this.render)this.render();
+			return this;
+		},
+		cullfaceChanged:function(o,n){
+			if(!this.gl)return;
+
+			const ARGS = this.toArgs(n);
+
+			if(typeof this.cullface === "string")this.enable(GL.CULL_FACE).cullFace(
+				/*
+					FRONT
+					BACK
+					FRONT_AND_BACK
+				*/
+				this.toEnum(ARGS[0]||"BACK")
+			).frontFace(
+				/* https://www.khronos.org/opengles/sdk/docs/man/xhtml/glFrontFace.xml
+					CW
+					CCW
+				*/
+				this.toEnum(ARGS[1]||"CCW")
+			);
+			else this.disable(GL.CULL_FACE);
+			if(this.render)this.render();
+			return this;
+		},
+		redraw:function(){
+			const $ = this;
+			if($.render)loop();
+			else console.warn("not ready to render");
+			function loop(){
+				//console.count("frames");
+				if($.loop)requestAnimationFrame(loop);
+				$.frames++;
+				$.time = Date.now() - $.startTime;
+				$.render();
+			}	
+		},
+		dimensionsUpdated:function(o,n){
+			this.gl = this.updateContext();
+		},
+		created:function(){
+			this.mouse = [0,0];
+			this.startTime = Date.now();
+			this.frames = 0;
+		},
+		ready:function(){
+			this.updateContext();
+			
+			
+			["depth","alpha","cullface"].forEach(function(e){
+				this[e+"Changed"](null,this[e]);
+			},this);
+		},
+		domReady:function(){
+			const CTX = this;
+			this.setupRendertarget(0,0,this.$width/this.quality,this.$height/this.quality).then(function(render){
+				CTX.render = render;
+				CTX.redraw();
+			})
+		},
+		attached:function(){
+			this.addEventListener("mousemove",mouseHandler);
+		},
+		detached:function(){
+			this.removeEventListener("mousemove",mouseHandler);
+		},
+	};
+	Object.defineProperties(PROTOTYPE,BINDINGS);
+	Object.defineProperties(PROTOTYPE,STATES);
+	Object.defineProperties(PROTOTYPE,ACCESSORS);
+	Object.defineProperties(PROTOTYPE,FACTORIES);
+	Object.defineProperties(PROTOTYPE,METHODS);
+	
+	return PROTOTYPE;
+	function mouseHandler(e){
+		this.mouse[0] = e.clientX/this.$width;
+		this.mouse[1] = 1.-e.clientY/this.$height;
+		
+		if(this.render && !this.loop){
+			this.render();
+		}
+	}
+}());
+/* 
+	
+*/</script>
+</polymer-element>
