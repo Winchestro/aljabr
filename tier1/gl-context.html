@@ -678,6 +678,214 @@
 			}
 		},
 	};
+	const OBSERVERS = {
+		guiChanged:{
+			value:function(o,n){
+				const CTX = this;
+				var gui = this.$.gui
+				if(n)Polymer.import([
+					"../gl-context/gl-context-gui.html"
+				],function(){
+					if(!gui){
+						gui = CTX.$.gui = new glContextGUI;
+						gui.instance = CTX;
+						gui.options = PROTOTYPE.options;
+					}
+					CTX.shadowRoot.appendChild(gui);
+				});
+				else gui.remove();
+			}
+		},
+		dimensionsUpdated:{
+			value:function(o,n){
+				this.gl = this.updateContext();
+			}
+		},
+		depthChanged:{
+			value:function(o,n){
+				if(!this.gl)return;
+				
+				const ARGS = this.attrToArgs(n);
+
+				if(typeof this.depth ==="string")this.enable(GL.DEPTH_TEST).depthFunc(
+					this.lookupFlag(ARGS[0]||"LEQUAL")
+				).depthRange(
+					Number(ARGS[1])||0,
+					Number(ARGS[2])||1
+				);
+				else this.disable(GL.DEPTH_TEST);
+				if(this.render)this.render();
+				return this;
+			}
+		},
+		alphaChanged:{
+			value:function(o,n){
+				if(!this.gl)return;
+				//console.log(n);
+				const ARGS = this.attrToArgs(n);
+				if(typeof this.alpha === "string")this.enable(GL.BLEND).blendFunc(
+					/*	
+						ZERO
+						ONE
+						SRC_COLOR
+						ONE_MINUS_SRC_COLOR
+						DST_COLOR
+						ONE_MINUS_DST_COLOR
+						SRC_ALPHA
+						ONE_MINUS_SRC_ALPHA
+						DST_ALPHA
+						ONE_MINUS_DST_ALPHA
+						CONSTANT_COLOR
+						ONE_MINUS_CONSTANT_COLOR
+						CONSTANT_ALPHA
+						ONE_MINUS_CONSTANT_ALPHA
+						SRC_ALPHA_SATURATE
+					*/
+					this.lookupFlag(ARGS[0]||"SRC_ALPHA"),
+					/*
+						ZERO
+						ONE
+						SRC_COLOR
+						ONE_MINUS_SRC_COLOR
+						DST_COLOR
+						ONE_MINUS_DST_COLOR
+						SRC_ALPHA
+						ONE_MINUS_SRC_ALPHA
+						DST_ALPHA
+						ONE_MINUS_DST_ALPHA
+						CONSTANT_COLOR
+						ONE_MINUS_CONSTANT_COLOR
+						CONSTANT_ALPHA
+						ONE_MINUS_CONSTANT_ALPHA
+					*/
+					this.lookupFlag(ARGS[1]||"ONE_MINUS_SRC_ALPHA")
+				).blendEquation(
+					/*
+						FUNC_ADD
+						FUNC_SUBTRACT
+						FUNC_REVERSE_SUBTRACT
+					*/
+					this.lookupFlag(ARGS[2]||"FUNC_ADD") 
+				).blendColor(
+					Number(ARGS[3])||0,
+					Number(ARGS[4])||0,
+					Number(ARGS[5])||0,
+					Number(ARGS[6])||0
+				);
+				else this.disable(GL.BLEND);
+				if(this.render)this.render();
+				return this;
+			}
+		},
+		cullfaceChanged:{
+			value:function(o,n){
+				if(!this.gl)return;
+
+				const ARGS = this.attrToArgs(n);
+
+				if(typeof this.cullface === "string")this.enable(GL.CULL_FACE).cullFace(
+					/*
+						FRONT
+						BACK
+						FRONT_AND_BACK
+					*/
+					this.lookupFlag(ARGS[0]||"BACK")
+				).frontFace(
+					/* https://www.khronos.org/opengles/sdk/docs/man/xhtml/glFrontFace.xml
+						CW
+						CCW
+					*/
+					this.lookupFlag(ARGS[1]||"CCW")
+				);
+				else this.disable(GL.CULL_FACE);
+				if(this.render)this.render();
+				return this;
+			}
+		},
+		polygonoffsetChanged:{
+			value:function(o,n){
+				if(!this.gl)return;
+
+				const ARGS = this.attrToArgs(n);
+
+				if(typeof this.polygonoffset === "string")this
+				.enable(GL.POLYGON_OFFSET_FILL)
+				.polygonOffset(
+					Number(ARGS[0])||0,
+					Number(ARGS[1])||0
+				);
+				else this.disable(GL.POLYGON_OFFSET_FILL);
+				if(this.render)this.render();
+				return this;
+			}
+		},
+		scissorChanged:{
+			value:function(o,n){
+				if(!this.gl)return;
+
+				const ARGS = this.attrToArgs(n);
+
+				if(typeof this.scissor === "string")this
+				.enable(GL.SCISSOR_TEST)
+				.scissor(
+					Number(ARGS[0]||0),
+					Number(ARGS[1]||0),
+					Number(ARGS[2]||this.$width),
+					Number(ARGS[3]||this.$height)
+				);
+				else this.disable(GL.SCISSOR_TEST);
+				if(this.render)this.render();
+				return this;
+			}
+		},
+		stencilChanged:{
+			value:function(o,n){
+				/*
+					TODO
+				*/
+				if(!this.gl)return;
+
+				const ARGS = this.attrToArgs(n);
+
+				if(typeof this.stencil === "string")this
+				.enable(GL.STENCIL_TEST)
+				.stencilFunc(
+					/*
+						NEVER
+						LESS
+						LEQUAL
+						GREATER
+						GEQUAL
+						EQUAL
+						NOTEQUAL
+						ALWAYS
+					*/
+					lookupFlag(ARGS[0])||GL.ALWAYS,
+					Number(ARGS[1])||0
+				);
+				else this.disable(GL.STENCIL_TEST);
+				if(this.render)this.render();
+				return this;
+			}
+		},
+		samplecoverageChanged:{
+			value:function(o,n){
+				if(!this.gl)return;
+
+				const ARGS = this.attrToArgs(n);
+
+				if(typeof this.samplecoverage === "string")this
+				.enable(GL.SAMPLE_COVERAGE)
+				.sampleCoverage(
+					Number(ARGS[0]||1),
+					lookupFlag(ARGS[1])||GL.FALSE
+				);
+				else this.disable(GL.SAMPLE_COVERAGE);
+				if(this.render)this.render();
+				return this;
+			}
+		},
+	};
 	const PROTOTYPE = {
 		publish:{
 			width:document.documentElement.clientWidth,
@@ -692,6 +900,7 @@
 			polygonoffset:null,
 			samplecoverage:null,
 			
+			dither:false,			
 			antialias:false,
 			premultipliedAlpha:false,
 			preserveDrawingBuffer:false,
@@ -704,123 +913,7 @@
 			width:"dimensionsUpdated",
 			height:"dimensionsUpdated"
 		},
-		toArgs:function(attr){
-			return attr && attr.split(",") || [];
-		},
-		toEnum:function(flag){
-			if(flag !== null && !(flag in this.gl))console.warn(flag+" not found");
-			else return this.gl[flag];
-		},
-		guiChanged:function(o,n){
-			const CTX = this;
-			var gui = this.$.gui
-			if(n)Polymer.import([
-				"../gl-context/gl-context-gui.html"
-			],function(){
-				if(!gui){
-					gui = CTX.$.gui = new glContextGUI;
-					gui.instance = CTX;
-					gui.options = PROTOTYPE.options;
-				}
-				CTX.shadowRoot.appendChild(gui);
-			});
-			else gui.remove();
-		},
-		depthChanged:function(o,n){
-			if(!this.gl)return;
-			
-			const ARGS = this.toArgs(n);
-
-			if(typeof this.depth ==="string")this.enable(GL.DEPTH_TEST).depthFunc(
-				this.toEnum(ARGS[0]||"LEQUAL")
-			).depthRange(
-				Number(ARGS[1])||0,
-				Number(ARGS[2])||1
-			);
-			else this.disable(GL.DEPTH_TEST);
-			if(this.render)this.render();
-			return this;
-		},
-		alphaChanged:function(o,n){
-			if(!this.gl)return;
-			//console.log(n);
-			const ARGS = this.toArgs(n);
-			if(typeof this.alpha === "string")this.enable(GL.BLEND).blendFunc(
-				/*	
-					ZERO
-					ONE
-					SRC_COLOR
-					ONE_MINUS_SRC_COLOR
-					DST_COLOR
-					ONE_MINUS_DST_COLOR
-					SRC_ALPHA
-					ONE_MINUS_SRC_ALPHA
-					DST_ALPHA
-					ONE_MINUS_DST_ALPHA
-					CONSTANT_COLOR
-					ONE_MINUS_CONSTANT_COLOR
-					CONSTANT_ALPHA
-					ONE_MINUS_CONSTANT_ALPHA
-					SRC_ALPHA_SATURATE
-				*/
-				this.toEnum(ARGS[0]||"SRC_ALPHA"),
-				/*
-					ZERO
-					ONE
-					SRC_COLOR
-					ONE_MINUS_SRC_COLOR
-					DST_COLOR
-					ONE_MINUS_DST_COLOR
-					SRC_ALPHA
-					ONE_MINUS_SRC_ALPHA
-					DST_ALPHA
-					ONE_MINUS_DST_ALPHA
-					CONSTANT_COLOR
-					ONE_MINUS_CONSTANT_COLOR
-					CONSTANT_ALPHA
-					ONE_MINUS_CONSTANT_ALPHA
-				*/
-				this.toEnum(ARGS[1]||"ONE_MINUS_SRC_ALPHA")
-			).blendEquation(
-				/*
-					FUNC_ADD
-					FUNC_SUBTRACT
-					FUNC_REVERSE_SUBTRACT
-				*/
-				this.toEnum(ARGS[2]||"FUNC_ADD") 
-			).blendColor(
-				Number(ARGS[3])||0,
-				Number(ARGS[4])||0,
-				Number(ARGS[5])||0,
-				Number(ARGS[6])||0
-			);
-			else this.disable(GL.BLEND);
-			if(this.render)this.render();
-			return this;
-		},
-		cullfaceChanged:function(o,n){
-			if(!this.gl)return;
-
-			const ARGS = this.toArgs(n);
-
-			if(typeof this.cullface === "string")this.enable(GL.CULL_FACE).cullFace(
-				/*
-					FRONT
-					BACK
-					FRONT_AND_BACK
-				*/
-				this.toEnum(ARGS[0]||"BACK")
-			).frontFace(
-				/* https://www.khronos.org/opengles/sdk/docs/man/xhtml/glFrontFace.xml
-					CW
-					CCW
-				*/
-				this.toEnum(ARGS[1]||"CCW")
-			);
-			else this.disable(GL.CULL_FACE);
-			if(this.render)this.render();
-			return this;
-		},
+		
 		redraw:function(){
 			const $ = this;
 			if($.render)loop();
@@ -832,9 +925,6 @@
 				$.time = Date.now() - $.startTime;
 				$.render();
 			}	
-		},
-		dimensionsUpdated:function(o,n){
-			this.gl = this.updateContext();
 		},
 		created:function(){
 			this.mouse = [0,0];
@@ -851,7 +941,8 @@
 		},
 		domReady:function(){
 			const CTX = this;
-			this.setupRendertarget(0,0,this.$width/this.quality,this.$height/this.quality).then(function(render){
+			this.setupRendertarget(0,0,this.$width/this.quality,this.$height/this.quality)
+			.then(function(render){
 				CTX.render = render;
 				CTX.redraw();
 			})
@@ -867,6 +958,7 @@
 	Object.defineProperties(PROTOTYPE,STATES);
 	Object.defineProperties(PROTOTYPE,ACCESSORS);
 	Object.defineProperties(PROTOTYPE,FACTORIES);
+	Object.defineProperties(PROTOTYPE,OBSERVERS);
 	Object.defineProperties(PROTOTYPE,METHODS);
 	
 	return PROTOTYPE;

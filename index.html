@@ -201,36 +201,44 @@
 		
 		<gl-context loop depth quality="2" resolution='["width","height"]'>
 			<gl-program>
-				<gl-shader vertex includes="#precision;#attributes;#uniforms;#matrixMath" id="vstest" code="
-					varying vec2 texCoords;
-					
-
-
-					void main(void){
-						mat4 view =
-						rotationX(sin(frames*.01)*2.) * 
-						rotationY(cos(frames*.01)*2.) *
-						transl(mouse.x*100.-50., mouse.y*100.-50.,150.) *
-						identity();
-						gl_Position = id_perspective*id_model*inverse(view)*vec4(id_fsq_v.xyz,1.);
-						texCoords = id_fsq_vt;
-					}
-				"></gl-shader>
-				<gl-shader fragment includes="#precision;#sample;#uniforms" code="
-					
-					void main(void){
-						vec2 uv = texCoords;
-						vec2 sp = gl_FragCoord.xy/resolution;
-						//gl_FragColor = texture2D(id_cat,uv)*vec4(sp.x,sp.y,sp.x*sp.y,1.);
+				<gl-shader vertex 
+					includes="
+						#precision,
+						#attributes,
+						#uniforms,
+						#matrixMath" 
+					code="
+						varying vec2 texCoords;
 						
-						gl_FragColor = 1.-(
-							(1.-texture2D(id_cat,uv))
-							*
-							(1.-vec4(sp.x,sp.y,sp.x*sp.y,1.))
-						);
-						
-					}
+						void main(void){
+							mat4 view =
+							rotationX(sin(frames*.01)*2.) * 
+							rotationY(cos(frames*.01)*2.) *
+							transl(mouse.x*100.-50., mouse.y*100.-50.,150.) *
+							identity();
+							gl_Position = id_perspective*id_model*inverse(view)*vec4(id_fsq_v.xyz,1.);
+							texCoords = id_fsq_vt;
+						}
 				"></gl-shader>
+				<gl-shader fragment 
+					includes="
+						#precision,
+						#sample,
+						#uniforms" 
+					code="	
+						void main(void){
+							vec2 uv = texCoords;
+							vec2 sp = gl_FragCoord.xy/resolution;
+							//gl_FragColor = texture2D(id_cat,uv)*vec4(sp.x,sp.y,sp.x*sp.y,1.);
+							
+							gl_FragColor = 1.-(
+								(1.-texture2D(id_array,uv))
+								*
+								(1.-vec4(sp.x,sp.y,sp.x*sp.y,1.))
+							);
+							
+						}">
+				</gl-shader>
 			</gl-program>
 		</gl-context>
 		<!--/element-inspector-->

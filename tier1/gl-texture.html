@@ -1,6 +1,7 @@
 <link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="gl-element.html">
 
-<polymer-element name="gl-texture" constructor="glTexture">
+<polymer-element name="gl-texture" constructor="glTexture" extends="gl-element">
 <template>
 	<style>
 		host:{
@@ -261,9 +262,7 @@
 		  value:function(data){
 				this.data = data || this.data;
 				if(typeof this.data === "string"){
-					this.data = this.data.split(/[^0-9A-Fa-f]+/)
-					.filter(function(e){return e;})
-					.map(function(e){return parseInt(e,16);});
+					this.data = this.attrToHexArray(this.data);
 					this.width = this.height = Math.sqrt(this.data.length/4);
 				}
 				return this

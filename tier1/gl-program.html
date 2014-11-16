@@ -2,8 +2,9 @@
 <link rel="import" href="gl-texture.html">
 <link rel="import" href="gl-framebuffer.html">
 <link rel="import" href="gl-vertexbuffer.html">
+<link rel="import" href="gl-element.html">
 
-<polymer-element name="gl-program" constructor="glProgram">
+<polymer-element name="gl-program" constructor="glProgram" extends="gl-element">
 <script>Polymer((function static(){
 	"use strict;"
 	const GL = WebGLRenderingContext.prototype;
