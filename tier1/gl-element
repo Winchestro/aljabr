@@ -1,0 +1,29 @@
+<polymer-element name="gl-element">
+<script>Polymer((function static(){
+	"use strict;"
+	const GL = WebGLRenderingContext.prototype;
+	const BINDINGS = {
+	};
+	const STATES = {	
+	};
+	const ACCESSORS = {
+	};
+	const FACTORIES = {
+	};
+	const METHODS = {
+	};
+	const PROTOTYPE = {
+		publish:{
+		},
+	};
+	Object.defineProperties(PROTOTYPE,BINDINGS);
+	Object.defineProperties(PROTOTYPE,STATES);
+	Object.defineProperties(PROTOTYPE,ACCESSORS);
+	Object.defineProperties(PROTOTYPE,FACTORIES);
+	Object.defineProperties(PROTOTYPE,METHODS);
+	return PROTOTYPE;
+})());
+/*
+
+*/</script>
+</polymer-element>
