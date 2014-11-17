@@ -63,12 +63,10 @@
 		},
 		mult:{
 			value:function(b){
-				const a					= this.matrix;
-				const s					= this.size;
-				const r					=	new Float32Array(a.length);
-				const cols			= this.$col;
-				const dot				= (a,b)  			=>a.reduce((previous,current,i)=>previous + current * b[i],0);
-				const subArray	= (start,end) =>[].slice.call(b.subarray(start,end));
+				const a		= this.matrix;
+				const s		= this.size;
+				const r		= new Float32Array(a.length);
+				const cols	= this.$col;
 				for(var y in cols){ 
 					y = Number(y);
 					var row = subArray( y * s,y * s + s );
@@ -78,6 +76,14 @@
 					}
 				}
 				return r;
+				function subArray(start,end){
+					return [].slice.call(b.subarray(start,end));
+				}
+				function dot(a,b){
+					return a.reduce(function(previous,current,i){
+						return previous + current * b[i];
+					},0);
+				}
 			}
 		},
 		multScalar:{

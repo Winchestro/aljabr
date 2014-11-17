@@ -151,25 +151,25 @@
 					return new TypeError("First Argument not WebGLRenderingContext")
 				BUFFER.gl = gl;
 				BUFFER.index = index;
-				if(this.src)					return BUFFER.load(BUFFER.src);
-				else if(this.LOADED)	return BUFFER.processData().pointAt(BUFFER.index);
-				else									return new Promise(function(res,err){
+				if(this.LOADED)			return BUFFER.processData();
+				else					return new Promise(function(res,err){
 					BUFFER.addEventListener("load",function handler(){
 						BUFFER.removeEventListener("load",handler);
 						BUFFER.LOADED = true;
-						res(BUFFER.processData().pointAt(BUFFER.index));
+						res(BUFFER.processData());
 					})
 				});
 			}
 		},
 		pointAt:{
 			value:function(index){
+				index = index || this.index;
 				return this.enableVertexAttribArray(index).vertexAttribPointer(index);
 			}
 		},
 		processData:{
 			value:function(){
-				return this.createBuffer().bindBuffer().bufferData();
+				return this.createBuffer().bindBuffer().bufferData().pointAt();
 			}
 		},
 		convertToTypedArray:{
@@ -179,8 +179,9 @@
 						this.data = JSON.parse(this.data);
 					}
 					this.data = new window[this.arrayType](this.data);
-					return this;
+					
 				}
+				return this;
 			}
 		},
 	};
@@ -204,7 +205,10 @@
 				this.fire("load");
 			}
 		},
-		detached:function(){
+		dataChanged:function(o,n){
+			if(!this.gl)return;
+
+			this.convertToTypedArray().processData();
 		},
 	};
 	Object.defineProperties(PROTOTYPE,BINDINGS);

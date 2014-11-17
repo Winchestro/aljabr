@@ -241,7 +241,7 @@
 					return this.toEnum(e)||console.warn(e +" not found");
 				},this).reduce(function(p,c){return p|c;});
 				var textureUnitCount = 0;
-				var BUFFER_SIZES = [];
+				var BUFFERS = [];
 				return Promise.all(
 					[useOperation]
 					.concat(PROGRAM.$ACTIVE_ATTRIBUTES_DETAILS.map(attributeMap))
@@ -251,7 +251,7 @@
 				function attributeMap(attribute,i,d){
 					return Promise.resolve(PROGRAM.resolveQuery(attribute).setupBuffer(CTX,i))
 					.then(function(buffer){
-						BUFFER_SIZES.push(buffer.data.length / buffer.size);
+						BUFFERS.push(buffer);
 						return function bufferOperation(){
 							buffer.bindBuffer().pointAt(i);
 						};	
@@ -306,7 +306,9 @@
 				}
 				function drawOperation(){
 					CTX.viewport(PROGRAM.x,PROGRAM.y,PROGRAM.width,PROGRAM.height);
-					var s = Math.min.apply(null,BUFFER_SIZES);
+					var s = Math.min.apply(null,BUFFERS.map(function(e,i){
+						return e.data.length / e.size;
+					}));
 					//console.log(s);
 					PROGRAM[PROGRAM.draw](
 						GL[PROGRAM.mode],
