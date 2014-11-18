@@ -1,0 +1,220 @@
+<script>(function STATIC(){
+	"use strict;"
+	/*
+		I'm experimenting here with removing the polymer dependency and also a bunch of 
+		other stuff, maybe related to changes to other elements. atm the element isn't usable
+		on its own.
+
+	*/
+	const PROTOTYPE = Object.create(HTMLElement.prototype);
+	const METHODS = {
+		set:{
+			value:function set(){
+				this.data.length = 0;
+				for (var i in arguments) this.data[i] = arguments[i];
+				return this;
+			}
+		},
+		add:{
+			value:function addVector(b){
+				const a = this.data;
+				for (var i in a) a[i] += b[i];
+				return this;
+			}
+		},
+		sub:{
+			value:function subtractVector(b){
+				const a = this.data;
+				for(var i in a) a[i] -= b[i];
+				return this;
+			}
+		},
+		mul:{
+			value:function multiplyScalar(s){
+				const a = this.data;
+				for(var i in a) a[i] +=s;
+				return this;
+			}
+		},
+		dot:{
+			value:function dotProduct(b){
+				const a = this.data;
+				return a.reduce(function(previous,current,i){
+					return previous + current * b[i];
+				},0);
+			}
+		},
+		evaluate:{
+			value:function evaluate(expr){
+				var result;
+				try{
+					with(this){
+						result = eval(expr);
+					}
+				}catch(err){
+					result = expr;
+				}finally{
+					return result;
+				}
+			}
+		},
+	};
+	const LIFECYCLE = {
+		attributeChangedCallback:{
+			value:function attributeChanged(name,o,n){
+				
+				
+				
+			}
+		},
+		createdCallback:{
+			value:function(){
+				const ATTR = [].slice.call(this.attributes);
+				const ALLOC = [];
+				ATTR.forEach(function(e,i){
+					const NAME = e.name;
+					const EXPR = e.value;
+					console.log(NAME,EXPR);
+					const DIR = NAME.split("-")
+	
+					if(DIR.length===1){
+						console.log("reference to ",this[DIR[0]]);
+
+						if(this[DIR[0]] === undefined)console.error(
+							"Reference Error:",
+							DIR[0],
+							"not defined in",
+							this.outerHTML
+						);
+						else this[DIR[0]] = this.evaluate(EXPR);
+					}else if(DIR.length===2){
+						console.log("converting to js datatype",DIR[0],DIR[1]);
+						if(DIR[0] !== "data"){
+							var result;
+							switch(DIR[0]){
+								case "int":
+									result = this.evaluate(EXPR)<<0;
+								break;
+								case "number":
+									result = Number(this.evaluate(EXPR));
+								break;
+								case "float":
+									result = parseFloat(this.evaluate(EXPR));
+								break;
+								case "string":
+									result = String(this.evaluate(EXPR));
+								break;
+								default:
+									console.warn(DIR[0]+" unkown datatype");
+									result = this.evaluate(EXPR);
+								break;
+							}
+							Object.defineProperty(this,DIR[1],{
+								configurable:true,
+								enumerable:true,
+								writable:true,
+								value:result
+							});
+						}
+					}else if(DIR.length===3){
+						const LENGTH = eval(DIR[1])<<0;
+						console.log("allocating to virtual heap ",DIR[0],DIR[1],DIR[2]);
+						switch(DIR[0]){
+							case "uint8":
+							break;
+								ALLOC.push({
+									name:DIR[2],
+									type:"Uint8Array",
+									size:LENGTH,
+								})
+							case "int8":
+								ALLOC.push({
+									name:DIR[2],
+									type:"Int8Array",
+									size:LENGTH,
+								})
+							break;
+							
+							case "uint16":
+								ALLOC.push({
+									name:DIR[2],
+									type:"Uint16Array",
+									size:LENGTH*2,
+								})
+							break;
+							
+							case "int16":
+								ALLOC.push({
+									name:DIR[2],
+									type:"Int16Array",
+									size:LENGTH*2,
+								})
+							break;
+
+							case "uint32":
+								ALLOC.push({
+									name:DIR[2],
+									type:"Uint32Array",
+									size:LENGTH*4,
+								})
+							break;
+							case "int32":
+							break;
+								ALLOC.push({
+									name:DIR[2],
+									type:"Int32Array",
+									size:LENGTH*4,
+								})
+							case "float32":
+								ALLOC.push({
+									name:DIR[2],
+									type:"Float32Array",
+									size:LENGTH*4,
+								})
+							break;
+							case "float64":
+								ALLOC.push({
+									name:DIR[2],
+									type:"Float64Array",
+									size:LENGTH*8,
+								})
+							break;
+							default:
+								console.error("Syntax Error:",
+									DIR[0],
+									"invalid datatype in",
+									this.outerHTML
+								);
+							break;
+						}
+					}else console.error(
+						"Syntax Error:",
+						NAME,
+						"invalid declaration in",
+						this.outerHTML
+					);
+				},this);
+				
+				const SIZE_SUM = ALLOC.reduce(function(p,c,i){return p.size + c.size},0);
+				if(SIZE_SUM !== 0){
+					const HEAP = new ArrayBuffer(SIZE_SUM);
+					ALLOC.forEach(function(e,i){
+						Object.defineProperty(
+							this,
+							e.name,
+							{
+								value:new window[e.type](HEAP,e.start,e.start+e.size)
+							}
+						);
+					},this);
+
+				}
+			}
+		},
+	};
+	Object.defineProperties(PROTOTYPE,METHODS);
+	Object.defineProperties(PROTOTYPE,LIFECYCLE);
+	document.registerElement("gl-vector",{prototype:PROTOTYPE});
+})();
+/*
+*/</script>
