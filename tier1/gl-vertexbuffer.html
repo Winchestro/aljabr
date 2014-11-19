@@ -3,7 +3,7 @@
 
 <polymer-element name="gl-vertexbuffer" constructor="glVertexBuffer" extends="gl-element">
 <script>Polymer((function STATIC(){
-	"use strict;"
+	"use strict";
 	const GL = WebGLRenderingContext.prototype;
 	const BINDINGS={
 		createBuffer:{
@@ -195,8 +195,7 @@
 			offset:0,
 			type:GL.FLOAT,
 			normalized:false,
-			stride:0,
-			offset:0
+			stride:0
 		},
 		ready:function(){
 			if(this.data){

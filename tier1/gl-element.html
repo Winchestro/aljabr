@@ -1,45 +1,230 @@
-<polymer-element name="gl-element">
-<script>Polymer((function STATIC(){
-	"use strict;"
-	const GL = WebGLRenderingContext.prototype;
-	const PROTOTYPE = {
-		attrToArgs:function(attr){
-			return attr && attr.split(" ").map(function(e){
-				var num = Number(e);
-				if(isNaN(num)){
-					num = GL[e];
-					if(typeof num === "undefined"){
-						num = this.attrToMask(e)
+<script>(function STATIC(){
+	"use strict";
+	const GL 		= WebGLRenderingContext.prototype;
+	const PROTOTYPE = Object.create(HTMLElement.prototype);
+
+	const METHODS = {
+		attrToArgs:{
+			value:function(attr){
+				return attr && attr.split(" ").map(function(e){
+					var num = Number(e);
+					if(isNaN(num)){
+						num = GL[e];
+						if(typeof num === "undefined"){
+							num = this.attrToMask(e)
+						}
 					}
-				}
-				return num;
-			},this) || [];
+					return num;
+				},this) || [];
+			}
 		},
-		attrToHexArray:function(attr){
-			return attr && attr.split(/[^0-9A-Fa-f]+/).filter(function(e){
-				return e;
-			}).map(function(e){
-				return parseInt(e,16);
-			}) || [];
+		attrToHexArray:{
+			value:function(attr){
+				return attr && attr.split(/[^0-9A-Fa-f]+/).filter(function(e){
+					return e;
+				}).map(function(e){
+					return parseInt(e,16);
+				}) || [];
+			}
 		},
-		lookupFlag:function(flag){
-			if(flag !== null && !(flag in GL))console.warn(flag+" not found");
-			else return GL[flag];
+		lookupFlag:{
+			value:function(flag){
+				if(flag !== null && !(flag in GL))console.warn(flag+" not found");
+				else return GL[flag];
+			}
 		},
-		attrToMask:function(attr){
-			return attr && attr.split("|").map(function(e){
-				var num = Number(e);
-				if(isNaN(num)){
-					num = GL[e];
-					if(typeof num === "undefined") console.warn(e+" not found");
-				}
-				return num;
-			}).reduce(function(p,c){return p|c;}) || 0;
+		attrToMask:{
+			value:function(attr){
+				return attr && attr.split("|").map((e)=>{
+					var num = Number(e);
+					if(isNaN(num)){
+						num = GL[e];
+						if(typeof num === "undefined") console.warn(e+" not found");
+					}
+					return num;
+				}).reduce((p,c)=>p|c,0) || 0;
+			}
+		},
+		evaluate:{
+			value:function evaluate(expr){
+				return eval(expr);
+			}
 		},
 	};
-	return PROTOTYPE;
-})());
+	const LIFECYCLE = {
+		attributeChangedCallback:{
+			value:function attributeChanged(name,o,n){
+
+			}
+		},
+		createdCallback:{
+			value:function(){
+				const ATTR = [].slice.call(this.attributes);
+				const ALLOC = [];
+				ATTR.forEach(function(e,i){
+					const NAME = e.name;
+					const EXPR = e.value;
+					console.log(NAME,EXPR);
+					const DIR = NAME.split("-")
+	
+					if(DIR.length===1){
+						console.log("reference to ",this[DIR[0]]);
+
+						if(this[DIR[0]] === undefined)console.error(
+							"Reference Error:",
+							DIR[0],
+							"not defined in",
+							this.outerHTML
+						);
+						else this[DIR[0]] = EXPR;
+					}else if(DIR.length===2){
+						console.log("converting to js datatype",DIR[0],DIR[1]);
+						if(DIR[0] !== "data"){
+							var result;
+							switch(DIR[0]){
+								case "int":
+									result = this.evaluate(EXPR)<<0;
+								break;
+								case "number":
+									result = Number(this.evaluate(EXPR));
+								break;
+								case "float":
+									result = parseFloat(this.evaluate(EXPR));
+								break;
+								case "string":
+									result = String(this.evaluate(EXPR));
+								break;
+								default:
+									console.warn(DIR[0]+" unkown datatype");
+									result = this.evaluate(EXPR);
+								break;
+							}
+							Object.defineProperty(this,DIR[1],{
+								configurable:true,
+								enumerable:true,
+								writable:true,
+								value:result
+							});
+						}
+					}else if(DIR.length===3){
+						const LENGTH = eval(DIR[1])<<0;
+						console.log("allocating to virtual heap ",DIR[0],DIR[1],DIR[2],LENGTH);
+						switch(DIR[0]){
+							case "uint8":ALLOC.push({
+								name:DIR[2],
+								type:"Uint8Array",
+								expression:EXPR,
+								length:LENGTH,
+								size:LENGTH
+							});
+							break;
+							case "int8":ALLOC.push({
+								name:DIR[2],
+								type:"Int8Array",
+								expression:EXPR,
+								length:LENGTH,
+								size:LENGTH
+							});
+							break;
+							case "uint16":ALLOC.push({
+								name:DIR[2],
+								type:"Uint16Array",
+								expression:EXPR,
+								length:LENGTH,
+								size:LENGTH*2
+							});
+							break;
+							case "int16":ALLOC.push({
+								name:DIR[2],
+								type:"Int16Array",
+								expression:EXPR,
+								length:LENGTH,
+								size:LENGTH*2
+							});
+							break;
+							case "uint32":ALLOC.push({
+								name:DIR[2],
+								type:"Uint32Array",
+								expression:EXPR,
+								length:LENGTH,
+								size:LENGTH*4
+							});
+							break;
+							case "int32":ALLOC.push({
+								name:DIR[2],
+								type:"Int32Array",
+								expression:EXPR,
+								length:LENGTH,
+								size:LENGTH*4
+							});
+							break;
+							case "float32":ALLOC.push({
+								name:DIR[2],
+								type:"Float32Array",
+								expression:EXPR,
+								length:LENGTH,
+								size:LENGTH*4
+							});
+							break;
+							case "float64":ALLOC.push({
+								name:DIR[2],
+								type:"Float64Array",
+								expression:EXPR,
+								length:LENGTH,
+								size:LENGTH*8
+							});
+							break;
+							default:console.error("Syntax Error:",
+								DIR[0],
+								"invalid datatype in",
+								this.outerHTML
+							);
+							break;
+						}
+					}else console.error(
+						"Syntax Error:",
+						NAME,
+						"invalid declaration in",
+						this.outerHTML
+					);
+				},this);
+				
+				const SIZE_SUM = ALLOC.map((e)=>e.size).reduce((p,c)=>p+c,0);
+				console.log(ALLOC,SIZE_SUM);
+				if(SIZE_SUM !== 0){
+					const HEAP = new ArrayBuffer(SIZE_SUM);
+					var offset = 0;
+					ALLOC.forEach(function allocating(e,i){
+						console.log("creating view for",e.name,offset,offset+e.size);
+						const VIEW = new window[e.type](HEAP,offset,e.length);
+						Object.defineProperty(
+							this,
+							e.name,
+							{
+								get:()=>[].slice.call(VIEW),
+								set:(v)=>{for(i in v)VIEW[i]=v[i];}
+							}
+						);
+						this[e.name] = this.evaluate(e.expression);
+						offset+=e.size;
+					},this);
+
+				}
+			}
+		},
+	};
+	Object.defineProperties(PROTOTYPE,METHODS);
+	Object.defineProperties(PROTOTYPE,LIFECYCLE);
+	const CONSTRUCTOR = document.registerElement("gl-element",{prototype:PROTOTYPE});
+	Object.defineProperty(window,"::gl-element::",{value:{
+			constructor:CONSTRUCTOR,
+			lifecycle:LIFECYCLE,
+			prototype:PROTOTYPE,
+			methods:METHODS
+		}
+	});
+})();
 /*
 
 */</script>
-</polymer-element>
+

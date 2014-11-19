@@ -1,6 +1,6 @@
 <polymer-element name="gl-matrix" constructor="glMatrix">
 <script>Polymer((function STATIC(){
-	"use strict;"
+	"use strict";
 	const ACCESSORS = {
 		value:{
 			get:function(){
@@ -42,7 +42,6 @@
 		set:{
 			value:function(){
 				//console.log(arguments);
-				this.matrix.length = 0;
 				for (var i in arguments) this.matrix[i] = arguments[i];
 				return this;
 			}

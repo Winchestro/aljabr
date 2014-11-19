@@ -5,7 +5,7 @@
 		<title>element-inspector Demo</title>
 
 
-		<script src="platform/platform.js"></script>
+		
 		<link rel="import" href="polymer/polymer.html">
 
 		<!--link rel="import" href="element-inspector.html"-->
@@ -15,9 +15,12 @@
 		<!--element-inspector-->
 		<gl-matrix id="perspective" perspective="90 1 200"></gl-matrix>
 		<gl-matrix id="model" translate="0 0 100"></gl-matrix>
-		<gl-matrix id="view" inverse rotateX="10"></gl-matrix>
+		<gl-matrix number-asd="1+1" id="view" inverse rotateX="10"></gl-matrix>
 		<gl-geometry id="fsq" src="cube.obj"></gl-geometry>
-		<gl-vector title="asd"></gl-vector>
+		<gl-vector 
+			uint8-512-firststep="'abcd'.repeat(128).split('').map((e)=>e.charCodeAt(0));" 
+			float32-512-secondstep="this.firststep.map((e,i)=>Math.sin(e/360));" 
+		></gl-vector>
 		<script src id="precision">
 			#ifdef GL_ES
 				precision mediump float;
