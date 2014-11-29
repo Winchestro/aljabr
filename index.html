@@ -5,17 +5,24 @@
 		<title>element-inspector Demo</title>
 
 
-		
+		<script src="webcomponentsjs/webcomponents.min.js"></script>
 		<link rel="import" href="polymer/polymer.html">
-
-		<!--link rel="import" href="element-inspector.html"-->
 		<link rel="import" href="gl-elements.html">
 	</head>
 	<body unresolved fullbleed>
 		<!--element-inspector-->
-		<gl-matrix id="perspective" perspective="90 1 200"></gl-matrix>
-		<gl-matrix id="model" translate="0 0 100"></gl-matrix>
-		<gl-matrix number-asd="1+1" id="view" inverse rotateX="10"></gl-matrix>
+		<gl-matrix 
+			id="perspective" 
+			float32-16-value="Perspective(90,1,400)"
+		></gl-matrix>
+		<gl-matrix 
+			id="model" 
+			float32-16-value="Translation(0,0,-50)"
+		></gl-matrix>
+		<gl-matrix 
+			id="view" 
+			float32-16-value="console.log(model);RotationX(1).inverse()"
+		></gl-matrix>
 		<gl-geometry id="fsq" src="cube.obj"></gl-geometry>
 		<gl-vector 
 			uint8-512-firststep="'abcd'.repeat(128).split('').map((e)=>e.charCodeAt(0));" 

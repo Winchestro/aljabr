@@ -1,338 +1,239 @@
-<polymer-element name="gl-matrix" constructor="glMatrix">
-<script>Polymer((function STATIC(){
+<link rel="import" href="../tier2/gl-vector.html">
+
+<script>(function STATIC(){
 	"use strict";
+	const PROTOTYPE = Object.create(window["::gl-vector::"].prototype);
+	const CONSTRUCTOR = document.registerElement("gl-matrix",{prototype:PROTOTYPE});
+
 	const ACCESSORS = {
-		value:{
-			get:function(){
-				const next = this.$innerMatrix;
-				if(next) return this.mult(next.value);
-				else return this.matrix;
+	};
+	const METHODS = {
+		evaluate:function(expr){
+			try {
+				return eval(expr);
+			}
+			catch(err){
+				console.error(err.message + ' in "' + expr + '"');
 			}
 		},
-		$innerMatrix:{
-			get:function(){
-				const s = this.size;
-				return [].slice.call(this.children).filter((e)=>e.size === s)[0];
-			}
-		},
-		$identity:{
-			get:function(){
-	    		const s = this.size;
-	    		return new Float32Array(Array.apply(null,Array(Math.pow(s,2))).map((v,i,m)=>
-	        	i%(s+1)===0?1:0
-	    		))
-    		}
-		},
+	};
+	const FACTORIES = {
+		Frustum:Frustum,
+		Perspective:Perspective,
+		Translation:Translation,
+		Scale:Scale,
+		RotationX:RotationX,
+		RotationY:RotationY,
+		RotationZ:RotationZ,
+		Identity:Identity,
+	};
+
+	Object.defineProperties(mat4.prototype,{
 		$col:{
 			get:function(){
-				const s = this.size;
+				const s = 4;
 				const m = this.matrix;
 				return Array.apply(null,Array(s)).map((vy,x,a)=>a.map((vy,y)=>m[y*s+x]));
 			}
 		},
 		$row:{
 			get:function(){
-				const s = this.size;
+				const s = 4;
 				const m = this.matrix;
 				return Array.apply(null,Array(s)).map((vy,x,a)=>a.map((vy,y)=>m[x*s+y]));
 			}
 		},
+	});
+	mat4.prototype.inverse = function(){
+		const M = this;
+
+		var		n11=M[ 0], 		n12=M[ 4], 		n13=M[ 8],		n14=M[12],
+				n21=M[ 1], 		n22=M[ 5], 		n23=M[ 9], 		n24=M[13],
+				n31=M[ 2], 		n32=M[ 6], 		n33=M[10], 		n34=M[14],
+				n41=M[ 3], 		n42=M[ 7], 		n43=M[11], 		n44=M[15];
+
+		M[0]	= n23 * n34 * n42 - n24 * n33 * n42 + n24 * n32 * n43 
+				- n22 * n34 * n43 - n23 * n32 * n44 + n22 * n33 * n44;
+		M[4]	= n14 * n33 * n42 - n13 * n34 * n42 - n14 * n32 * n43 
+				+ n12 * n34 * n43 + n13 * n32 * n44 - n12 * n33 * n44;
+		M[8] 	= n13 * n24 * n42 - n14 * n23 * n42 + n14 * n22 * n43 
+				- n12 * n24 * n43 - n13 * n22 * n44 + n12 * n23 * n44;
+		M[12]	= n14 * n23 * n32 - n13 * n24 * n32 - n14 * n22 * n33 
+				+ n12 * n24 * n33 + n13 * n22 * n34 - n12 * n23 * n34;
+		M[1] 	= n24 * n33 * n41 - n23 * n34 * n41 - n24 * n31 * n43 
+				+ n21 * n34 * n43 + n23 * n31 * n44 - n21 * n33 * n44;
+		M[5] 	= n13 * n34 * n41 - n14 * n33 * n41 + n14 * n31 * n43 
+				- n11 * n34 * n43 - n13 * n31 * n44 + n11 * n33 * n44;
+		M[9] 	= n14 * n23 * n41 - n13 * n24 * n41 - n14 * n21 * n43 
+				+ n11 * n24 * n43 + n13 * n21 * n44 - n11 * n23 * n44;
+		M[13]	= n13 * n24 * n31 - n14 * n23 * n31 + n14 * n21 * n33 
+				- n11 * n24 * n33 - n13 * n21 * n34 + n11 * n23 * n34;
+		M[2] 	= n22 * n34 * n41 - n24 * n32 * n41 + n24 * n31 * n42 
+				- n21 * n34 * n42 - n22 * n31 * n44 + n21 * n32 * n44;
+		M[6] 	= n14 * n32 * n41 - n12 * n34 * n41 - n14 * n31 * n42 
+				+ n11 * n34 * n42 + n12 * n31 * n44 - n11 * n32 * n44;
+		M[10]	= n12 * n24 * n41 - n14 * n22 * n41 + n14 * n21 * n42 
+				- n11 * n24 * n42 - n12 * n21 * n44 + n11 * n22 * n44;
+		M[14]	= n14 * n22 * n31 - n12 * n24 * n31 - n14 * n21 * n32 
+				+ n11 * n24 * n32 + n12 * n21 * n34 - n11 * n22 * n34;
+		M[3] 	= n23 * n32 * n41 - n22 * n33 * n41 - n23 * n31 * n42 
+				+ n21 * n33 * n42 + n22 * n31 * n43 - n21 * n32 * n43;
+		M[7] 	= n12 * n33 * n41 - n13 * n32 * n41 + n13 * n31 * n42 
+				- n11 * n33 * n42 - n12 * n31 * n43 + n11 * n32 * n43;
+		M[11]	= n13 * n22 * n41 - n12 * n23 * n41 - n13 * n21 * n42 
+				+ n11 * n23 * n42 + n12 * n21 * n43 - n11 * n22 * n43;
+		M[15] 	= n12 * n23 * n31 - n13 * n22 * n31 + n13 * n21 * n32 
+				- n11 * n23 * n32 - n12 * n21 * n33 + n11 * n22 * n33;
+
+		var det = n11 * M[ 0] + n21 * M[ 4] + n31 * M[ 8] + n41 * M[12];
+		if(det == 0){
+			return Identity();
+		}
+		M.multiplyScalar( 1 / det);
+		return M;
+	}
+	mat4.prototype.multiplyScalar= function(s){
+		for(var i in this) this[i]  *= s;
+		return this;
 	};
-	const METHODS = {
-		set:{
-			value:function(){
-				//console.log(arguments);
-				for (var i in arguments) this.matrix[i] = arguments[i];
-				return this;
+	mat4.prototype.multiply = function(b){
+		const a 	= this;
+		const s		= 4;
+		const r		= new Float32Array(a.length);
+		const cols	= this.$col;
+		for(var y in cols){ 
+			y = Number(y);
+			var row = subArray( y * s,y * s + s );
+			for(var x in cols[y]){
+				x	= Number(x);
+				r[ x + y * s ] 	= dot(cols[x],row);
 			}
-		},
-		add:{
-			value:function(b){
-				const a = this.matrix;
-				for (var i in a) a[i] += b[i];
-				return a;
-			}
-		},
-		sub:{
-			value:function(b){
-				const a = this.matrix;
-				for(var i in a) a[i] -= b[i];
-				return a;
-			}
-		},
-		mult:{
-			value:function(b){
-				const a		= this.matrix;
-				const s		= this.size;
-				const r		= new Float32Array(a.length);
-				const cols	= this.$col;
-				for(var y in cols){ 
-					y = Number(y);
-					var row = subArray( y * s,y * s + s );
-					for(var x in cols[y]){
-						x	= Number(x);
-						r[ x + y * s ] 	= dot(cols[x],row);
-					}
-				}
-				return r;
-				function subArray(start,end){
-					return [].slice.call(b.subarray(start,end));
-				}
-				function dot(a,b){
-					return a.reduce(function(previous,current,i){
-						return previous + current * b[i];
-					},0);
-				}
-			}
-		},
-		multScalar:{
-			value:function(s){
-				const a = this.matrix;
-				for(var i in a) a[i]  *= s;
-				return a;
-			}
-		},
-		getInverse:{
-			value:function(){
-				const M = this.matrix;
-
-				var		n11=M[ 0], 		n12=M[ 4], 		n13=M[ 8],		n14=M[12],
-							n21=M[ 1], 		n22=M[ 5], 		n23=M[ 9], 		n24=M[13],
-							n31=M[ 2], 		n32=M[ 6], 		n33=M[10], 		n34=M[14],
-							n41=M[ 3], 		n42=M[ 7], 		n43=M[11], 		n44=M[15];
-
-				M[0]	= n23 * n34 * n42 - n24 * n33 * n42 + n24 * n32 * n43 
-							- n22 * n34 * n43 - n23 * n32 * n44 + n22 * n33 * n44;
-				M[4]	= n14 * n33 * n42 - n13 * n34 * n42 - n14 * n32 * n43 
-							+ n12 * n34 * n43 + n13 * n32 * n44 - n12 * n33 * n44;
-				M[8] 	= n13 * n24 * n42 - n14 * n23 * n42 + n14 * n22 * n43 
-							- n12 * n24 * n43 - n13 * n22 * n44 + n12 * n23 * n44;
-				M[12]	= n14 * n23 * n32 - n13 * n24 * n32 - n14 * n22 * n33 
-							+ n12 * n24 * n33 + n13 * n22 * n34 - n12 * n23 * n34;
-				M[1] 	= n24 * n33 * n41 - n23 * n34 * n41 - n24 * n31 * n43 
-							+ n21 * n34 * n43 + n23 * n31 * n44 - n21 * n33 * n44;
-				M[5] 	= n13 * n34 * n41 - n14 * n33 * n41 + n14 * n31 * n43 
-							- n11 * n34 * n43 - n13 * n31 * n44 + n11 * n33 * n44;
-				M[9] 	= n14 * n23 * n41 - n13 * n24 * n41 - n14 * n21 * n43 
-							+ n11 * n24 * n43 + n13 * n21 * n44 - n11 * n23 * n44;
-				M[13]	= n13 * n24 * n31 - n14 * n23 * n31 + n14 * n21 * n33 
-							- n11 * n24 * n33 - n13 * n21 * n34 + n11 * n23 * n34;
-				M[2] 	= n22 * n34 * n41 - n24 * n32 * n41 + n24 * n31 * n42 
-							- n21 * n34 * n42 - n22 * n31 * n44 + n21 * n32 * n44;
-				M[6] 	= n14 * n32 * n41 - n12 * n34 * n41 - n14 * n31 * n42 
-							+ n11 * n34 * n42 + n12 * n31 * n44 - n11 * n32 * n44;
-				M[10]	= n12 * n24 * n41 - n14 * n22 * n41 + n14 * n21 * n42 
-							- n11 * n24 * n42 - n12 * n21 * n44 + n11 * n22 * n44;
-				M[14]	= n14 * n22 * n31 - n12 * n24 * n31 - n14 * n21 * n32 
-							+ n11 * n24 * n32 + n12 * n21 * n34 - n11 * n22 * n34;
-				M[3] 	= n23 * n32 * n41 - n22 * n33 * n41 - n23 * n31 * n42 
-							+ n21 * n33 * n42 + n22 * n31 * n43 - n21 * n32 * n43;
-				M[7] 	= n12 * n33 * n41 - n13 * n32 * n41 + n13 * n31 * n42 
-							- n11 * n33 * n42 - n12 * n31 * n43 + n11 * n32 * n43;
-				M[11]	= n13 * n22 * n41 - n12 * n23 * n41 - n13 * n21 * n42 
-							+ n11 * n23 * n42 + n12 * n21 * n43 - n11 * n22 * n43;
-				M[15] = n12 * n23 * n31 - n13 * n22 * n31 + n13 * n21 * n32 
-							- n11 * n23 * n32 - n12 * n21 * n33 + n11 * n22 * n33;
-
-				var det = n11 * M[ 0] + n21 * M[ 4] + n31 * M[ 8] + n41 * M[12];
-				if(det == 0){
-					this.identity();
-					return this;
-				}
-				this.multScalar( 1 / det);
-				return this;
-
-			}
-		},
-		makeFrustum:{
-			value:function(left,right,bottom,top,near,far){
-				const x = 2*near/(right-left);
-				const y = 2*near/(top-bottom);
-				
-				const a = (right+left)/(right-left);
-				const b = (top+bottom)/(top-bottom);
-				const c = -(far+near)/(far-near);
-				const d = - 2*far*near/(far-near);
-				this.set(
-					x,	0,	0,	0,
-					0,	y,	0,	0,
-					a,	b,	c, -1,
-					0,	0,  d,	0
-				);
-				return this;
-			}
-		},
-		makePerspective:{
-			value:function(fov,near,far){
-				const aspect = innerWidth/innerHeight;
-				const ymax = near * Math.tan(fov * Math.PI / 360.);
-				const ymin = -ymax;
-				const xmin = ymin * aspect;
-				const xmax = ymax * aspect;
-
-				return this.makeFrustum(
-					xmin,
-					xmax,
-					ymin,
-					ymax,
-					near,
-					far
-				);
-			}
-		},
-
-		makeTranslation:{
-			value:function(x,y,z){
-				x = x || 0;
-				y = y || 0;
-				z = z || 0;
-				this.set(
-					1,	0,	0,	0,
-					0,	1,	0,	0,
-					0,	0,	1,	0,
-					x,	y,	z,	1
-				);
-				return this;
-			}
-		},
-		makeScale:{
-			value:function(x,y,z){
-				x = x || 1;
-				y = y || 1;
-				z = z || 1;
-				this.set(
-					x,	0,	0,	0,
-					0,	y,	0,	0,
-					0,	0,	z,	0,
-					0,	0,	0,	1
-				);
-				return this;
-			}
-		},
-		makeRotationX:{
-			value:function(a){
-				a = a || 0;
-				const c = Math.cos(a / 180 * Math.PI);
-				const s = Math.sin(a / 180 * Math.PI);
-				this.set(
-					1,	0,	0,	0,
-					0,	c, -s,	0,
-					0,	s,	c,	0,
-					0,	0,	0,	1
-				);
-				return this;
-			}
-		},
-		makeRotationY:{
-			value:function(a){
-				a = a || 0;
-				const c = Math.cos(a / 180 * Math.PI);
-				const s = Math.sin(a / 180 * Math.PI);
-				this.set(
-					c,	0,	s,	0,
-					0,	1, 	0,	0,
-				 -s,	0,	c,	0,
-					0,	0,	0,	1
-				);
-				return this;
-			}
-		},
-		makeRotationZ:{
-			value:function(a){
-				a = a || 0;
-				const c = Math.cos(a / 180 * Math.PI);
-				const s = Math.sin(a / 180 * Math.PI);
-				this.set(
-					c,	-s,	0,	0,
-					s,	c,	0,	0,
-					0,	0,	1,	0,
-					0,	0,	0,	1
-				);
-				return this;
-			}
-		},
-		makeRotationFromQuaternion:{
-			value:function(x,y,z,w){
-				x = x || 0;
-				y = y || 0;
-				z = z || 0;
-				w = w || 0;
-
-				const x2=x+x,	 y2=y+y,  z2=z+z;
-
-				const xx=x*x2, yy=y*y2,	zz=z*z2;
-				const xz=x*z2, yz=y*z2,	xy=x*y2;
-				const wx=w*x2, wy=w*y2, wz=w*z2;
-				this.set(
-					1-(yy+zz),	xy+wz,			xz-wy, 			0,
-					xy-wz,			1-(xx+zz), 	yz+wx,			0,
-					xz+wy,			yz-wx,			1-(xx+yy),	0,
-					0,					0,					0,					1
-				);
-				return this;
-			}
-		},
+		}
+		return r;
+		function subArray(start,end){
+			return [].slice.call(b.subarray(start,end));
+		}
+		function dot(a,b){
+			return a.reduce(function(previous,current,i){
+				return previous + current * b[i];
+			},0);
+		}
 	};
-	const PROTOTYPE = {
-		publish:{
-			data:"",
-			
-			perspective:"",
-			frustrum:"",
-			
-			translation:"",
-			scale:"",
-			rotationX:0,
-			rotationY:0,
-			rotationZ:0,
-			
-			inverse:false,
-			size:4
-		},
-		toArgs:function(string){
-			return string.split(" ").map(function(e){
-				return Number(e);
-			});
-		},
-		perspectiveChanged:function(o,n){
-			if(n)this.makePerspective.apply(this,this.toArgs(n));
-			if(this.inverse)this.getInverse();
-		},
-		frustrumChanged:function(o,n){
-			if(n)this.makeFrustum.apply(this,this.toArgs(n));
-			if(this.inverse)this.getInverse();
-		},
-		translationChanged:function(o,n){
-			if(n)this.makeTranslation.apply(this,this.toArgs(n));
-			if(this.inverse)this.getInverse();
-		},
-		scaleChanged:function(o,n){
-			if(n)this.makeScale.apply(this,this.toArgs(n));
-			if(this.inverse)this.getInverse();
-		},
-		rotationXChanged:function(o,n){
-			if(n)this.makeRotationX(n);
-			if(this.inverse)this.getInverse();
-		},
-		rotationYChanged:function(o,n){
-			if(n)this.makeRotationY(n);
-			if(this.inverse)this.getInverse();
-		},
-		rotationZChanged:function(o,n){
-			if(n)this.makeRotationZ(n);
-			if(this.inverse)this.getInverse();
-		},
-		dataChanged:function(o,n){
-			this.set(n);
-		},
-		created:function(){
-			this.matrix = this.$identity;
-		},
+	mat4.prototype.splice = Array.prototype.splice;
+	function mat4(){
+		for(var a in arguments) this[a] = arguments[a];
+		Object.defineProperty(this,"length",{value:arguments.length});
+	}
+
+	function Frustum(left,right,bottom,top,near,far){
+		const x = 2*near/(right-left);
+		const y = 2*near/(top-bottom);
+		
+		const a = (right+left)/(right-left);
+		const b = (top+bottom)/(top-bottom);
+		const c = -(far+near)/(far-near);
+		const d = - 2*far*near/(far-near);
+		return new mat4(
+			x,	0,	0,	0,
+			0,	y,	0,	0,
+			a,	b,	c, -1,
+			0,	0,  d,	0
+		);
+	}
+	function Perspective(fov,near,far){
+		const aspect = innerWidth/innerHeight;
+		const ymax = near * Math.tan(fov * Math.PI / 360.);
+		const ymin = -ymax;
+		const xmin = ymin * aspect;
+		const xmax = ymax * aspect;
+
+		return Frustum(
+			xmin,
+			xmax,
+			ymin,
+			ymax,
+			near,
+			far
+		);
+	}
+	function Translation(x,y,z){
+		x = x || 0;
+		y = y || 0;
+		z = z || 0;
+		return new mat4(
+			1,	0,	0,	0,
+			0,	1,	0,	0,
+			0,	0,	1,	0,
+			x,	y,	z,	1
+		);
+	}
+	function Scale(x,y,z){
+		x = x || 1;
+		y = y || 1;
+		z = z || 1;
+		return new Matrix(
+			x,	0,	0,	0,
+			0,	y,	0,	0,
+			0,	0,	z,	0,
+			0,	0,	0,	1
+		);
+	}
+	function RotationX(a){
+		a = a || 0;
+		const c = Math.cos(a / 180 * Math.PI);
+		const s = Math.sin(a / 180 * Math.PI);
+		return new mat4(
+			1,	0,	0,	0,
+			0,	c, -s,	0,
+			0,	s,	c,	0,
+			0,	0,	0,	1
+		);
+	}
+	function RotationY(a){
+		a = a || 0;
+		const c = Math.cos(a / 180 * Math.PI);
+		const s = Math.sin(a / 180 * Math.PI);
+		return new mat4(
+			c,	0,	s,	0,
+			0,	1, 	0,	0,
+		   -s,	0,	c,	0,
+			0,	0,	0,	1
+		);
+	}
+	function RotationZ(a){
+		a = a || 0;
+		const c = Math.cos(a / 180 * Math.PI);
+		const s = Math.sin(a / 180 * Math.PI);
+		return new mat4(
+			c,	-s,	0,	0,
+			s,	c,	0,	0,
+			0,	0,	1,	0,
+			0,	0,	0,	1
+		);
+	}
+	function Identity(){
+		return mat4(
+			1,0,0,0,
+			0,1,0,0,
+			0,0,1,0,
+			0,0,0,1
+		);
+	}
+
+	const LIFECYCLE = {
 	};
+
 	Object.defineProperties(PROTOTYPE,ACCESSORS);
-	Object.defineProperties(PROTOTYPE,METHODS);
-	return PROTOTYPE;
-})());
+	for(var m in METHODS) 	PROTOTYPE[m] = METHODS[m];
+	for(var f in FACTORIES) PROTOTYPE[f] = FACTORIES[f];
+	Object.defineProperty(window,"::gl-matrix::",{value:{
+			constructor:CONSTRUCTOR,
+			lifecycle:LIFECYCLE,
+			prototype:PROTOTYPE,
+			methods:METHODS,
+			facories:FACTORIES
+		}
+	});
+})();
 /*
 */</script>
-</polymer-element>

@@ -1,3 +1,4 @@
+<link rel="import" href="../tier1/gl-element.html">
 <script>(function STATIC(){
 	"use strict";
 	/*
@@ -6,51 +7,50 @@
 		on its own.
 
 	*/
+
 	const PROTOTYPE = Object.create(window["::gl-element::"].prototype);
+	const CONSTRUCTOR = document.registerElement("gl-vector",{prototype:PROTOTYPE});
+	
+
 	const METHODS = {
-		set:{
-			value:function set(){
-				this.data.length = 0;
-				for (var i in arguments) this.data[i] = arguments[i];
-				return this;
-			}
+		set:function set(){
+			this.data.length = 0;
+			for (var i in arguments) this.data[i] = arguments[i];
+			return this;	
 		},
-		add:{
-			value:function addVector(b){
-				const a = this.data;
-				for (var i in a) a[i] += b[i];
-				return this;
-			}
+		add:function addVector(b){
+			const a = this.data;
+			for (var i in a) a[i] += b[i];
+			return this;
 		},
-		sub:{
-			value:function subtractVector(b){
-				const a = this.data;
-				for(var i in a) a[i] -= b[i];
-				return this;
-			}
+		sub:function subtractVector(b){
+			const a = this.data;
+			for(var i in a) a[i] -= b[i];
+			return this;
 		},
-		mul:{
-			value:function multiplyScalar(s){
-				const a = this.data;
-				for(var i in a) a[i] +=s;
-				return this;
-			}
+		mul:function multiplyScalar(s){
+			const a = this.data;
+			for(var i in a) a[i] +=s;
+			return this;
 		},
-		dot:{
-			value:function dotProduct(b){
-				const a = this.data;
-				return a.reduce(function(previous,current,i){
-					return previous + current * b[i];
-				},0);
-			}
+		dot:function dotProduct(b){
+			const a = this.data;
+			return a.reduce(function(previous,current,i){
+				return previous + current * b[i];
+			},0);
 		},
 	};
 	const LIFECYCLE = {
-		
 	};
-	Object.defineProperties(PROTOTYPE,METHODS);
+	for(var method in METHODS) PROTOTYPE[method] = METHODS[method];
 	Object.defineProperties(PROTOTYPE,LIFECYCLE);
-	document.registerElement("gl-vector",{prototype:PROTOTYPE});
+	Object.defineProperty(window,"::gl-vector::",{value:{
+			constructor:CONSTRUCTOR,
+			lifecycle:LIFECYCLE,
+			prototype:PROTOTYPE,
+			methods:METHODS
+		}
+	});
 })();
 /*
 */</script>
