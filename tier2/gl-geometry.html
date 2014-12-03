@@ -26,6 +26,11 @@
 				this.$.vt,
 				this.$.vn
 			];
+			const RESULTS = [
+				[],
+				[],
+				[]
+			];
 			source.split("\n").forEach(function(line){
 				const STATEMENT = line.split(/\s+/);
 				const NAME = STATEMENT.shift().toLowerCase();
@@ -43,25 +48,19 @@
 					STATEMENT.forEach(function(face,faceIndex){
 						face.split("/").forEach(function(pointer,index){
 							pointer = Number(pointer)-1;
-							const TARGET = BUFFERS[index];
+							const TARGET = RESULTS[index];
 							const SOURCE = REFS[index][pointer];
-							if(!(TARGET.data instanceof Array)) TARGET.data = [];
-							[].push.apply(TARGET.data,SOURCE);
+							[].push.apply(TARGET,SOURCE);
 						});
 					});
 				}
 			});
-			this.$.v.convertToTypedArray();
-			this.$.vt.convertToTypedArray();
-			this.$.vn.convertToTypedArray();
-			this.$.v.fire("load");
-			this.$.vt.fire("load");
-			this.$.vn.fire("load");
+			return RESULTS;
 		},
 		srcChanged:function(o,n){
 			const isOBJ = /\.obj$/i.test(n);
 			const xhr = new XMLHttpRequest;
-			const MESH = this;
+			const GEOMETRY = this;
 			
 			this.$.v.data = [];
 			this.$.vt.data = [];
@@ -71,7 +70,10 @@
 			xhr.onreadystatechange = function(){
 				if(xhr.readyState === xhr.DONE && xhr.status === 200){
 					if(isOBJ){
-						MESH.fromOBJ(xhr.response);
+						const DATA = GEOMETRY.fromOBJ(xhr.response);
+						GEOMETRY.$.v.data = new Float32Array(DATA[0]);
+						GEOMETRY.$.vt.data = new Float32Array(DATA[1]);
+						GEOMETRY.$.vn.data = new Float32Array(DATA[2]);
 					}
 				}
 			}

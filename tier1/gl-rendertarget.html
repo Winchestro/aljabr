@@ -1,20 +1,10 @@
 <link rel="import" href="gl-element.html">
 
-<polymer-element name="gl-rendertarget" extends="gl-element">
-<script>Polymer((function STATIC(){
+<script>(function STATIC(){
 	"use strict";
+	const PROTOTYPE = Object.create(window["::gl-element::"].PROTOTYPE);
 	const GL = WebGLRenderingContext.prototype;
-	const BINDINGS = {
-		viewport:{
-			value:function(x,y,width,height){
-				this.gl.viewport(x,y,width,height);
-				return this;
-			}
-		},
-	};
-	const STATES = {
-		
-	};
+	
 	const ACCESSORS = {
 		$width:{
 			get:function(){
@@ -28,27 +18,19 @@
 		},
 		$programs:{
 			get:function(){
-				if(this.programquery)
-					return [].slice.call(document.querySelectorAll(this.programquery))
-						.concat([].slice.call(this.children)).filter(this.programFilter.bind(this));
-				else
-					return [].slice.call(this.children).filter(this.programFilter.bind(this));
+				return [].slice.call(this.children).filter(this.programFilter.bind(this));
 			}
 		},
 	};
-	const FACTORIES = {
-		
+	const BINDINGS = {
+		viewport:function(x,y,width,height){
+			this.gl.viewport(x,y,width,height);
+			return this;
+		},
 	};
 	const METHODS = {
-		programFilter:{
-			value:function(child){
-				return typeof child.setupProgram === "function";
-			}
-		},
-	};
-	const PROTOTYPE = {
-		publish:{
-			programquery:"",
+		programFilter:function(child){
+			return typeof child.setupProgram === "function";
 		},
 		setupRendertarget:function(x,y,width,height){
 			const TARGET = this;
@@ -72,14 +54,18 @@
 			},function(err){throw console.warn(err.stack)})
 		},
 	};
-	Object.defineProperties(PROTOTYPE,BINDINGS);
-	Object.defineProperties(PROTOTYPE,STATES);
-	Object.defineProperties(PROTOTYPE,ACCESSORS);
-	Object.defineProperties(PROTOTYPE,FACTORIES);
-	Object.defineProperties(PROTOTYPE,METHODS);
-	return PROTOTYPE;
-})());
+
+	PROTOTYPE.describeElement(PROTOTYPE,"gl-rendertarget",
+		{
+			bindings:BINDINGS,
+			methods:METHODS
+		},
+		{
+			accessors:ACCESSORS
+		}
+	);
+	
+})();
 /*
 
 */</script>
-</polymer-element>

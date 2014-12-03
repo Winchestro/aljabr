@@ -2,7 +2,12 @@
 	"use strict";
 	const GL 		= WebGLRenderingContext.prototype;
 	const PROTOTYPE = Object.create(HTMLElement.prototype);
-
+	window.q = PROTOTYPE;
+	const FACTORIES = {
+		describeElement:function(prototype,elementName,copied,defined){
+			return new ElementDescriptor(prototype,elementName,copied,defined);
+		}
+	};
 	const METHODS = {
 		attrToArgs:function(attr){
 			return attr && attr.split(" ").map(function(e){
@@ -37,18 +42,145 @@
 				return num;
 			}).reduce((p,c)=>p|c,0) || 0;
 		},
-		evaluate:function evaluate(expr){
-			try {
-				return eval(expr);
+		evaluateAttribute:function(name,value){
+			switch(typeof this[name]){
+				case "boolean": this[name] = Boolean(value); break;
+				case "number": this[name] = Number(value); break;
+				case "function":
+					this[name].apply(
+						this,
+						value.split(
+							/[,;\s]/
+						).filter(function(e){
+							return e;
+						})
+					); 
+					break;
+				case "object":
+					break;
+				default:
+					this[name] = value;
+					break;
 			}
-			catch(err){
-				console.error(err.message + ' in "' + expr + '"');
-			}
-		},
+		
+		}
 	};
 	const LIFECYCLE = {
-		attributeChangedCallback:function attributeChanged(name,o,n){
+		attributeChangedCallback:function attributeChanged(name,oldValue,value){
+			//this.evaluateAttribute(name,value);
+			console.log(name,oldValue,value);
+		},
+		createdCallback:function created(){
+			const ATTRIBUTES = [].slice.call(this.attributes);
+			ATTRIBUTES.forEach(function(e,i,a){
+				this.evaluateAttribute(e.name,e.value);
+			},this);
+		}
+	};
 
+	function ElementDescriptor(prototype,elementName,copied,defined){
+		this.PROTOTYPE = prototype;
+		this.CONSTRUCTOR = document.registerElement(elementName,{prototype:prototype});
+
+		for(var category in copied){
+			for(var property in copied[category]) prototype[property] = copied[category][property];
+			this[category.toUpperCase()] = copied[category];
+		};
+		for(var category in defined){
+			Object.defineProperties(prototype,defined[category]);
+			this[category.toUpperCase()] = defined[category];
+		};
+		
+		Object.defineProperty(window,"::"+elementName+"::",{value:this});
+	}
+
+	new ElementDescriptor(PROTOTYPE,"gl-element",
+		{
+			methods:METHODS,
+			lifecycle:LIFECYCLE,
+			factories:FACTORIES
+		}
+	);
+})();
+/*
+evaluate:function evaluate(expr){
+			
+		},
+		assign:function assign(key,value){
+			if(this[key] === undefined)console.error(
+				"Reference Error:",
+				key,
+				"not defined in",
+				this.outerHTML
+			);
+			else if(typeof this[key] === "function") this[key](value);
+			else this[key] = value;
+		},
+		expressions:{
+			bind:function bind(alias,key,value){
+				var target = document.querySelector(value);
+				if(target[key] === undefined)return console.error(
+					"Reference Error:",
+					key,
+					"not defined in",
+					target,
+					"referenced by",
+					this.outerHTML
+				);
+				else this[alias] = target[key];
+
+			},
+			float32:function(size,key,value){
+
+			}
+		},
+		expressionAssign:function(type,argument,key,value){
+			if(this.expressions[type] === undefined)return console.error(
+				"Reference Error:",
+				type,
+				"is not a valid expression in",
+				this.outerHTML
+			);
+			this[type](argument,key,value);
+		},
+		assignCast:function assignCast(type,key,value){
+			if(type !== "data"){
+				var result;
+				switch(type){
+					case "int":
+						result = value<<0;
+					break;
+					case "number":
+						result = Number(value);
+					break;
+					case "float":
+						result = parseFloat(value);
+					break;
+					case "string":
+						result = value;
+					break;
+					case "json":
+						result = JSON.parse(value);
+					break;
+					
+					default:
+						console.warn(DIR[0]+" unkown datatype");
+						result = this.evaluate(value);
+					break;
+				}
+				if(typeof this[key] === "function") this[key](result);
+				else this[key] = result;
+			}
+		},
+const LIFECYCLE = {
+		attributeChangedCallback:function attributeChanged(name,o,n){
+			const DIR = name.split("-");
+
+			if(DIR.length===1){
+				this.assign(name,n);
+			}else{
+				this[DIR[DIR.length-1]] = this.evaluate(n);
+			}
 		},
 		createdCallback:function(){
 			const ATTR = [].slice.call(this.attributes);
@@ -60,119 +192,12 @@
 				const DIR = NAME.split("-")
 
 				if(DIR.length===1){
-					//console.log("reference to ",this[DIR[0]]);
-
-					if(this[DIR[0]] === undefined)console.error(
-						"Reference Error:",
-						DIR[0],
-						"not defined in",
-						this.outerHTML
-					);
-					else this[DIR[0]] = EXPR;
+					this.assign(DIR[0],EXPR);
 				}else if(DIR.length===2){
 					//console.log("converting to js datatype",DIR[0],DIR[1]);
-					if(DIR[0] !== "data"){
-						var result;
-						switch(DIR[0]){
-							case "int":
-								result = this.evaluate(EXPR)<<0;
-							break;
-							case "number":
-								result = Number(this.evaluate(EXPR));
-							break;
-							case "float":
-								result = parseFloat(this.evaluate(EXPR));
-							break;
-							case "string":
-								result = String(this.evaluate(EXPR));
-							break;
-							default:
-								console.warn(DIR[0]+" unkown datatype");
-								result = this.evaluate(EXPR);
-							break;
-						}
-						Object.defineProperty(this,DIR[1],{
-							configurable:true,
-							enumerable:true,
-							writable:true,
-							value:result
-						});
-					}
+					this.assignCast(DIR[0],DIR[1],EXPR);
 				}else if(DIR.length===3){
-					const LENGTH = eval(DIR[1])<<0;
-					//console.log("allocating to virtual heap ",DIR[0],DIR[1],DIR[2],LENGTH);
-					switch(DIR[0]){
-						case "uint8":ALLOC.push({
-							name:DIR[2],
-							type:"Uint8Array",
-							expression:EXPR,
-							length:LENGTH,
-							size:LENGTH
-						});
-						break;
-						case "int8":ALLOC.push({
-							name:DIR[2],
-							type:"Int8Array",
-							expression:EXPR,
-							length:LENGTH,
-							size:LENGTH
-						});
-						break;
-						case "uint16":ALLOC.push({
-							name:DIR[2],
-							type:"Uint16Array",
-							expression:EXPR,
-							length:LENGTH,
-							size:LENGTH*2
-						});
-						break;
-						case "int16":ALLOC.push({
-							name:DIR[2],
-							type:"Int16Array",
-							expression:EXPR,
-							length:LENGTH,
-							size:LENGTH*2
-						});
-						break;
-						case "uint32":ALLOC.push({
-							name:DIR[2],
-							type:"Uint32Array",
-							expression:EXPR,
-							length:LENGTH,
-							size:LENGTH*4
-						});
-						break;
-						case "int32":ALLOC.push({
-							name:DIR[2],
-							type:"Int32Array",
-							expression:EXPR,
-							length:LENGTH,
-							size:LENGTH*4
-						});
-						break;
-						case "float32":ALLOC.push({
-							name:DIR[2],
-							type:"Float32Array",
-							expression:EXPR,
-							length:LENGTH,
-							size:LENGTH*4
-						});
-						break;
-						case "float64":ALLOC.push({
-							name:DIR[2],
-							type:"Float64Array",
-							expression:EXPR,
-							length:LENGTH,
-							size:LENGTH*8
-						});
-						break;
-						default:console.error("Syntax Error:",
-							DIR[0],
-							"invalid datatype in",
-							this.outerHTML
-						);
-						break;
-					}
+					this.expressionAssign(DIR[0],DIR[1],DIR[2],EXPR);
 				}else console.error(
 					"Syntax Error:",
 					NAME,
@@ -181,7 +206,88 @@
 				);
 			},this);
 			
-			const SIZE_SUM = ALLOC.map((e)=>e.size).reduce((p,c)=>p+c,0);
+			
+		},
+	};
+ALLOC.push(this.alllocationDescriptor(DIR[0],DIR[1],DIR[2],EXPR));
+alllocationDescriptor:function(type,length,key,value){
+			const LENGTH = parseInt(length);
+			//console.log("allocating to virtual heap ",DIR[0],DIR[1],DIR[2],LENGTH);
+			switch(type){
+				case "uint8":return {
+					name:key,
+					type:"Uint8Array",
+					expression:value,
+					length:LENGTH,
+					size:LENGTH
+				};
+				break;
+				case "int8":return {
+					name:key,
+					type:"Int8Array",
+					expression:value,
+					length:LENGTH,
+					size:LENGTH
+				};
+				break;
+				case "uint16":return {
+					name:key,
+					type:"Uint16Array",
+					expression:value,
+					length:LENGTH,
+					size:LENGTH*2
+				};
+				break;
+				case "int16":return {
+					name:key,
+					type:"Int16Array",
+					expression:value,
+					length:LENGTH,
+					size:LENGTH*2
+				};
+				break;
+				case "uint32":return {
+					name:key,
+					type:"Uint32Array",
+					expression:value,
+					length:LENGTH,
+					size:LENGTH*4
+				};
+				break;
+				case "int32":return {
+					name:key,
+					type:"Int32Array",
+					expression:value,
+					length:LENGTH,
+					size:LENGTH*4
+				};
+				break;
+				case "float32":return {
+					name:key,
+					type:"Float32Array",
+					expression:value,
+					length:LENGTH,
+					size:LENGTH*4
+				};
+				break;
+				case "float64":return {
+					name:key,
+					type:"Float64Array",
+					expression:value,
+					length:LENGTH,
+					size:LENGTH*8
+				};
+				break;
+				default:console.error("Syntax Error:",
+					type,
+					"invalid datatype in",
+					this.outerHTML
+				);
+				break;
+			}
+		},
+
+const SIZE_SUM = ALLOC.map((e)=>e.size).reduce((p,c)=>p+c,0);
 			//console.log(ALLOC,SIZE_SUM);
 			if(SIZE_SUM !== 0){
 				const HEAP = new ArrayBuffer(SIZE_SUM);
@@ -201,20 +307,5 @@
 					offset+=e.size;
 				},this);
 			}
-		},
-	};
-	for(var method in METHODS) 		PROTOTYPE[method] 	= METHODS[method];
-	for(var method in LIFECYCLE) 	PROTOTYPE[method] 	= LIFECYCLE[method];
-	const CONSTRUCTOR = document.registerElement("gl-element",{prototype:PROTOTYPE});
-	Object.defineProperty(window,"::gl-element::",{value:{
-			constructor:CONSTRUCTOR,
-			lifecycle:LIFECYCLE,
-			prototype:PROTOTYPE,
-			methods:METHODS
-		}
-	});
-})();
-/*
-
 */</script>
 

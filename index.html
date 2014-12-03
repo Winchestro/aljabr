@@ -11,23 +11,162 @@
 	</head>
 	<body unresolved fullbleed>
 		<!--element-inspector-->
-		<gl-matrix 
+		<gl-mat4
+			identity
 			id="perspective" 
-			float32-16-value="Perspective(90,1,400)"
-		></gl-matrix>
-		<gl-matrix 
+			perspective="90,1,400"
+		></gl-mat4>
+		<gl-mat4
+			identity
 			id="model" 
-			float32-16-value="Translation(0,0,-50)"
-		></gl-matrix>
-		<gl-matrix 
-			id="view" 
-			float32-16-value="console.log(model);RotationX(1).inverse()"
-		></gl-matrix>
+			translation="0,0,0"
+		></gl-mat4>
+		<gl-mat4 
+			id="view"
+			identity 
+			rotationx="45"
+			rotationy="45"
+			inverse
+		></gl-mat4>
+		<script>
+			(function(){
+				const V = window["::gl-vector::"].FACTORIES;
+				const vec2 = V.vec2;
+				const vec3 = V.vec3;
+				const quat4 = V.quat4;
+
+				const UP = new vec3(0,1,0);
+				const key = {UP:false,DOWN:false,LEFT:false,RIGHT:false,RAISE:false,LOWER:false}
+				const mouse = vec2(0,0);
+
+				const cameraPos = new vec3(0,0,0);
+				const cameraDir = new vec3(0,0,1);
+
+				const forwardDir 	= vec3.fromArray(cameraDir);
+				const strafeDir 	= vec3.fromArray(cameraDir).cross(UP);
+				
+				const yawAxis 	= vec3.fromArray(UP);
+				const pitchAxis 	= vec3.fromArray(cameraDir).cross(UP);
+
+				const yaw = new quat4(0,0,0,1);
+				const pitch = new quat4(0,0,0,1);
+
+				const speed = 5;
+				
+				loop();
+				document.addEventListener("keydown",function(e){
+					//console.log(e.keyCode);
+					const W = 87;
+					const S = 83;
+					const A = 65;
+					const D = 68;
+					const SPACE = 32;
+					const SHIFT = 16;
+					switch(e.keyCode){
+						case W:
+							key.UP = true;
+						break;
+						case S:
+							key.DOWN = true;
+						break;
+						case A:
+							key.LEFT = true;
+						break;
+						case D:
+							key.RIGHT = true;
+						break;
+						case SPACE:
+							key.RAISE = true;
+						break;
+						case SHIFT:
+							key.LOWER = true;
+						break;
+					}
+					updateView();
+				});
+				document.addEventListener("keyup",function(e){
+					const W = 87;
+					const S = 83;
+					const A = 65;
+					const D = 68;
+					const SPACE = 32;
+					const SHIFT = 16;
+					switch(e.keyCode){
+						case W:
+							key.UP = false;
+						break;
+						case S:
+							key.DOWN = false;
+						break;
+						case A:
+							key.LEFT = false;
+						break;
+						case D:
+							key.RIGHT = false;
+						break;
+						case SPACE:
+							key.RAISE = false;
+						break;
+						case SHIFT:
+							key.LOWER = false;
+						break;
+					}
+					updateView();
+				});
+				document.addEventListener("mousemove",function(e){
+					//console.log(e);
+					mouse.x= -e.webkitMovementX/innerWidth;
+					mouse.y= e.webkitMovementY/innerHeight;
+					
+				});
+				function loop(){
+					requestAnimationFrame(loop);
+					updateView();
+				}
+				function updateView(){
+					forwardDir.copy(cameraDir).norm();
+					strafeDir.copy(cameraDir).cross(UP).norm();
+					pitchAxis.copy(strafeDir);
+					
+					var forwardScale = 0;
+					var strafeScale = 0;
+					forwardScale 	+= key.UP 		? 1 : 0;
+					forwardScale 	-= key.DOWN 	? 1 : 0;
+					strafeScale 	+= key.LEFT 	? 1 : 0;
+					strafeScale 	-= key.RIGHT 	? 1 : 0;
+
+					strafeDir.multScalar(strafeScale*speed);
+					forwardDir.multScalar(forwardScale*speed);
+					
+					cameraPos.add(forwardDir);
+					cameraPos.add(strafeDir);
+
+					
+					yaw.axisAngle(yawAxis,mouse.x);
+					pitch.axisAngle(pitchAxis,mouse.y);
+					
+					cameraDir.applyQuat4(yaw);
+					cameraDir.applyQuat4(pitch);
+
+					mouse.x=0;
+					mouse.y=0;
+
+					
+					
+					view.matrix.lookAt(cameraPos,vec3.add(cameraPos,cameraDir),UP);
+					view.matrix.position = cameraPos;
+					view.matrix.inverse();
+					view.value = view.matrix;
+					
+					
+					
+					
+					
+				}
+			})()
+		</script>
 		<gl-geometry id="fsq" src="cube.obj"></gl-geometry>
-		<gl-vector 
-			uint8-512-firststep="'abcd'.repeat(128).split('').map((e)=>e.charCodeAt(0));" 
-			float32-512-secondstep="this.firststep.map((e,i)=>Math.sin(e/360));" 
-		></gl-vector>
+		
 		<script src id="precision">
 			#ifdef GL_ES
 				precision mediump float;
@@ -209,7 +348,7 @@
 			}
 		</script>
 		
-		<gl-context loop depth quality="2" resolution='["width","height"]'>
+		<gl-context id="mainWindow" antialiasing loop depth quality="2" resolution='["width","height"]'>
 			<gl-program>
 				<gl-shader vertex 
 					includes="
@@ -221,12 +360,7 @@
 						varying vec2 texCoords;
 						
 						void main(void){
-							mat4 view =
-							rotationX(sin(frames*.01)*2.) * 
-							rotationY(cos(frames*.01)*2.) *
-							transl(mouse.x*100.-50., mouse.y*100.-50.,150.) *
-							identity();
-							gl_Position = id_perspective*id_model*inverse(view)*vec4(id_fsq_v.xyz,1.);
+							gl_Position = id_perspective*id_model*id_view*vec4(id_fsq_v.xyz,1.);
 							texCoords = id_fsq_vt;
 						}
 				"></gl-shader>
@@ -238,19 +372,23 @@
 					code="	
 						void main(void){
 							vec2 uv = texCoords;
-							vec2 sp = gl_FragCoord.xy/resolution;
-							//gl_FragColor = texture2D(id_cat,uv)*vec4(sp.x,sp.y,sp.x*sp.y,1.);
 							
-							gl_FragColor = 1.-(
-								(1.-texture2D(id_array,uv))
-								*
-								(1.-vec4(sp.x,sp.y,sp.x*sp.y,1.))
-							);
+							gl_FragColor = texture2D(id_cat,uv);
+								
+								
+							
 							
 						}">
 				</gl-shader>
 			</gl-program>
 		</gl-context>
+		<script>
+			(function(){
+				mainWindow.addEventListener("click",function(){
+					mainWindow.requestPointerLock();
+				})
+			})()
+		</script>
 		<!--/element-inspector-->
 	</body>
 </html>

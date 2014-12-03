@@ -307,7 +307,7 @@
 				function drawOperation(){
 					CTX.viewport(PROGRAM.x,PROGRAM.y,PROGRAM.width,PROGRAM.height);
 					var s = Math.min.apply(null,BUFFERS.map(function(e,i){
-						return e.data.length / e.size;
+						return e.length / e.size;
 					}));
 					//console.log(s);
 					PROGRAM[PROGRAM.draw](
