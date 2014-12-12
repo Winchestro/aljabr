@@ -1,159 +1,56 @@
-<link rel="import" href="gl-element.html">
+<link rel="import" href="GLElement.html">
+
+<link rel="import" href="GLVertexbuffer.html">
 
 <script>(function STATIC(){
 	"use strict";
-	const PROTOTYPE = Object.create(window["::gl-element::"].PROTOTYPE);
-	const GL = WebGLRenderingContext.prototype;
-	
-	const BINDINGS={
-		createBuffer:function(){
-			this.buffer = this.gl.createBuffer();
-			return this;
-		},
-		deleteBuffer:function(){
-			this.gl.deleteBuffer(this.buffer);
-			return this;
-		},
-		bindBuffer:function(){
-			this.gl.bindBuffer(this.target,this.buffer);
-			return this;
-		},
-		unbindBuffer:function(){
-			this.gl.bindBuffer(this.target,null);
-			return this;
-		},
-		bufferData:function(data,usage){
-			this.usage = usage || this.usage;
-			this.gl.bufferData(
-				this.target,
-				data,
-				this.usage
-			);
-			return this;
-		},
-		bufferSubData:function(data,offset){
-			this.offset = offset  || this.offset;
-			this.gl.bufferSubData(
-				this.target,
-				this.offset,
-				data
-			);
-			return this;
-		},
-		getVertexAttrib:function(_index_,_pname_){
-			/*
-			VERTEX_ATTRIB_ARRAY_BUFFER_BINDING  WebGLBuffer
-			VERTEX_ATTRIB_ARRAY_ENABLED         GLboolean
-			VERTEX_ATTRIB_ARRAY_SIZE            GLint
-			VERTEX_ATTRIB_ARRAY_STRIDE          GLint
-			VERTEX_ATTRIB_ARRAY_TYPE            GLenum
-			VERTEX_ATTRIB_ARRAY_NORMALIZED      GLboolean
-			CURRENT_VERTEX_ATTRIB               Float32Array (with 4 elements)
-			*/
-			return this.gl.getVertexAttrib(
-				_index_,
-				_pname_
-			);
-		},
-		getVertexAttribOffset:function(_index_,_pname_){
-			return this.gl.getVertexAttribOffset(
-				_index_,
-				_pname_
-			);
-		},
-		vertexAttribPointer:function(_index_,size,type,normalized,stride,offset){
-			this.size       = size        || this.size;
-			this.type       = type        || this.type;
-			this.normalized = normalized  || this.normalized;
-			this.stride     = stride      || this.stride;
-			this.offset     = offset      || this.offset;
-			this.gl.vertexAttribPointer(
-				_index_,
-				this.size,
-				this.type,
-				this.normalized,
-				this.stride,
-				this.offset
-			);
-			return this;
-		},
-		enableVertexAttribArray:function(_location_){
-			this.gl.enableVertexAttribArray(_location_);
-			return this;
-		},
-	};
-	const STATES={
-		$USAGE:{
-			get:function(){
-				return this.gl.getBufferParameter(this.target,GL.BUFFER_USAGE);
-			}
-		},
-		$SIZE:{
-			get:function(){
-				return this.gl.getBufferParameter(this.target,GL.BUFFER_SIZE);
-			}
-		}
-	};
-	const ACCESSORS={
-		data:{
-			set:(v)=>{
-				this.length = v.length;
-				if(!this.gl)return;
-				this.processData(v);
-			}
-		},
-		subdata:{
-			set:(v)=>{
-				if(!this.gl)return;
-				this.length += v.length;
-				this.processSubData(v);
-			}
-		}
-	};
-	const METHODS={
-		setupBuffer:function(gl,index){
-			const BUFFER = this;
-			if(!(gl instanceof WebGLRenderingContext))
-				return new TypeError("First Argument not WebGLRenderingContext")
-			BUFFER.gl = gl;
-			BUFFER.index = index;
-			return BUFFER.createBuffer().bindBuffer();
-		},
-		pointAt:function(index){
-			index = index || this.index;
-			return this.enableVertexAttribArray(index).vertexAttribPointer(index);
-		},
-		processData:function(data){
-			return this.createBuffer().bindBuffer().bufferData(data).pointAt();
-		},
-		processSubData:function(data){
-			//return this.createBuffer().
-		}
-	};
+	const GL 						= WebGLRenderingContext.prototype;
+	const NS 						= Symbol.for("GLElements");
+	const GLOBAL 					= window[NS];
+	const PROTOTYPE 				= GLOBAL.Interface.GLElement;
+
+	const GLVertexbuffer 			= GLOBAL.Class.GLVertexbuffer;
+
 	const ATTRIBUTES = {
-		size:4,
 		target:GL.ARRAY_BUFFER,
 		usage:GL.STATIC_DRAW,
-		type:GL.FLOAT,
-		offset:0,
-		normalized:false,
-		stride:0
+		pointer:{
+			index:0,
+			size:4,
+			type:GL.FLOAT,
+			normalized:false,
+			stride:0,
+			offset:0
+		}
 	};
-	
-	PROTOTYPE.describeElement(PROTOTYPE,"gl-vertexbuffer",
+	const ENUM = {
+		$TARGET_ARRAY:GL.ARRAY_BUFFER,
+		$TARGET_ELEMENT:GL.ELEMENT_ARRAY_BUFFER,
+		$USAGE_STATIC:GL.STATIC_DRAW,
+		$USAGE_STREAM:GL.STREAM_DRAW,
+		$USAGE_DYNAMIC:GL.DYNAMIC_DRAW,
+		$POINTER_BYTE:GL.BYTE,
+		$POINTER_U_BYTE:GL.UNSIGNED_BYTE,
+		$POINTER_SHORT:GL.SHORT,
+		$POINTER_U_SHORT:GL.UNSIGNED_SHORT,
+		$POINTER_FIXED:GL.FIXED,
+		$POINTER_FLOAT:GL.FLOAT
+	};
+
+	new GLOBAL.Element(PROTOTYPE,"gl-vertexbuffer")
+		.copy(ATTRIBUTES,"attributes")
+		.copy(ENUM,"enum")
+	;
+})();
+/*
+PROTOTYPE.describeElement(PROTOTYPE,"gl-vertexbuffer",
 		{
-			bindings:BINDINGS,
 			methods:METHODS,
 			attributes:ATTRIBUTES
 		},
 		{
-			
-			states:STATES,
-			accessors:ACCESSORS
 		}
 	);
-})();
-/*
 	(function(target,alias){
 		var args; 
 		function traveler(){

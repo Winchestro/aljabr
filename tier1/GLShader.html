@@ -1,0 +1,134 @@
+<script>(function STATIC(){
+	"use strict";
+	const GL 			= WebGLRenderingContext.prototype;
+	const NS 			= Symbol.for("GLElements");
+	const GLOBAL 		= window[NS];
+
+
+	function GLShader(program,type,code,shared,uuid){
+		if(!(this instanceof GLShader)) return new GLShader(type,code,uuid,program);
+		if(!uuid) uuid = Symbol("GLShader");
+		this.type = type;
+		this.code = code;
+		this.uuid = uuid;
+		this.shared = shared;
+		this.program = program;
+		this.gl = program.gl;
+		this.create();
+	}
+	const PROTOTYPE = {
+		included : "",
+		imported : "",
+		src : "",
+		checkInterval : 0,
+		recompile:function(){
+			this.source(this.included + this.imported + this.code);
+			this.compile();
+			return this;
+		},
+		create:function(){
+			this.object = this.gl.createShader(this.type);
+			return this;
+		},
+		delete:function(){
+			this.gl.deleteShader(this.object);
+			return this;
+		},
+		source:function(code){
+			this.gl.shaderSource(this.object,code);
+			return this;
+		},
+		compile:function(){
+			this.gl.compileShader(this.object);
+			return this;
+		},
+		includeQuery:function(query,property){
+			if(!query) return this;
+			property = property || "innerText";
+			this.included = [].slice.call(document.querySelectorAll(query))
+			.reduce(function(p,c){
+				return p+c[property];
+			},"");
+
+			return this;
+		},
+		loadAsync:function(url){
+			this.src = url;
+			if(!url){
+				this.imported = "";
+				return Promise.resolve(this);
+			}
+			const x = new XMLHttpRequest;
+			const $ = this;
+			
+			const p =  new Promise(function(resolve,reject){	
+				x.onreadystatechange = function(){
+					if(x.readyState === x.DONE){
+						if(x.status === 200){
+							$.imported = x.response;
+							resolve($);
+						}else{
+							reject(x.status);
+						}
+					}
+				}	
+			});
+			x.open("GET",url);
+			x.send();
+			return p;
+		},
+		dirtyCheck:function(interval){
+			const $ = this;
+			if(this.checkInterval){
+				clearInterval(this.checkInterval);
+				this.checkInterval = 0;
+			}
+			if(interval) this.checkInterval = setInterval(function(){
+				$.loadAsync($.src);
+			},interval);
+		}
+	};
+	const BINDINGS = {
+		SHADER_TYPE:{
+			get:function(){
+				return this.gl.getShaderParameter(this.object,GL.SHADER_TYPE);
+			}
+		},
+		DELETE_STATUS:{
+			get:function(){
+				return this.gl.getShaderParameter(this.object,GL.DELETE_STATUS);
+			}
+		},
+		COMPILE_STATUS:{
+			get:function(){
+				return this.gl.getShaderParameter(this.object,GL.COMPILE_STATUS);
+			}
+		},
+		ShaderSource:{
+			get:function(){
+				return this.gl.getShaderSource(this.object);
+			}
+		},
+		InfoLog:{
+			get:function(){
+				return this.gl.getShaderInfoLog(this.object);
+			}
+		}
+	};
+
+	new GLOBAL.Class(PROTOTYPE,GLShader)
+		.define(BINDINGS)
+	;
+})();/* 
+
+
+	PROTOTYPE.describeElement(PROTOTYPE,"gl-shader",
+		{
+			methods:METHODS,
+			attributes:ATTRIBUTES,
+			lifecycle:LIFECYCLE,
+			enum:ENUM,
+			factories:FACTORIES
+		}
+	);
+*/</script>

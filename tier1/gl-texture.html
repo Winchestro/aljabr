@@ -1,17 +1,12 @@
-<link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="gl-element.html">
+<link rel="import" href="GLElement.html">
 
-<polymer-element name="gl-texture" constructor="glTexture" extends="gl-element">
-<template>
-	<style>
-		host:{
-			display:none;
-		}
-	</style>
-</template>
-<script>Polymer((function STATIC(){
+<script>(function STATIC(){
 	"use strict";
-	const GL = WebGLRenderingContext.prototype;
+	const GL 			= WebGLRenderingContext.prototype;
+	const NS 			= Symbol.for("GLElements");
+	const GLOBAL 		= window[NS];
+	const PROTOTYPE 	= GLOBAL.Interface.GLElement;
+
 	const BINDINGS = {
 		activeTexture:{
 			value:function(textureUnit){
@@ -275,33 +270,43 @@
 			}
 		},
 	}; 
-	const PROTOTYPE={
-		publish:{
-			src:"",
-			data:null,
-			x:0,
-			y:0,
-			xoffset:0,
-			yoffset:0,
-			width:0,
-			height:0,
-			level:0,
-			arrayType:"Uint8Array",
-			format:GL.RGBA,
-			target:GL.TEXTURE_2D,
-			type:GL.UNSIGNED_BYTE,
-			MIN:GL.NEAREST,
-			MAG:GL.NEAREST,
-			S:GL.CLAMP_TO_EDGE,
-			T:GL.CLAMP_TO_EDGE
-		}
+	const ATTRIBUTES={
+		src:"",
+		data:null,
+		x:0,
+		y:0,
+		xoffset:0,
+		yoffset:0,
+		width:0,
+		height:0,
+		level:0,
+		arrayType:"Uint8Array",
+		format:GL.RGBA,
+		target:GL.TEXTURE_2D,
+		type:GL.UNSIGNED_BYTE,
+		MIN:GL.NEAREST,
+		MAG:GL.NEAREST,
+		S:GL.CLAMP_TO_EDGE,
+		T:GL.CLAMP_TO_EDGE
 	};
-	Object.defineProperties(PROTOTYPE,BINDINGS);
-	Object.defineProperties(PROTOTYPE,STATES);
-	Object.defineProperties(PROTOTYPE,ACCESSORS);
-	Object.defineProperties(PROTOTYPE,METHODS);
-	return PROTOTYPE;
-})());
+	new GLOBAL.Element(PROTOTYPE,"gl-texture")
+		.copy(METHODS,"methods")
+		.copy(ATTRIBUTES,"attributes")
+		.define(ACCESSORS,"accessors")
+		.define(STATES,"states")
+		.define(BINDINGS,"bindings")
+	;
+})();
 /*
+PROTOTYPE.describeElement(PROTOTYPE,"gl-texture",
+		{
+			methods:METHODS,
+			attributes:ATTRIBUTES
+		},
+		{
+			accessors:ACCESSORS,
+			states:STATES,
+			bindings:BINDINGS
+		}
+	);
 */</script>
-</polymer-element>

@@ -1,0 +1,67 @@
+<script>(function(){
+	"use strict";
+	const GL 			= WebGLRenderingContext.prototype;
+	const NS 			= Symbol.for("GLElements");
+	const GLOBAL 		= window[NS];
+	
+	function OBJParser(){
+
+	}
+
+	const PROTOTYPE = {
+
+	};
+
+	const STATIC = {
+		
+	};
+	new GLOBAL.Class(PROTOTYPE,OBJParser)
+		.static(STATIC)
+	;
+})();
+/*
+fromOBJ:function(source){
+			const MESH = this;
+			const REFS = [];
+			const ENUM = {
+				v:0,
+				vt:1,
+				vn:2
+			};
+			const BUFFERS = [
+				this.$.v,
+				this.$.vt,
+				this.$.vn
+			];
+			const RESULTS = [
+				[],
+				[],
+				[]
+			];
+			source.split("\n").forEach(function(line){
+				const STATEMENT = line.split(/\s+/);
+				const NAME = STATEMENT.shift().toLowerCase();
+
+				if(NAME === "v" || NAME === "vt" || NAME === "vn"){
+					const INDEX = ENUM[NAME];
+
+					if(!REFS[INDEX]) REFS[INDEX] = [];
+					BUFFERS[INDEX].size = STATEMENT.length;
+					REFS[INDEX].push(STATEMENT.map(function(value){
+						return Number(value);
+					}));
+				}
+				if(NAME === "f"){
+					STATEMENT.forEach(function(face,faceIndex){
+						face.split("/").forEach(function(pointer,index){
+							pointer = Number(pointer)-1;
+							const TARGET = RESULTS[index];
+							const SOURCE = REFS[index][pointer];
+							[].push.apply(TARGET,SOURCE);
+						});
+					});
+				}
+			});
+			return RESULTS;
+		},
+*/</script>

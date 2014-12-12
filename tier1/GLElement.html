@@ -1,0 +1,455 @@
+<script>(function(){
+	"use strict";
+	const GL 		= WebGLRenderingContext.prototype;
+	const NS 		= Symbol.for("GLElements");
+	const PROTOTYPE = Object.create(HTMLElement.prototype);
+	const GLOBAL 	= {
+		Interface:Interface,
+		Class:Class,
+		Element:Element
+	};
+	window[NS] 	= GLOBAL;
+
+	const METHODS = {
+		dispatch:function(name,detail){
+			this.setAttribute("state",name);
+			console.log(name,detail);
+			this.dispatchEvent(new CustomEvent(name,{
+				bubbles:true,
+				detail:detail
+			}));
+		},
+		evaluateAllAttributes:function(){
+			const A = this.attributes;
+			for(var i = 0; i < A.length; i++){
+				this.evaluateAttribute(A[i].name,A[i].value);
+			}
+		},
+		evaluateAttribute:function recursive(name,value){
+			if(name === "class" || name === "style") return;
+			switch(typeof this[name]){
+				case "boolean": setBoolean(this,name,value); break;
+				case "number": setNumber(this,name,value); break;
+				case "function": setFunction(this,name,value); break;
+				case "object": setObject(this,name,value); break;
+				default: this[name] = value; break;
+			}
+			function setBoolean(object,name,value){
+				value === null ? object[name] = false : object[name] = true;
+			}
+			function setNumber(object,name,value){
+				var v = Number(value);
+				if (isNaN(v)){
+					var glflag = value.toUpperCase();
+					var flag = "$"+name.toUpperCase()+"_"+value.toUpperCase();
+					v = GL[glflag] || object[flag];
+				}
+				if(v === undefined)console.warn(
+					name,
+					"invalid attribute enum",
+					value,
+					"has no corresponding property",
+					flag
+				);
+				else object[name] = v;
+			}
+			function setFunction(object,name,value){
+				value = name + " " + value;
+				var pipe = value.split("|");
+				object[name] = pipe.reduce(function(previous,next){
+					var call = next.split(/[\(\)\s]/).filter(empty);
+					var fn = previous[call.shift()];
+					var args = call.join("").split(",").filter(empty);
+					return fn.apply(previous,args);
+
+				},object)
+				
+				//fn.apply(object,args);
+				function empty(e){return e;}
+			}
+			function setObject(object,name,value){
+				var obj = object[name];
+				var keys = value.split(/[\s]/).filter(function(e){ return e; });
+				keys.forEach(function(keyValue,index){
+					keyValue = keyValue.split(":");
+					
+					if(!object.hasOwnProperty(name)) object[name] = Object.create(obj);
+					if(keyValue.length===1) recursive.call(obj,index,keyValue.shift());
+					else recursive.call(obj,keyValue.shift(),keyValue.join(":"));
+				},object)
+			}
+		}
+	};
+	const LIFECYCLE = {
+		attributeChangedCallback:function(name,oldValue,value){
+			this.evaluateAttribute(name,value);
+			var handler = name+"Changed";
+			if(typeof this[handler] === "function")this[handler](oldValue,value);
+		},
+		createdCallback:function(){
+			this.evaluateAllAttributes();
+			const r = /^on/;
+			for(var p in this){
+				if(r.test(p)) delete this[p];
+			}
+			if(typeof this.created === "function") this.created();
+		},
+		attachedCallback:function(){
+			if(typeof this.attached === "function") this.attached();
+		},
+		detachedCallback:function(){
+			if(typeof this.detached === "function") this.detached();
+		}
+	};
+	
+	console.log(window.ns = GLOBAL); /*log it for debug, so you don't forget to unset it*/
+
+	Interface.prototype = Element.prototype = Class.prototype = {
+		copy:function(Properties,name){
+			for(var property in Properties) this.prototype[property] = Properties[property];
+			if(name) this[name] = Properties;
+			return this;
+		},
+		define:function(PropertyDescriptors,name){
+			Object.defineProperties(this.prototype,PropertyDescriptors);
+			if(name) this[name] = PropertyDescriptors;
+			return this;
+		},
+		static:function(Properties,name){
+			for(var property in Properties) this.constructor[property] = Properties[property];
+			this.STATIC = Properties;
+		}
+	};
+
+	function Interface(prototype,interfaceName){
+		if(!(this instanceof Interface)) 		return new Interface(interfaceName,prototype);
+		if(!interfaceName) 						throw new TypeError("Interface must have a name");
+		if(typeof interfaceName !== "string") 	throw new TypeError("interface name must be a string");
+		if(!prototype) 							prototype = this;
+		if(typeof prototype !== "object") 		throw new TypeError("Prototype of Interface "+interfaceName+"expected object, was "+typeof prototype);
+		
+		this.prototype = prototype;
+		Object.defineProperty(window[NS].Interface,interfaceName,{
+			enumerable:true,
+			get:function(){
+				return Object.create(prototype);
+			}
+		});
+	}
+	Object.defineProperty(Interface,"toString",{value:function(){
+		return [
+			"Interface (Object prototype,String interfaceName) { to publish interface }",
+			Object.keys(Interface).map(function(key,index){
+				var C 	= Object.getPrototypeOf(Interface[key]);
+				var PROPERTIES = Object.getOwnPropertyNames(C).length;
+				var indentA = "-".repeat(24 - key.length);
+				
+				return [
+					"\t- ",key," ",indentA,"->"," ",PROPERTIES," properties\n"].join("");
+			}).join("")
+		].join("\n");
+	}});
+
+	function Class(prototype,constructor){
+		if(prototype)					constructor.prototype = prototype;
+		if(!(this instanceof Class)) 	return new Class(constructor);
+		if(!constructor.name) 			throw new TypeError("class constructor of '"+constructor+"' must have a name");
+
+		this.prototype = constructor.prototype;
+		this.constructor = constructor;
+		Object.defineProperty(window[NS].Class,constructor.name,{value:constructor,enumerable:true});
+	}
+	Object.defineProperty(Class,"toString",{value:function y(){
+		return [
+			"Class(Object prototype,Object constructor) { to publish class }",
+			Object.keys(Class).map(function(key,index){
+				var C 	= Class[key];
+				var STATIC = Object.keys(C).length;
+				var PROPERTIES = Object.getOwnPropertyNames(C.prototype).length;
+				var indentA = "-".repeat(24 - C.name.length);
+				var indentB = "-".repeat(5 - PROPERTIES.toString().length);
+				
+				return [
+					"\t- ",key," ",indentA,"->"," ",PROPERTIES," properties ",indentB," + ",STATIC," static\n"].join("");
+			}).join("")
+		].join("\n");
+	}});
+	/*
+		class Element extends Descriptor(String elementName, Object prototype)
+	*/
+	function Element(prototype,elementName){
+		if(!(this instanceof Element))		return new Element(elementName,prototype);
+		if(!elementName ) 					throw new TypeError("Element must have a name");
+		if(typeof elementName !== "string") throw new TypeError("Element name must be a String, was "+typeof elementName);
+		if(!prototype) 						throw new TypeError("Element prototype was '"+typeof prototype+"' in <"+elementName+">");
+		if(typeof prototype !== "object")	throw new TypeError("Element prototype of <"+elementName+"> must be an object: '"+typeof prototype+"'");
+		
+		this.prototype = prototype;
+		this.constructor = document.registerElement( elementName , { prototype : prototype } );
+		Object.defineProperty(
+			window[NS].Element,
+			elementName, {
+				value : this,
+				enumerable : true
+			}
+		);
+	}
+	Object.defineProperty(Element,"toString",{ value : function(){
+		return [
+			"Element(Object prototype,String elementName) { to publish and register element }",
+			Object.keys(Element).map(function(key,index){
+				var C 	= Element[key];
+				var ATTRIBUTES 	= Object.keys(C.prototype || {}).length;
+				var indentA = "-".repeat(22 - C.constructor.name.length);
+				return [
+					"\t- <",key,"> ",indentA,"->"," ",ATTRIBUTES," attributes\n"].join("");
+			}).join("")
+		].join("\n");
+	}});
+
+	new Interface(PROTOTYPE,"GLElement")
+		.copy(METHODS,"methods")
+		.copy(LIFECYCLE,"lifecycle")
+	;
+	
+})();
+/*
+attrToArgs:function(attr){
+			return attr && attr.split(" ").map(function(e){
+				var num = Number(e);
+				if(isNaN(num)){
+					num = GL[e];
+					if(typeof num === "undefined"){
+						num = this.attrToMask(e)
+					}
+				}
+				return num;
+			},this) || [];
+		},
+		attrToHexArray:function(attr){
+			return attr && attr.split(/[^0-9A-Fa-f]+/).filter(function(e){
+				return e;
+			}).map(function(e){
+				return parseInt(e,16);
+			}) || [];
+		},
+		lookupFlag:function(flag){
+			if(flag !== null && !(flag in GL))console.warn(flag+" not found");
+			else return GL[flag];
+		},
+		attrToMask:function(attr){
+			return attr && attr.split("|").map((e)=>{
+				var num = Number(e);
+				if(isNaN(num)){
+					num = GL[e];
+					if(typeof num === "undefined") console.warn(e+" not found");
+				}
+				return num;
+			}).reduce((p,c)=>p|c,0) || 0;
+		},
+evaluate:function evaluate(expr){
+			
+		},
+		assign:function assign(key,value){
+			if(this[key] === undefined)console.error(
+				"Reference Error:",
+				key,
+				"not defined in",
+				this.outerHTML
+			);
+			else if(typeof this[key] === "function") this[key](value);
+			else this[key] = value;
+		},
+		expressions:{
+			bind:function bind(alias,key,value){
+				var target = document.querySelector(value);
+				if(target[key] === undefined)return console.error(
+					"Reference Error:",
+					key,
+					"not defined in",
+					target,
+					"referenced by",
+					this.outerHTML
+				);
+				else this[alias] = target[key];
+
+			},
+			float32:function(size,key,value){
+
+			}
+		},
+		expressionAssign:function(type,argument,key,value){
+			if(this.expressions[type] === undefined)return console.error(
+				"Reference Error:",
+				type,
+				"is not a valid expression in",
+				this.outerHTML
+			);
+			this[type](argument,key,value);
+		},
+		assignCast:function assignCast(type,key,value){
+			if(type !== "data"){
+				var result;
+				switch(type){
+					case "int":
+						result = value<<0;
+					break;
+					case "number":
+						result = Number(value);
+					break;
+					case "float":
+						result = parseFloat(value);
+					break;
+					case "string":
+						result = value;
+					break;
+					case "json":
+						result = JSON.parse(value);
+					break;
+					
+					default:
+						console.warn(DIR[0]+" unkown datatype");
+						result = this.evaluate(value);
+					break;
+				}
+				if(typeof this[key] === "function") this[key](result);
+				else this[key] = result;
+			}
+		},
+const LIFECYCLE = {
+		attributeChangedCallback:function attributeChanged(name,o,n){
+			const DIR = name.split("-");
+
+			if(DIR.length===1){
+				this.assign(name,n);
+			}else{
+				this[DIR[DIR.length-1]] = this.evaluate(n);
+			}
+		},
+		createdCallback:function(){
+			const ATTR = [].slice.call(this.attributes);
+			const ALLOC = [];
+			ATTR.forEach(function(e,i){
+				const NAME = e.name;
+				const EXPR = e.value;
+				//console.log(NAME,EXPR);
+				const DIR = NAME.split("-")
+
+				if(DIR.length===1){
+					this.assign(DIR[0],EXPR);
+				}else if(DIR.length===2){
+					//console.log("converting to js datatype",DIR[0],DIR[1]);
+					this.assignCast(DIR[0],DIR[1],EXPR);
+				}else if(DIR.length===3){
+					this.expressionAssign(DIR[0],DIR[1],DIR[2],EXPR);
+				}else console.error(
+					"Syntax Error:",
+					NAME,
+					"invalid declaration in",
+					this.outerHTML
+				);
+			},this);
+			
+			
+		},
+	};
+ALLOC.push(this.alllocationDescriptor(DIR[0],DIR[1],DIR[2],EXPR));
+alllocationDescriptor:function(type,length,key,value){
+			const LENGTH = parseInt(length);
+			//console.log("allocating to virtual heap ",DIR[0],DIR[1],DIR[2],LENGTH);
+			switch(type){
+				case "uint8":return {
+					name:key,
+					type:"Uint8Array",
+					expression:value,
+					length:LENGTH,
+					size:LENGTH
+				};
+				break;
+				case "int8":return {
+					name:key,
+					type:"Int8Array",
+					expression:value,
+					length:LENGTH,
+					size:LENGTH
+				};
+				break;
+				case "uint16":return {
+					name:key,
+					type:"Uint16Array",
+					expression:value,
+					length:LENGTH,
+					size:LENGTH*2
+				};
+				break;
+				case "int16":return {
+					name:key,
+					type:"Int16Array",
+					expression:value,
+					length:LENGTH,
+					size:LENGTH*2
+				};
+				break;
+				case "uint32":return {
+					name:key,
+					type:"Uint32Array",
+					expression:value,
+					length:LENGTH,
+					size:LENGTH*4
+				};
+				break;
+				case "int32":return {
+					name:key,
+					type:"Int32Array",
+					expression:value,
+					length:LENGTH,
+					size:LENGTH*4
+				};
+				break;
+				case "float32":return {
+					name:key,
+					type:"Float32Array",
+					expression:value,
+					length:LENGTH,
+					size:LENGTH*4
+				};
+				break;
+				case "float64":return {
+					name:key,
+					type:"Float64Array",
+					expression:value,
+					length:LENGTH,
+					size:LENGTH*8
+				};
+				break;
+				default:console.error("Syntax Error:",
+					type,
+					"invalid datatype in",
+					this.outerHTML
+				);
+				break;
+			}
+		},
+
+const SIZE_SUM = ALLOC.map((e)=>e.size).reduce((p,c)=>p+c,0);
+			//console.log(ALLOC,SIZE_SUM);
+			if(SIZE_SUM !== 0){
+				const HEAP = new ArrayBuffer(SIZE_SUM);
+				var offset = 0;
+				ALLOC.forEach(function allocating(e,i){
+					//console.log("creating view for",e.name,offset,offset+e.size);
+					const VIEW = new window[e.type](HEAP,offset,e.length);
+					Object.defineProperty(
+						this,
+						e.name,
+						{
+							get:()=>[].slice.call(VIEW),
+							set:(v)=>{for(i in v)VIEW[i]=v[i];}
+						}
+					);
+					this[e.name] = this.evaluate(e.expression);
+					offset+=e.size;
+				},this);
+			}
+*/</script>
+

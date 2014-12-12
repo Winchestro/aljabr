@@ -1,0 +1,115 @@
+<link rel="import" href="GLVertexAttributePointer.html">
+
+<script>(function STATIC(){
+	"use strict";
+	const GL 						= WebGLRenderingContext.prototype;
+	const NS 						= Symbol.for("GLElements");
+	const GLOBAL 					= window[NS];
+
+	const GLVertexAttributePointer 	= GLOBAL.Class.GLVertexAttributePointer;
+
+	function  GLVertexbuffer(program,uuid){
+		if(!(this instanceof GLVertexbuffer)) return new GLVertexbuffer(uuid,program);
+		if(!uuid) uuid = Symbol("GLVertexbuffer");
+		this.uuid = uuid;
+		this.program = program;
+		this.gl = program.gl;
+		this.pointer = this.createVertexAttribPointer();
+	}
+
+	const DATA = {
+		target:GL.ARRAY_BUFFER,
+		usage:GL.STATIC_DRAW,
+	};
+	const FACTORIES = {
+		createVertexAttribPointer:function(uuid){
+			if(!uuid) uuid = Symbol("GLVertexAttributePointer");
+			return new GLVertexAttributePointer(this,uuid);
+		}
+	};
+	const PROTOTYPE = {
+		setupBuffer:function(gl,index){
+			const BUFFER = this;
+			if(!(gl instanceof WebGLRenderingContext))
+				return new TypeError("First Argument not WebGLRenderingContext")
+			BUFFER.gl = gl;
+			BUFFER.index = index;
+			return BUFFER.processData(this.data);
+		},
+		pointAt:function(index){
+			index = index || this.index;
+			return this.enableVertexAttribArray(index).vertexAttribPointer(index);
+		},
+		processData:function(data){
+			return this.createBuffer().bindBuffer().bufferData(data).pointAt();
+		},
+		processSubData:function(data){
+			//return this.createBuffer().
+		},
+		
+		
+	};
+	const BINDINGS = {
+		create:function(){
+			this.object = this.gl.createBuffer();
+			return this;
+		},
+		delete:function(){
+			this.gl.deleteBuffer(this.object);
+			return this;
+		},
+		bind:function(){
+			this.gl.bindBuffer(this.target,this.object);
+			return this;
+		},
+		unbind:function(){
+			this.gl.bindBuffer(this.target,null);
+			return this;
+		},
+		bufferData:function(data){
+			this.gl.bufferData(
+				this.target,
+				data,
+				this.usage
+			);
+			return this;
+		},
+		bufferSubData:function(data,offset){
+			this.gl.bufferSubData(
+				this.target,
+				offset,
+				data
+			);
+			return this;
+		},
+		
+	};
+	const ACCESSORS = {
+		USAGE:{
+			get:function(){
+				return this.gl.getBufferParameter(this.target,GL.BUFFER_USAGE);
+			}
+		},
+		SIZE:{
+			get:function(){
+				return this.gl.getBufferParameter(this.target,GL.BUFFER_SIZE);
+			}
+		},
+		MAX_VERTEX_ATTRIBS:{
+			get:function(){
+				return this.gl.getParameter(GL.MAX_VERTEX_ATTRIBS);
+			}
+		}
+	};
+
+	new GLOBAL.Class(PROTOTYPE,GLVertexbuffer)
+		.copy(DATA)
+		.copy(FACTORIES)
+		.copy(BINDINGS)
+		.define(ACCESSORS)
+	;
+
+	
+})();
+/*
+*/</script>

@@ -1,173 +1,85 @@
 <!doctype html>
 <html>
 	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-		<title>element-inspector Demo</title>
-
-
-		<script src="webcomponentsjs/webcomponents.min.js"></script>
-		<link rel="import" href="polymer/polymer.html">
+		<title>GLElements Test</title>
+  
 		<link rel="import" href="gl-elements.html">
-	</head>
-	<body unresolved fullbleed>
-		<!--element-inspector-->
-		<gl-mat4
-			identity
-			id="perspective" 
-			perspective="90,1,400"
-		></gl-mat4>
-		<gl-mat4
-			identity
-			id="model" 
-			translation="0,0,0"
-		></gl-mat4>
-		<gl-mat4 
-			id="view"
-			identity 
-			rotationx="45"
-			rotationy="45"
-			inverse
-		></gl-mat4>
+		<style>
+			canvas{
+				width:100%;
+				height:100%;
+				position:fixed;
+				top:0;
+				left:0;
+				background:#444;
+			}
+		</style>
+		 
+	</head> 
+	<body>
+		<canvas id="mainWindow"></canvas>
 		<script>
 			(function(){
-				const V = window["::gl-vector::"].FACTORIES;
-				const vec2 = V.vec2;
-				const vec3 = V.vec3;
-				const quat4 = V.quat4;
+				mainWindow.addEventListener("click",function(){
+					mainWindow.requestPointerLock();
+				}); 
 
-				const UP = new vec3(0,1,0);
-				const key = {UP:false,DOWN:false,LEFT:false,RIGHT:false,RAISE:false,LOWER:false}
-				const mouse = vec2(0,0);
-
-				const cameraPos = new vec3(0,0,0);
-				const cameraDir = new vec3(0,0,1);
-
-				const forwardDir 	= vec3.fromArray(cameraDir);
-				const strafeDir 	= vec3.fromArray(cameraDir).cross(UP);
-				
-				const yawAxis 	= vec3.fromArray(UP);
-				const pitchAxis 	= vec3.fromArray(cameraDir).cross(UP);
-
-				const yaw = new quat4(0,0,0,1);
-				const pitch = new quat4(0,0,0,1);
-
-				const speed = 5;
-				
-				loop();
-				document.addEventListener("keydown",function(e){
-					//console.log(e.keyCode);
-					const W = 87;
-					const S = 83;
-					const A = 65;
-					const D = 68;
-					const SPACE = 32;
-					const SHIFT = 16;
-					switch(e.keyCode){
-						case W:
-							key.UP = true;
-						break;
-						case S:
-							key.DOWN = true;
-						break;
-						case A:
-							key.LEFT = true;
-						break;
-						case D:
-							key.RIGHT = true;
-						break;
-						case SPACE:
-							key.RAISE = true;
-						break;
-						case SHIFT:
-							key.LOWER = true;
-						break;
-					}
-					updateView();
-				});
-				document.addEventListener("keyup",function(e){
-					const W = 87;
-					const S = 83;
-					const A = 65;
-					const D = 68;
-					const SPACE = 32;
-					const SHIFT = 16;
-					switch(e.keyCode){
-						case W:
-							key.UP = false;
-						break;
-						case S:
-							key.DOWN = false;
-						break;
-						case A:
-							key.LEFT = false;
-						break;
-						case D:
-							key.RIGHT = false;
-						break;
-						case SPACE:
-							key.RAISE = false;
-						break;
-						case SHIFT:
-							key.LOWER = false;
-						break;
-					}
-					updateView();
-				});
-				document.addEventListener("mousemove",function(e){
-					//console.log(e);
-					mouse.x= -e.webkitMovementX/innerWidth;
-					mouse.y= e.webkitMovementY/innerHeight;
-					
-				});
-				function loop(){
-					requestAnimationFrame(loop);
-					updateView();
-				}
-				function updateView(){
-					forwardDir.copy(cameraDir).norm();
-					strafeDir.copy(cameraDir).cross(UP).norm();
-					pitchAxis.copy(strafeDir);
-					
-					var forwardScale = 0;
-					var strafeScale = 0;
-					forwardScale 	+= key.UP 		? 1 : 0;
-					forwardScale 	-= key.DOWN 	? 1 : 0;
-					strafeScale 	+= key.LEFT 	? 1 : 0;
-					strafeScale 	-= key.RIGHT 	? 1 : 0;
-
-					strafeDir.multScalar(strafeScale*speed);
-					forwardDir.multScalar(forwardScale*speed);
-					
-					cameraPos.add(forwardDir);
-					cameraPos.add(strafeDir);
-
-					
-					yaw.axisAngle(yawAxis,mouse.x);
-					pitch.axisAngle(pitchAxis,mouse.y);
-					
-					cameraDir.applyQuat4(yaw);
-					cameraDir.applyQuat4(pitch);
-
-					mouse.x=0;
-					mouse.y=0;
-
-					
-					
-					view.matrix.lookAt(cameraPos,vec3.add(cameraPos,cameraDir),UP);
-					view.matrix.position = cameraPos;
-					view.matrix.inverse();
-					view.value = view.matrix;
-					
-					
-					
-					
-					
-				}
 			})()
 		</script>
-		<gl-geometry id="fsq" src="cube.obj"></gl-geometry>
-		
-		<script src id="precision">
+		<gl-context canvas="#mainWindow" quality="2">
+			<camera-first-person id="view"></camera-first-person>
+			<gl-mat4 		id="perspective" 	perspective="90,1,500"></gl-mat4>
+			<gl-mat4 		id="model" 			translation="0,0,0"></gl-mat4>
+			<gl-texture 	id="city" 			src="textest.jpg"></gl-texture>
+			<gl-texture 	id="tree" 			src="textest.png"></gl-texture>
+			<gl-geometry 	id="fsq" 			src="cube.obj"></gl-geometry>
+			<gl-program 	id="fullscreenQuad">
+				<gl-vertexbuffer id="vertices" target="ARRAY" size="2" data="Float32:
+					-1 -1
+					 1 -1
+					-1  1
+					-1  1
+					 1 -1
+					 1  1
+				"></gl-vertexbuffer>
+				<gl-vertexbuffer id="colorCoords" target="ARRAY" size="4" data="Float32:
+					1 1 1 1
+					0 1 0 1
+					1 0 1 1
+					1 0 1 1
+					0 1 0 1
+					0 0 0 1
+				"></gl-vertexbuffer>
+				<gl-shader 	type="VERTEX" 		id="VS"	src="test.vert"></gl-shader>
+				<gl-shader type="FRAGMENT" 		id="FS"	src="test.frag"></gl-shader>
+			</gl-program>
+		</gl-context>
+
+	</body>
+</html>
+<!--
+
+	Model
+	value:{fun1(a,b),fun2(a,b}
+	HTML
+	value="fun1:argA,argB fun1:argA,argB fun2:argA,argB" 
+	-> value.fun1(argA,argB).fun1(argA,argB).fun2(argA,argB);
+
+	applications
+
+	value="Float32:1,2,3,5,5" 
+	the "value" property has a Float32 method that converts a string to a Float32 array.
+
+	value="base16:FF,FF,A5,51 toUint16"
+	the base16 method first interprets the string as as hexadecimal, returns a new arraylike object that has the method toUint16 that transforms it to a typed array.
+
+	value="urL:index.html 
+
+
+
+	<script src id="precision">
 			#ifdef GL_ES
 				precision mediump float;
 				precision mediump int;
@@ -183,30 +95,15 @@
 			varying vec2 texCoords;
 		</script>
 		<script src id="uniforms">
-			uniform sampler2D id_tree;
-			uniform sampler2D id_cat;
-			uniform sampler2D id_array;
-			uniform sampler2D id_framebuffer;
+			uniform sampler2D tex0;
 			uniform vec2 resolution;
 			uniform vec2 mouse;
 			uniform float time;
 			uniform float frames;
-			uniform mat4 id_perspective;
-			uniform mat4 id_model;
-			uniform mat4 id_view;
+			uniform mat4 perspective;
+			uniform mat4 model;
+			uniform mat4 view;
 		</script>
-		<gl-texture 	id="cat" 	src="textest.jpg"></gl-texture>
-		<gl-texture 	id="tree" 	src="textest.png"></gl-texture>
-		<gl-texture 	id="array" 	data="
-			FF FF FF FF|FF 00 00 FF|00 FF 00 FF|00 00 FF FF|FF FF 00 FF|FF 00 FF FF|00 FF FF FF|00 00 00 FF
-			00 00 00 FF|00 FF FF FF|FF 00 FF FF|FF FF 00 FF|00 00 FF FF|00 FF 00 FF|FF 00 00 FF|FF FF FF FF
-			FF FF FF FF|FF 00 00 FF|00 FF 00 FF|00 00 FF FF|FF FF 00 FF|FF 00 FF FF|00 FF FF FF|00 00 00 FF
-			00 00 00 FF|00 FF FF FF|FF 00 FF FF|FF FF 00 FF|00 00 FF FF|00 FF 00 FF|FF 00 00 FF|FF FF FF FF
-			FF FF FF FF|FF 00 00 FF|00 FF 00 FF|00 00 FF FF|FF FF 00 FF|FF 00 FF FF|00 FF FF FF|00 00 00 FF
-			00 00 00 FF|00 FF FF FF|FF 00 FF FF|FF FF 00 FF|00 00 FF FF|00 FF 00 FF|FF 00 00 FF|FF FF FF FF
-			FF FF FF FF|FF 00 00 FF|00 FF 00 FF|00 00 FF FF|FF FF 00 FF|FF 00 FF FF|00 FF FF FF|00 00 00 FF
-			00 00 00 FF|00 FF FF FF|FF 00 FF FF|FF FF 00 FF|00 00 FF FF|00 FF 00 FF|FF 00 00 FF|FF FF FF FF
-		"></gl-texture>
 		<script src id="sample">
 			varying vec2 texCoords;
 			vec4 sample(sampler2D texture){
@@ -347,52 +244,159 @@
 				}
 			}
 		</script>
-		
-		<gl-context id="mainWindow" antialiasing loop depth quality="2" resolution='["width","height"]'>
-			<gl-program>
-				<gl-shader vertex 
-					includes="
-						#precision,
-						#attributes,
-						#uniforms,
-						#matrixMath" 
-					code="
-						varying vec2 texCoords;
-						
-						void main(void){
-							gl_Position = id_perspective*id_model*id_view*vec4(id_fsq_v.xyz,1.);
-							texCoords = id_fsq_vt;
-						}
-				"></gl-shader>
-				<gl-shader fragment 
-					includes="
-						#precision,
-						#sample,
-						#uniforms" 
-					code="	
-						void main(void){
-							vec2 uv = texCoords;
-							
-							gl_FragColor = texture2D(id_cat,uv);
-								
-								
-							
-							
-						}">
-				</gl-shader>
-			</gl-program>
-		</gl-context>
-		<script>
+	<gl-mat4
+			identity
+			id="perspective" 
+			perspective="90,1,400"
+		></gl-mat4>
+		<gl-mat4 
+			id="view"
+			identity 
+			rotationx="45"
+			rotationy="45"
+			inverse
+		></gl-mat4>
+	<script>
 			(function(){
-				mainWindow.addEventListener("click",function(){
-					mainWindow.requestPointerLock();
-				})
+				const V = window["::gl-vector::"].FACTORIES;
+				const vec2 = V.vec2;
+				const vec3 = V.vec3;
+				const quat4 = V.quat4;
+				
+				var lastFrame = 0;
+
+				const UP = new vec3(0,1,0);
+				const key = {UP:false,DOWN:false,LEFT:false,RIGHT:false,RAISE:false,LOWER:false}
+				const mouse = vec2(0,0);
+
+				const cameraPos = new vec3(0,0,0);
+				const cameraDir = new vec3(0,0,1);
+
+				const forwardDir 	= vec3.copy(cameraDir);
+				const strafeDir 	= vec3.copy(cameraDir).cross(UP);
+				
+				const yawAxis 	= vec3.copy(UP);
+				const pitchAxis 	= vec3.copy(cameraDir).cross(UP);
+
+				const yaw = new quat4(0,0,0,1);
+				const pitch = new quat4(0,0,0,1);
+
+				const speed = .25;
+				
+				loop();
+				document.addEventListener("keydown",function(e){
+					//console.log(e.keyCode);
+					const W = 87;
+					const S = 83;
+					const A = 65;
+					const D = 68;
+					const SPACE = 32;
+					const SHIFT = 16;
+					switch(e.keyCode){
+						case W:
+							key.UP = true;
+						break;
+						case S:
+							key.DOWN = true;
+						break;
+						case A:
+							key.LEFT = true;
+						break;
+						case D:
+							key.RIGHT = true;
+						break;
+						case SPACE:
+							key.RAISE = true;
+						break;
+						case SHIFT:
+							key.LOWER = true;
+						break;
+					}
+					
+				});
+				document.addEventListener("keyup",function(e){
+					const W = 87;
+					const S = 83;
+					const A = 65;
+					const D = 68;
+					const SPACE = 32;
+					const SHIFT = 16;
+					switch(e.keyCode){
+						case W:
+							key.UP = false;
+						break;
+						case S:
+							key.DOWN = false;
+						break;
+						case A:
+							key.LEFT = false;
+						break;
+						case D:
+							key.RIGHT = false;
+						break;
+						case SPACE:
+							key.RAISE = false;
+						break;
+						case SHIFT:
+							key.LOWER = false;
+						break;
+					}
+				});
+				document.addEventListener("mousemove",function(e){
+					//console.log(e);
+					mouse.x= -e.webkitMovementX/innerWidth;
+					mouse.y= e.webkitMovementY/innerHeight;
+					
+				});
+				function loop(){
+					requestAnimationFrame(loop);
+					updateView();
+					lastFrame = Date.now();
+				}
+				function updateView(){
+					//console.log(vec3.cross(cameraDir,UP).len);
+					forwardDir.copy(cameraDir).norm();
+					strafeDir.copy(cameraDir).cross(UP).norm();
+					pitchAxis.copy(strafeDir);
+
+					var deltaTime = Date.now()-lastFrame;
+					var forwardScale = 0;
+					var strafeScale = 0;
+					forwardScale 	+= key.UP 		? 1 : 0;
+					forwardScale 	-= key.DOWN 	? 1 : 0;
+					strafeScale 	+= key.LEFT 	? 1 : 0;
+					strafeScale 	-= key.RIGHT 	? 1 : 0;
+
+					strafeDir.multScalar(strafeScale*speed*deltaTime);
+					forwardDir.multScalar(forwardScale*speed*deltaTime);
+					
+					cameraPos.add(forwardDir);
+					cameraPos.add(strafeDir);
+
+					
+					yaw.axisAngle(yawAxis,mouse.x);
+					pitch.axisAngle(pitchAxis,mouse.y);
+					
+					cameraDir.applyQuat4(yaw);
+					cameraDir.applyQuat4(pitch);
+
+					mouse.x=0;
+					mouse.y=0;
+					
+					
+					view.matrix.position = cameraPos;
+					view.matrix.lookAt(cameraPos,vec3.add(cameraPos,cameraDir),UP);
+					
+					view.matrix.inverse();
+					view.value = view.matrix;
+					
+					
+					
+					
+					
+				}
 			})()
 		</script>
-		<!--/element-inspector-->
-	</body>
-</html>
-<!-- 
 	<gl-framebuffer id="framebuffer">
 		<gl-texture></gl-texture>
 		<gl-program depth>

@@ -1,111 +1,128 @@
-<link rel="import" href="gl-element.html">
+<link rel="import" href="GLElement.html">
 
-<polymer-element name="gl-shader" constructor="glShader" extends="gl-element">
-<script>Polymer((function STATIC(){
+<link rel="import" href="GLShader.html">
+
+<script>(function STATIC(){
 	"use strict";
-	const GL = WebGLRenderingContext.prototype;
-	const BINDINGS = {
-		createShader:{
-			value:function(){
-				this.shader = this.gl.createShader(this.type);
-				return this;
-			}
-		},
-		compileShader:{
-			value:function(){
-				this.gl.compileShader(this.shader);
-				return this;
-			}
-		},
-		deleteShader:{
-			value:function(){
-				this.gl.deleteShader(this.shader);
-				return this;
-			}
-		},
-		shaderSource:{
-			value:function(code){
-				this.gl.shaderSource(this.shader,code || this.code);
-				return this;
-			}
-		},
-	};
-	const STATES = {
-		$SHADER_TYPE:{
-			get:function(){
-				return this.gl.getShaderParameter(this.shader,GL.SHADER_TYPE);
-			}
-		},
-		$DELETE_STATUS:{
-			get:function(){
-				return this.gl.getShaderParameter(this.shader,GL.DELETE_STATUS);
-			}
-		},
-		$COMPILE_STATUS:{
-			get:function(){
-				return this.gl.getShaderParameter(this.shader,GL.COMPILE_STATUS);
-			}
-		},
-	};
-	const ACCESSORS = {
-		source:{
-			get:function(){
-				return this.gl.getShaderSource(this.shader);
-			}
-		},
-		infoLog:{
-			get:function(){
-				return this.gl.getShaderInfoLog(this.shader);
-			}
-		},
-		type:{
-			get:function(){
-				return this.vertex?GL.VERTEX_SHADER:this.fragment?GL.FRAGMENT_SHADER:0;
-			}
-		}
-	};
+	const GL 			= WebGLRenderingContext.prototype;
+	const NS 			= Symbol.for("GLElements");
+	const GLOBAL 		= window[NS];
+	const PROTOTYPE 	= GLOBAL.Interface.GLElement;
+	const GLShader 		= GLOBAL.Class.GLShader;
+
 	const METHODS = {
-		setupShader:{
-			value:function(gl){
-				if(!(gl instanceof WebGLRenderingContext))
-					return new TypeError("First Argument not WebGLRenderingContext")
-				this.gl = gl;
-				if(this.src) return this.load(this.src);
-				else         return Promise.resolve(this.processCode());
-			}
+		codeChanged:function(o,n){
+			this.shader.code = this.code;
+			if(n && this.shader.gl) this.recompileShader();
 		},
-		processCode:{
-			value:function(code){
-				this.createShader()
-				.shaderSource((this.includedCode||"") + (code || this.code))
-				.compileShader();
-				if(!this.$COMPILE_STATUS){
-					console.warn(this.infoLog);
+		typeChanged:function(o,n){
+			this.shader.type = this.type;
+			if(n && this.shader.gl) this.recompileShader();	
+		},
+		sharedChanged:function(o,n){
+			this.shader.shared = this.shared;
+			this.dispatch("shader-scope-changed",{
+				shader:this.shader,
+				shared:this.shared
+			});
+		},
+		srcChanged:function(o,n){
+			const $ = this;
+			
+			if (n) {
+				this.dispatch("shader-loading-started",{
+					shader:this.shader
+				});
+				this.shader.loadAsync(n).then(function(shader){
+					$.recompileShader();
+				},function(error){
+					$.dispatch("shader-loading-error",{
+						shader:$.shader,
+						error:error
+					});
+				});
+			} else {
+				if(this.shader.imported){
+					this.shader.imported = "";
+					this.recompileShader();
+				} else if (!this.shader.COMPILE_STATUS) {
+					this.recompileShader();
 				}
-				return this;
 			}
-		},
-	};
-	const PROTOTYPE = {
-		publish:{
-			code:"",
-			includes:"",
-			imports:"",
-			vertex:false,
-			fragment:false
 		},
 		includesChanged:function(o,n){
-			var result = [];
-			[].slice.call(document.querySelectorAll(n)).forEach(function(element){
-				result.push(element.innerText);
-			});
-			this.includedCode = result.join("");
+			if(n && this.shader.gl) {
+				this.shader.includeQuery(n);
+				this.recompileShader();
+			}
+		},
+		checkintervalChanged:function(o,n){
+			this.shader.dirtyCheck(this.checkinterval);
+		},
+		recompileShader:function(){
+			this.shader.recompile()
+			if(this.shader.COMPILE_STATUS){
+				this.dispatch("shader-compile-success",{
+					shader:this.shader
+				});
+			}else{
+				console.error(this.shader.InfoLog);
+				this.dispatch("shader-compile-error",{
+					shader:this.shader,
+					error:this.shader.InfoLog
+				});
+			}
 		},
 	};
-	Object.defineProperties(PROTOTYPE,BINDINGS);
-	Object.defineProperties(PROTOTYPE,STATES);
-	Object.defineProperties(PROTOTYPE,ACCESSORS);
-	Object.defineProperties(PROTOTYPE,METHODS);
-	return PROTOTYPE;
-})());</script>
-</polymer-element>
+	const ENUM = {
+		$TYPE_VERTEX:GL.VERTEX_SHADER,
+		$TYPE_FRAGMENT:GL.FRAGMENT_SHADER
+	};
+	const ATTRIBUTES = {
+		type:GL.FRAGMENT_SHADER,
+		code:"",
+		src:"",
+		includes:"",
+		checkinterval:0,
+		shared:false
+	};
+	const LIFECYCLE = {
+		created:function(){
+			if(this.parentElement.createShader){
+				this.shader = this.parentElement.createShader(
+					this.type,
+					this.code,
+					this.shared,
+					this.id
+				).includeQuery(this.includes);
+				this.srcChanged(null,this.src);
+			}
+			/*
+			this.shader = new glShader(this.type,this.code,this.id)
+			.setup(this.parentElement.program)
+			.includeQuery(this.includes);
+			this.srcChanged(this.src);
+			*/
+		}
+	};
+
+
+	new GLOBAL.Element(PROTOTYPE,"gl-shader")
+		.copy(METHODS,"methods")
+		.copy(ATTRIBUTES,"attributes")
+		.copy(LIFECYCLE,"lifecycle")
+		.copy(ENUM,"enum")
+	;
+})();/* 
+
+
+	PROTOTYPE.describeElement(PROTOTYPE,"gl-shader",
+		{
+			methods:METHODS,
+			attributes:ATTRIBUTES,
+			lifecycle:LIFECYCLE,
+			enum:ENUM,
+			factories:FACTORIES
+		}
+	);
+*/</script>

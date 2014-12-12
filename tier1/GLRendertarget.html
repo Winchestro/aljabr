@@ -1,10 +1,14 @@
-<link rel="import" href="gl-element.html">
+<link rel="import" href="GLElement.html">
+<link rel="import" href="gl-program.html">
 
 <script>(function STATIC(){
 	"use strict";
-	const PROTOTYPE = Object.create(window["::gl-element::"].PROTOTYPE);
-	const GL = WebGLRenderingContext.prototype;
-	
+	const GL 			= WebGLRenderingContext.prototype;
+	const NS 			= Symbol.for("GLElements");
+	const GLOBAL 		= window[NS];
+	const PROTOTYPE 	= GLOBAL.Interface.GLElement;
+
+
 	const ACCESSORS = {
 		$width:{
 			get:function(){
@@ -16,19 +20,40 @@
 				return this.height||this.clientHeight||document.documentElement.clientHeight;
 			}
 		},
-		$programs:{
-			get:function(){
-				return [].slice.call(this.children).filter(this.programFilter.bind(this));
-			}
-		},
 	};
-	const BINDINGS = {
+
+	const METHODS = {
 		viewport:function(x,y,width,height){
 			this.gl.viewport(x,y,width,height);
 			return this;
 		},
 	};
-	const METHODS = {
+
+	
+	
+	new GLOBAL.Interface(PROTOTYPE,"GLRendertarget")
+		.copy(METHODS,"methods")
+		.define(ACCESSORS,"accessors")
+	;
+})();
+/*
+
+	PROTOTYPE.describeElement(PROTOTYPE,"gl-rendertarget",
+		{
+			bindings:BINDINGS,
+			methods:METHODS,
+			factories:FACTORIES
+		},
+		{
+			accessors:ACCESSORS
+		},
+		true
+	);
+		$programs:{
+			get:function(){
+				return [].slice.call(this.children).filter(this.programFilter.bind(this));
+			}
+		},
 		programFilter:function(child){
 			return typeof child.setupProgram === "function";
 		},
@@ -53,19 +78,4 @@
 				};
 			},function(err){throw console.warn(err.stack)})
 		},
-	};
-
-	PROTOTYPE.describeElement(PROTOTYPE,"gl-rendertarget",
-		{
-			bindings:BINDINGS,
-			methods:METHODS
-		},
-		{
-			accessors:ACCESSORS
-		}
-	);
-	
-})();
-/*
-
 */</script>

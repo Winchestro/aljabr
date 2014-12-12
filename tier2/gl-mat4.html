@@ -2,11 +2,16 @@
 
 <script>(function STATIC(){
 	"use strict";
-	const PROTOTYPE = Object.create(window["::gl-vector::"].PROTOTYPE);
-	const Vector = PROTOTYPE.Vector;
-	const vec3 = PROTOTYPE.vec3;
-	const vec4 = PROTOTYPE.vec4;
-	const quat4 = PROTOTYPE.quat4;
+	//const PROTOTYPE = Object.create(window["::gl-vector::"].PROTOTYPE);
+
+	const GL 			= WebGLRenderingContext.prototype;
+	const NS 			= Symbol.for("GLElements");
+	const GLOBAL 		= window[NS];
+	const PROTOTYPE 	= GLOBAL.Interface.GLElement;
+	const Vector		= GLOBAL.Class.Vector;
+	const vec3			= GLOBAL.Class.vec3;
+	const vec4			= GLOBAL.Class.vec4;
+	const quat4			= GLOBAL.Class.quat4;
 
 	const ACCESSORS = {
 		value:{
@@ -23,85 +28,82 @@
 			this.matrix = mat4.Identity();
 		},
 		perspective:function(fov,near,far){
-			this.matrix.mult(
-				mat4.Perspective(
-					Number(fov)		||0,
-					Number(near)	||0,
-					Number(far)		||0
-				)
+			const m = mat4.Perspective(
+				Number(fov)		||0,
+				Number(near)	||0,
+				Number(far)		||0
 			);
+			if(this.matrix) this.matrix.mult(m);
+			else this.matrix = m;
 		},
 		frustrum:function(left,right,bottom,top,near,far){
-			this.matrix.mult(
-				mat4.Frustrum(
-					Number(left)	||0,
-					Number(right)	||0,
-					Number(bottom)	||0,
-					Number(top)		||0,
-					Number(near)	||0,
-					Number(far)		||0
-				)
+			const m = mat4.Frustrum(
+				Number(left)	||0,
+				Number(right)	||0,
+				Number(bottom)	||0,
+				Number(top)		||0,
+				Number(near)	||0,
+				Number(far)		||0
 			);
+			if(this.matrix) this.matrix.mult(m);
+			else this.matrix = m;
 		},
 		rotationx:function(a){
-			this.matrix.mult(
-				mat4.RotationX(
-					Number(a)||0
-				)
+			const m = mat4.RotationX(
+				Number(a)||0
 			);
+			if(this.matrix) this.matrix.mult(m);
+			else this.matrix = m;
 		},
 		rotationy:function(a){
-			this.matrix.mult(
-				mat4.RotationY(
-					Number(a)||0
-				)
+			const m = mat4.RotationY(
+				Number(a)||0
 			);
+			if(this.matrix) this.matrix.mult(m);
+			else this.matrix = m;
 		},
 		rotationz:function(a){
-			this.matrix.mult(
-				mat4.RotationZ(
-					Number(a)||0
-				)
+			const m = mat4.RotationZ(
+				Number(a)||0
 			);
+			if(this.matrix) this.matrix.mult(m);
+			else this.matrix = m;
 		},
 		translation:function(x,y,z){
-			this.matrix.mult(
-				mat4.Translation(
-					Number(x)||0,
-					Number(y)||0,
-					Number(z)||0
-				)
+			const m = mat4.Translation(
+				Number(x)||0,
+				Number(y)||0,
+				Number(z)||0
 			);
+			if(this.matrix) this.matrix.mult(m);
+			else this.matrix = m;
 		},
 		scale:function(x,y,z){
-			this.matrix.mult(
-				mat4.Scale(
-					Number(x)||0,
-					Number(y)||0,
-					Number(z)||0
-				)
+			const m = mat4.Scale(
+				x === undefined ? 1 : Number(x),
+				y === undefined ? 1 : Number(y),
+				z === undefined ? 1 : Number(z)
 			);
+			if(this.matrix) this.matrix.mult(m);
+			else this.matrix = m;
 		},
 		rotationquat4:function(x,y,z,w){
-
-			this.matrix.mult(
-				mat4.RotationQuat4(
-					new quat4(
-						Number(x)||0,
-						Number(y)||0,
-						Number(z)||0,
-						w === undefined ? 1 : Number(w)
-					)
-				)
-			)
+			const m = mat4.RotationQuat4(
+				Number(x)||0,
+				Number(y)||0,
+				Number(z)||0,
+				w === undefined ? 1 : Number(w)
+			);
+			if(this.matrix) this.matrix.mult(m);
+			else this.matrix = m;
 		}
 	};
 	const FACTORIES = {
 		mat4:mat4
 	};
 	const LIFECYCLE = {
-		createdCallback:function(){
-			this.matrix = mat4.Identity();
+		created:function(){
+			//this.matrix = mat4.Identity();
 		},
 
 	};
@@ -110,9 +112,6 @@
 		Object.defineProperty(this,"length",{value:16});	
 	}
 	mat4.prototype = Object.create(Vector.prototype,{
-		constructor:{
-			value:mat4
-		},
 		rows:{
 			get:function(){
 				const m = this;
@@ -386,15 +385,14 @@
 		)
 	}
 	
-	PROTOTYPE.describeElement(PROTOTYPE,"gl-mat4",
-		{
-			methods:METHODS,
-			facories:FACTORIES
-		},
-		{
-			accessors:ACCESSORS
-		}
-	);
+	new GLOBAL.Element(PROTOTYPE,"gl-mat4")
+		.copy(METHODS,"methods")
+		.copy(FACTORIES,"factories")
+		.copy(LIFECYCLE,"lifecycle")
+		.define(ACCESSORS,"accessors")
+	;
+
+	new GLOBAL.Class(null,mat4);
 	
 })();
 /*

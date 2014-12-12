@@ -1,87 +1,61 @@
+<link rel="import" href="../tier1/GLElement.html">
+<link rel="import" href="../tier1/GLResource.html">
 <link rel="import" href="../tier1/gl-vertexbuffer.html">
-
-<polymer-element name="gl-geometry" constructor="glGeometry">
-<template>
-	<gl-vertexbuffer id="v"></gl-vertexbuffer>
-	<gl-vertexbuffer id="vt"></gl-vertexbuffer>
-	<gl-vertexbuffer id="vn"></gl-vertexbuffer>
-</template>
-<script>Polymer((function STATIC(){
+<link rel="import" href="OBJParser.html">
+<script>(function STATIC(){
 	"use strict";
-	const GL = WebGLRenderingContext.prototype;
-	const PROTOTYPE={
-		publish:{
-			src:""
-		},
-		fromOBJ:function(source){
-			const MESH = this;
-			const REFS = [];
-			const ENUM = {
-				v:0,
-				vt:1,
-				vn:2
-			};
-			const BUFFERS = [
-				this.$.v,
-				this.$.vt,
-				this.$.vn
-			];
-			const RESULTS = [
-				[],
-				[],
-				[]
-			];
-			source.split("\n").forEach(function(line){
-				const STATEMENT = line.split(/\s+/);
-				const NAME = STATEMENT.shift().toLowerCase();
+	const GL 			= WebGLRenderingContext.prototype;
+	const NS 			= Symbol.for("GLElements");
+	const GLOBAL 		= window[NS];
+	const PROTOTYPE 	= GLOBAL.Interface.GLElement;
 
-				if(NAME === "v" || NAME === "vt" || NAME === "vn"){
-					const INDEX = ENUM[NAME];
+	const OBJParser 	= GLOBAL.Class.OBJParser;
 
-					if(!REFS[INDEX]) REFS[INDEX] = [];
-					BUFFERS[INDEX].size = STATEMENT.length;
-					REFS[INDEX].push(STATEMENT.map(function(value){
-						return Number(value);
-					}));
-				}
-				if(NAME === "f"){
-					STATEMENT.forEach(function(face,faceIndex){
-						face.split("/").forEach(function(pointer,index){
-							pointer = Number(pointer)-1;
-							const TARGET = RESULTS[index];
-							const SOURCE = REFS[index][pointer];
-							[].push.apply(TARGET,SOURCE);
-						});
-					});
-				}
-			});
-			return RESULTS;
-		},
-		srcChanged:function(o,n){
-			const isOBJ = /\.obj$/i.test(n);
+	const ATTRIBUTES = {
+		src:"",
+	};
+
+	const METHODS = {
+		created:function(){
+			const isOBJ = /\.obj$/i.test(this.src);
 			const xhr = new XMLHttpRequest;
 			const GEOMETRY = this;
-			
-			this.$.v.data = [];
-			this.$.vt.data = [];
-			this.$.vn.data = [];
-			
-			xhr.open("GET",n);
+			xhr.open("GET",this.src);
 			xhr.onreadystatechange = function(){
 				if(xhr.readyState === xhr.DONE && xhr.status === 200){
 					if(isOBJ){
-						const DATA = GEOMETRY.fromOBJ(xhr.response);
-						GEOMETRY.$.v.data = new Float32Array(DATA[0]);
-						GEOMETRY.$.vt.data = new Float32Array(DATA[1]);
-						GEOMETRY.$.vn.data = new Float32Array(DATA[2]);
+						/*
+						var DATA = OBJParser.toIndexedArrays(xhr.response);
+						for(var buffer in DATA) DATA[buffer] = new Float32Array(DATA[buffer].reduce(
+							(p,c)=>p.concat(c)
+						));
+						
+						console.log("elements",DATA);
+						DATA = OBJParser.toArrays(xhr.response);
+						for(var buffer in DATA){
+							if(buffer === "f"){
+								DATA.f = new Uint16Array(DATA.f.reduce((p,c)=>p.concat(c)));
+							}else{
+								DATA[buffer] = new Float32Array(DATA[buffer].reduce((p,c)=>p.concat(c)));
+							}
+						}
+
+						console.log("indexed arrays",DATA);
+						*/
+						//GEOMETRY.$.v.data = new Float32Array(DATA[0]);
+						//GEOMETRY.$.vt.data = new Float32Array(DATA[1]);
+						//GEOMETRY.$.vn.data = new Float32Array(DATA[2]);
 					}
 				}
 			}
 			xhr.send();
 		}
 	};
-	return PROTOTYPE;
-})());
+
+	new GLOBAL.Element(PROTOTYPE,"gl-geometry")
+		.copy(ATTRIBUTES,"attributes")
+		.copy(METHODS,"methods")
+	;
+})();
 /*
 */</script>
-</polymer-element>

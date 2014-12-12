@@ -1,0 +1,124 @@
+<script>(function STATIC(){
+	"use strict";
+	const GL 			= WebGLRenderingContext.prototype;
+	const NS 			= Symbol.for("GLElements");
+	const GLOBAL 		= window[NS];
+	
+	
+	function GLVertexAttributePointer(buffer,uuid){
+		if(!(this instanceof GLVertexAttributePointer)) 
+		return new GLVertexAttributePointer(buffer,uuid);
+		
+		this.uuid 	= uuid;
+		this.buffer = buffer;
+		this.gl = buffer.gl;
+	}
+	
+	const DATA = {
+		index:0,
+		size:4,
+		type:GL.FLOAT,
+		normalized:false,
+		stride:0,
+		offset:0,
+	};
+
+	const PROTOTYPE = {
+		copyFrom:function(pointer){
+			this.index 		= pointer.index;
+			this.size 		= pointer.size;
+			this.type 		= pointer.type;
+			this.normalized = pointer.normalized;
+			this.stride 	= pointer.stride;
+			this.offset 	= pointer.offset;
+			return this;
+		},
+		update:function(){
+			this.gl.vertexAttribPointer(
+				this.index,
+				this.size,
+				this.type,
+				this.normalized,
+				this.stride,
+				this.offset
+			);
+			return this;
+		},
+		
+	};
+	const ACCESSORS = {
+		BUFFER_BINDING:{
+			get:function(){
+				return this.gl.getVertexAttrib(this.index,GL.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING);
+			}
+		},
+		ENABLED:{
+			get:function(){
+				return this.gl.getVertexAttrib(this.index,GL.VERTEX_ATTRIB_ARRAY_ENABLED);
+			}
+		},
+		SIZE:{
+			get:function(){
+				return this.gl.getVertexAttrib(this.index,GL.VERTEX_ATTRIB_ARRAY_SIZE);
+			}
+		},
+		STRIDE:{
+			get:function(){
+				return this.gl.getVertexAttrib(this.index,GL.VERTEX_ATTRIB_ARRAY_STRIDE);
+			}
+		},
+		TYPE:{
+			get:function(){
+				return this.gl.getVertexAttrib(this.index,GL.VERTEX_ATTRIB_ARRAY_TYPE);
+			}
+		},
+		NORMALIZED:{
+			get:function(){
+				return this.gl.getVertexAttrib(this.index,GL.VERTEX_ATTRIB_ARRAY_NORMALIZED);
+			}
+		},
+		CURRENT_VERTEX_ATTRIB:{
+			get:function(){
+				return this.gl.getVertexAttrib(this.index,GL.CURRENT_VERTEX_ATTRIB);
+			}
+		}
+	};
+	const BINDINGS = {
+		vertexAttrib1f:function(f1){
+			this.gl.vertexAttrib1f(this.index,f1);
+		},
+		vertexAttrib2f:function(f1,f2){
+			this.gl.vertexAttrib2f(this.index,f1,f2);
+		},
+		vertexAttrib3f:function(f1,f2,f3){
+			this.gl.vertexAttrib3f(this.index,f1,f2,f3);
+		},
+		vertexAttrib4f:function(f1,f2,f3,f4){
+			this.gl.vertexAttrib4f(this.index,f1,f2,f3,f4);
+		},
+		vertexAttrib1fv:function(v){
+			this.gl.vertexAttrib1fv(this.index,v);
+		},
+		vertexAttrib2fv:function(v){
+			this.gl.vertexAttrib2fv(this.index,v);
+		},
+		vertexAttrib3fv:function(v){
+			this.gl.vertexAttrib3fv(this.index,v);
+		},
+		vertexAttrib4fv:function(v){
+			this.gl.vertexAttrib4fv(this.index,v);
+		},
+		enable:function(){
+			this.gl.enableVertexAttribArray(this.index);
+			return this;
+		},
+	};
+
+	new GLOBAL.Class(PROTOTYPE,GLVertexAttributePointer)
+		.copy(DATA)
+		.copy(BINDINGS)
+		.define(ACCESSORS)
+	;
+})();
+/*
+*/</script>

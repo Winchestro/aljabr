@@ -1,10 +1,17 @@
-<link rel="import" href="gl-rendertarget.html">
+<link rel="import" href="GLRendertarget.html">
 <link rel="import" href="gl-texture.html">
 
-<polymer-element name="gl-framebuffer" constructor="glFramebuffer" extends="gl-rendertarget">
-<script>Polymer((function STATIC(){
+<script>(function STATIC(){
 	"use strict";
-	const GL = WebGLRenderingContext.prototype;
+	const GL 			= WebGLRenderingContext.prototype;
+	const NS 			= Symbol.for("GLElements");
+	const GLOBAL 		= window[NS];
+	const PROTOTYPE 	= GLOBAL.Interface.GLRendertarget;
+
+
+	new GLOBAL.Element("gl-framebuffer",PROTOTYPE);
+})();
+/*
 	const BINDINGS = {
 		bindFramebuffer:{
 			value:function(){
@@ -66,6 +73,7 @@
 			}
 		},
 	};
+
 	const ACCESSORS = {
 		$TEXTURE:{
 			get:function(){
@@ -82,47 +90,37 @@
 			}
 		},
 	};
+
 	const METHODS = {
-		setupTexture:{
-			value:function(gl){
-				if(!(gl instanceof WebGLRenderingContext))
-				return new TypeError("First Argument not WebGLRenderingContext");
-				const FRAMEBUFFER = this;
-				const TEXTURE = this.$TEXTURE;
-				TEXTURE.width = this.$width;
-				TEXTURE.height = this.$height;
-				FRAMEBUFFER.gl = gl;
-				TEXTURE.gl = gl;
-				FRAMEBUFFER.target = TEXTURE;
-				return FRAMEBUFFER.setupRendertarget(0,0,TEXTURE.width,TEXTURE.height)
-				.then(function(render){
+		setupTexture:function(gl){
+			if(!(gl instanceof WebGLRenderingContext))
+			return new TypeError("First Argument not WebGLRenderingContext");
+			const FRAMEBUFFER = this;
+			const TEXTURE = this.$TEXTURE;
+			TEXTURE.width = this.$width;
+			TEXTURE.height = this.$height;
+			FRAMEBUFFER.gl = gl;
+			TEXTURE.gl = gl;
+			FRAMEBUFFER.target = TEXTURE;
+			return FRAMEBUFFER.setupRendertarget(0,0,TEXTURE.width,TEXTURE.height)
+			.then(function(render){
 
-					TEXTURE.createTexture().bindTexture().texParameteri().texImage2D();
-					FRAMEBUFFER.createFramebuffer().bindFramebuffer().framebufferTexture2D()
-					
-					FRAMEBUFFER.render = framebufferOperation;
-					return framebufferOperation;
-					function framebufferOperation(){
-						FRAMEBUFFER.bindFramebuffer();
-						render();
-						FRAMEBUFFER.unbindFramebuffer();
+				TEXTURE.createTexture().bindTexture().texParameteri().texImage2D();
+				FRAMEBUFFER.createFramebuffer().bindFramebuffer().framebufferTexture2D()
+				
+				FRAMEBUFFER.render = framebufferOperation;
+				return framebufferOperation;
+				function framebufferOperation(){
+					FRAMEBUFFER.bindFramebuffer();
+					render();
+					FRAMEBUFFER.unbindFramebuffer();
 
-					}
-				});
-			}
+				}
+			});
 		},
 	};
-	const PROTOTYPE = {
-		publish:{
-			attachment:GL.COLOR_ATTACHMENT0
-		}
+	const ATTRIBUTES = {
+		attachment:GL.COLOR_ATTACHMENT0
 	};
-	Object.defineProperties(PROTOTYPE,BINDINGS);
-	Object.defineProperties(PROTOTYPE,ACCESSORS);
-	Object.defineProperties(PROTOTYPE,METHODS);
-	return PROTOTYPE;
-})());
-/*
-
 */</script>
 </polymer-element>

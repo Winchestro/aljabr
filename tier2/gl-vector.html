@@ -1,25 +1,15 @@
-<link rel="import" href="../tier1/gl-element.html">
+<link rel="import" href="../tier1/GLElement.html">
 <script>(function STATIC(){
 	"use strict";
-	const PROTOTYPE = Object.create(window["::gl-element::"].PROTOTYPE);
-	
-	const FACTORIES = {
-		Vector:Vector,
-		vec2:vec2,
-		vec3:vec3,
-		vec4:vec4,
-		quat4:quat4
-	}
-	
+	const GL 			= WebGLRenderingContext.prototype;
+	const NS 			= Symbol.for("GLElements");
+	const GLOBAL 		= window[NS];
 	
 	function Vector(){
 		Object.defineProperty(this,"length",{value:0,writable:true});
 		[].push.apply(this,arguments);
 	}
 	Vector.prototype = Object.create({},{
-		constructor:{
-			value:Vector
-		},
 		splice:{
 			value:[].splice
 		},
@@ -81,13 +71,15 @@
 		norm:{
 			value:function(){
 				var L = this.len;
-				if(L === 0)return this;
+				if(L === 0){
+					return this;
+				}
 				else this.multScalar(1 / L);
 				return this;
 			}
 		}
 	});
-	Vector.fromArray = function(array){
+	Vector.copy = function(array){
 		Object.defineProperty(this,"length",{value:0,writable:true});
 		[].push.apply(this,array);
 	};
@@ -99,9 +91,6 @@
 		this.y = y || 0;
 	}
 	vec2.prototype = Object.create(Vector.prototype,{
-		constructor:{
-			value:vec2
-		},
 		add:{
 			value:function(vecA,vecB){
 				vecB = vecB || this;
@@ -134,7 +123,7 @@
 			}
 		}
 	});
-	vec2.fromArray = function(array){
+	vec2.copy = function(array){
 		return new vec2(
 			array[0],
 			array[1]
@@ -170,9 +159,6 @@
 		this.z = z || 0;
 	}
 	vec3.prototype = Object.create(Vector.prototype,{
-		constructor:{
-			value:vec3
-		},
 		add:{
 			value:function(vecA,vecB){
 				vecB = vecB || this;
@@ -202,7 +188,7 @@
 		},
 		cross:{
 			value: function(vecA,vecB){
-				vecB = vecB || vec3.fromArray(this);
+				vecB = vecB || vec3.copy(this);
 				this.x = vecA[1] * vecB[2] - vecA[2] * vecB[1];
 				this.y = vecA[2] * vecB[0] - vecA[0] * vecB[2];
 				this.z = vecA[0] * vecB[1] - vecA[1] * vecB[0];
@@ -233,7 +219,7 @@
 			}
 		}
 	});
-	vec3.fromArray = function(array){
+	vec3.copy = function(array){
 		return new vec3(
 			array[0],
 			array[1],
@@ -281,9 +267,6 @@
 		this.w = w || 0;
 	}
 	vec4.prototype = Object.create(Vector.prototype,{
-		constructor:{
-			value:vec4
-		},
 		add:{
 			value:function(vecA,vecB){
 				vecB = vecB || this;
@@ -324,7 +307,7 @@
 			}
 		}
 	});
-	vec4.fromArray = function(array){
+	vec4.copy = function(array){
 		return new vec4(
 			array[0],
 			array[1],
@@ -369,12 +352,9 @@
 		this.w = (w === undefined) ? 1 : w;
 	}
 	quat4.prototype = Object.create(Vector.prototype,{
-		constructor:{
-			value:quat4
-		},
 		mult:{
 			value:function(qA,qB){
-				qB = qB || new quat4.fromArray(this);
+				qB = qB || new quat4.copy(this);
 				this.x = qB[0] * qA[3] + qB[3] * qA[0] + qB[1] * qA[2] - qB[2] * qA[1];
 				this.y = qB[1] * qA[3] + qB[3] * qA[1] + qB[2] * qA[0] - qB[0] * qA[2];
 				this.z = qB[2] * qA[3] + qB[3] * qA[2] + qB[0] * qA[1] - qB[1] * qA[0];
@@ -415,7 +395,7 @@
 			}
 		}
 	});
-	quat4.fromArray = function(array){
+	quat4.copy = function(array){
 		return new quat4(
 			array[0],
 			array[1],
@@ -433,7 +413,7 @@
 		);
 	};
 	quat4.mult = function(qA,qB){
-		qB = qB || new quat4.fromArray(this);
+		qB = qB || new quat4.copy(this);
 		return new quat4(
 			qB[0] * qA[3] + qB[3] * qA[0] + qB[1] * qA[2] - qB[2] * qA[1],
 			qB[1] * qA[3] + qB[3] * qA[1] + qB[2] * qA[0] - qB[0] * qA[2],
@@ -485,16 +465,11 @@
 	});
 	
 	
-	
-	
-	
-
-
-	PROTOTYPE.describeElement(PROTOTYPE,"gl-vector",
-		{
-			factories:FACTORIES
-		}
-	);
+	new GLOBAL.Class(null,Vector)
+	new GLOBAL.Class(null,vec2);
+	new GLOBAL.Class(null,vec3);
+	new GLOBAL.Class(null,vec4);
+	new GLOBAL.Class(null,quat4);
 })();
 /*
 */</script>
