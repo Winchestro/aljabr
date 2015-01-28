@@ -1,0 +1,481 @@
+<link rel="import" href="GLElement.html">
+
+<link rel="import" href="gl-shader.html">
+<link rel="import" href="gl-texture.html">
+<link rel="import" href="gl-vertexbuffer.html">
+
+<link rel="import" href="GLProgram.html">
+
+<script>(function STATIC(){
+	"use strict";
+	const GL 			= WebGLRenderingContext.prototype;
+	const NS 			= Symbol.for("GLElements");
+	const GLOBAL 		= window[NS];
+	const PROTOTYPE 	= GLOBAL.Interface.GLElement;
+	const GLProgram 	= GLOBAL.Class.GLProgram;
+
+	const ATTRIBUTES = {
+		bindings:{}
+	};
+	const LISTENERS = {
+		"shader-compile-success":function(e){
+			const d = e.detail;
+			const s = d.shader;
+			this.program.addShader(s.uuid,s,s.shared).useShader(s.uuid);
+			if(this.program.AttachedShaders.length === 2){
+				this.program.link();
+				this.program.LINK_STATUS ? 
+				this.dispatch("program-linking-success",{program:this.program}) :
+				this.dispatch("program-linking-error",{
+					program:this.program,
+					error:this.program.InfoLog
+				})
+			}
+			e.stopPropagation();
+		}
+	};
+
+	const LIFECYCLE = {
+		created:function(){
+			if(this.parentElement.createProgram) 
+			this.program = this.parentElement.createProgram(this.id);
+			else this.dispatch("program-element-disconnected");
+		},
+		handleEvent:function(e){
+			
+		},
+		attached:function(){
+			for(var i in LISTENERS){
+				this.addEventListener(i,this[i]);
+			}
+		},
+		detached:function(){
+			for(var i in LISTENERS){
+				this.removeEventListener(i,this[i]);
+			}
+		}
+	};
+	
+	const ACCESSORS = {
+		createShader:{
+			get:function(){
+				return this.program.createShader.bind(this.program);
+			}
+		},
+		createVertexbuffer:{
+			get:function(){
+				return this.program.createVertexbuffer.bind(this.program);
+			}
+		},
+	}
+
+	new GLOBAL.Element(PROTOTYPE,"gl-program")
+		.copy(LIFECYCLE,"lifecycle")
+		.copy(LISTENERS,"listeners")
+		.copy(ATTRIBUTES,"attributes")
+		.define(ACCESSORS,"accessors")
+	;
+})();
+/*
+PROTOTYPE.describeElement(PROTOTYPE,"gl-program",
+		{
+			lifecycle:LIFECYCLE,
+			factories:FACTORIES,
+			attributes:ATTRIBUTES
+		},
+		{
+
+		}
+	);
+const ACCESSORS = {
+		
+		infoLog:{
+			get:function(){
+				return this.gl.getProgramInfoLog(this.program);
+			}
+		},
+	};
+	const BINDINGS = {
+		createProgram:{
+			value:function(){
+				this.program = this.gl.createProgram();
+				return this;
+			}
+		},
+		deleteProgram:{
+			value:function(){
+				this.gl.deleteProgram(this.program);
+				return this;
+			}
+		},
+		useProgram:{
+			value:function(){
+				this.gl.useProgram(this.program);
+				return this;
+			}
+		},
+		linkProgram:{
+			value:function(){
+				this.gl.linkProgram(this.program);
+				return this; 
+			}
+		},
+		validateProgram:{
+			value:function(){
+				this.gl.validateProgram(this.program);
+				return this;
+			}
+		},
+		attachShader:{
+			value:function(shader){
+				this.gl.attachShader(this.program,shader);
+				return this;
+			}
+		},
+		detachShader:{
+			value:function(shader){
+				this.gl.detachShader(this.program,shader);
+				return this;
+			}
+		},
+		getActiveAttrib:{
+			value:function(index){
+				return this.gl.getActiveAttrib(this.program,index);
+			}
+		},
+		getActiveUniform:{
+			value:function(index){
+				return this.gl.getActiveUniform(this.program,index);
+			}
+		},
+		getUniform:{
+			value:function(location){
+				return this.gl.getUniform(this.program,location);
+			}
+		},
+		getUniformLocation:{
+			value:function(name){
+				return this.gl.getUniformLocation(this.program,name);
+			}
+		},
+		getAttribLocation:{
+			value:function(name){
+				return this.gl.getAttribLocation(this.program,name);
+			}
+		},
+		bindAttribLocation:{
+			value:function(index,name){
+				this.gl.bindAttribLocation(this.program,index,name);
+				return this;
+			}
+		},
+		clear:{
+			value:function(mask){
+				this.gl.clear(mask);
+				return this;
+			}
+		},
+		clearColor:{
+			value:function(red,green,blue,alpha){
+				this.gl.clearColor(red,green,blue,alpha);
+				return this;
+			}
+		},
+		clearDepth:{
+			value:function(depth){
+				this.gl.clearDepth(depth);
+				return this;
+			}
+		},
+		clearStencil:{
+			value:function(s){
+				this.gl.clearStencil(s);
+				return this;
+			}
+		},
+		drawArrays:{
+			value:function(mode,first,count){
+				this.gl.drawArrays(mode,first,count);
+				return this;
+			}
+		},
+		drawElmements:{
+			value:function(mode,count,type,offset){
+				this.gl.drawElements(mode,count,type,offset);
+				return this;
+			}
+		},
+		finish:{
+			value:function(){
+				this.gl.finish();
+				return this;
+			}
+		},
+		flush:{
+			value:function(){
+				this.gl.flush();
+				return this;
+			}
+		},
+	};
+	const STATES = {
+		$DELETE_STATUS:{
+			get:function(){
+				return this.gl.getProgramParameter(this.program,GL.DELETE_STATUS);
+			}
+		},
+		$LINK_STATUS:{
+			get:function(){
+				return this.gl.getProgramParameter(this.program,GL.LINK_STATUS);
+			}
+		},
+		$VALIDATE_STATUS:{
+			get:function(){
+				return this.gl.getProgramParameter(this.program,GL.VALIDATE_STATUS);
+			}
+		},
+		$ATTACHED_SHADERS:{
+			get:function(){
+				return this.gl.getAttachedShaders(this.program,GL.ATTACHED_SHADERS);
+			}
+		},
+		$ACTIVE_ATTRIBUTES:{
+			get:function(){
+				return this.gl.getProgramParameter(this.program,GL.ACTIVE_ATTRIBUTES);
+			}
+		},
+		$ACTIVE_UNIFORMS:{
+			get:function(){
+				return this.gl.getProgramParameter(this.program,GL.ACTIVE_UNIFORMS);
+			}
+		},
+		$ACTIVE_ATTRIBUTES_DETAILS:{
+			get:function _cache(){
+				typeof _cache.result === "undefined"?_cache.result=[]:_cache.result.length=0;
+				var num = this.$ACTIVE_ATTRIBUTES;
+				while(num>0){
+					num--;
+					_cache.result[num]=this.getActiveAttrib(num);
+				}
+				return _cache.result;
+			}
+		},
+		$ACTIVE_UNIFORMS_DETAILS:{
+			get:function _cache(){
+				typeof _cache.result === "undefined"?_cache.result=[]:_cache.result.length=0;
+				var num = this.$ACTIVE_UNIFORMS;
+				while(num>0){
+					num--;
+					_cache.result[num]=this.getActiveUniform(num);
+				}
+				return _cache.result;
+			}
+		}
+	};
+$shaders:{
+			get:function(){
+				if(this.shaderquery)
+					return [].slice.call(document.querySelectorAll(this.shaderquery))
+						.concat([].slice.call(this.children)).filter(this.shaderFilter.bind(this));
+				else
+					return [].slice.call(this.children).filter(this.shaderFilter.bind(this));
+			}
+		},
+
+const METHODS = {
+		setupProgram:function(gl){
+			const PROGRAM = this;
+			if(!(gl instanceof WebGLRenderingContext))
+				return new TypeError("First Argument not WebGLRenderingContext")
+			PROGRAM.gl = gl;
+			return Promise.all(PROGRAM.$shaders.map(function(e){
+				return e.setupShader(gl);
+			}))
+			.then(PROGRAM.processShaders.bind(PROGRAM),console.error.bind(console))
+			.then(PROGRAM.buildRenderPass.bind(PROGRAM),console.error.bind(console));
+			this.addEventListener("shader-compile-success",function(e){
+				//PROGRAM.processShader(e.details.shader.shader)
+			});
+		},
+		toArgs:function(attr){
+			return attr && attr.split(" ") || [];
+		},
+		toEnum:function(flag){
+			if(flag !== null && !(flag in this.gl))console.warn(flag+" not found");
+			else return this.gl[flag];
+		},
+		
+		shaderFilter:function(child){
+			return typeof child.setupShader === "function";
+		},
+		
+		buildRenderPass:function(){
+			const PROGRAM = this;
+			const CTX = this.gl;
+			const CLEARMASK = this.toArgs(this.clearMask).map(function(e){
+				return this.toEnum(e)||console.warn(e +" not found");
+			},this).reduce(function(p,c){return p|c;});
+			var textureUnitCount = 0;
+			var BUFFERS = [];
+			return Promise.all(
+				[useOperation]
+				.concat(PROGRAM.$ACTIVE_ATTRIBUTES_DETAILS.map(attributeMap))
+				.concat(PROGRAM.$ACTIVE_UNIFORMS_DETAILS.map(uniformMap))
+				.concat([clearOperation,drawOperation])
+			);
+			function attributeMap(attribute,i,d){
+				return Promise.resolve(PROGRAM.resolveQuery(attribute).setupBuffer(CTX,i))
+				.then(function(buffer){
+					BUFFERS.push(buffer);
+					return function bufferOperation(){
+						buffer.bindBuffer().pointAt(i);
+					};	
+				});
+			}
+			function uniformMap(uniform,i,d){
+				const LOCATION=PROGRAM.getUniformLocation(uniform.name);
+				
+				var method;
+
+				if(method = PROGRAM.uniformMethods[uniform.type]){
+					return function uniformOperation(){
+						var SOURCE = PROGRAM.resolveQuery(uniform);
+						//console.log(uniform.name,PROGRAM.resolveQuery(uniform));
+						CTX[method](LOCATION,SOURCE.value||SOURCE);
+					}
+				}else if(method = PROGRAM.matrixMethods[uniform.type]){
+					var SOURCE = PROGRAM.resolveQuery(uniform);
+					if(SOURCE.setupMatrix)SOURCE.setupMatrix();
+
+					return function matrixOperation(){
+						//console.log(method,SOURCE);
+						CTX[method](LOCATION,false,SOURCE.value||SOURCE);
+					}
+				}else{
+					var SOURCE = PROGRAM.resolveQuery(uniform);
+					const UNIT = textureUnitCount;
+					SOURCE.textureUnit = UNIT;
+					textureUnitCount++;
+					return Promise.resolve(SOURCE.setupTexture(CTX,UNIT))
+					.then(function(texture){
+						if(typeof texture === "function"){
+							return function framebufferOperation(){
+								CTX.uniform1i(LOCATION,UNIT);
+								texture();
+								PROGRAM.useProgram();
+							};
+						}else{
+							return function textureOperation(){
+								CTX.uniform1i(LOCATION, UNIT);
+								texture.activeTexture().bindTexture();
+							};
+						}
+					});
+				}
+			}
+			function useOperation(){
+				PROGRAM.useProgram();
+			}
+			function clearOperation(){
+				PROGRAM.clear(CLEARMASK);
+			}
+			function drawOperation(){
+				CTX.viewport(PROGRAM.x,PROGRAM.y,PROGRAM.width,PROGRAM.height);
+				var s = Math.min.apply(null,BUFFERS.map(function(e,i){
+					return e.data.length / e.size;
+				}));
+				PROGRAM[PROGRAM.draw](
+					GL[PROGRAM.mode],
+					PROGRAM.first,
+					s
+				);
+			}
+		},
+		uniformMethods:(function(){
+			const HASH = {};
+			HASH[GL.FLOAT]="uniform1f";
+			HASH[GL.FLOAT_VEC2]="uniform2fv";
+			HASH[GL.FLOAT_VEC3]="uniform3fv";
+			HASH[GL.FLOAT_VEC4]="uniform4fv";
+			HASH[GL.INT]="uniform1i";
+			HASH[GL.INT_VEC2]="uniform2iv";
+			HASH[GL.INT_VEC3]="uniform3iv";
+			HASH[GL.INT_VEC4]="uniform4iv";
+			return HASH;
+		})(),
+		matrixMethods:(function(){
+			const HASH = {};
+			HASH[GL.FLOAT_MAT2]="uniformMatrix2fv";
+			HASH[GL.FLOAT_MAT3]="uniformMatrix3fv";
+			HASH[GL.FLOAT_MAT4]="uniformMatrix4fv";
+			return HASH;
+		})(),
+		queryMethods:{
+			id:function(SELECTOR){
+				return this.getElementById(SELECTOR);
+			},
+			class:function(SELECTOR){
+				return this.querySelector([".",SELECTOR].join(""));
+			},
+			attr:function(SELECTOR){
+				return this.querySelector(["[",SELECTOR,"]"].join(""));
+			}
+		},
+		resolveQuery:function(activeInfo,onchange){
+			const QUERY = activeInfo.name.split("_")
+			const METHOD = QUERY[0];
+			const SELECTOR = QUERY[1]||activeInfo.name;
+			const ARGS = QUERY.splice(2,QUERY.length);
+			
+			if(METHOD in this.queryMethods){
+					var result = this.queryMethods[METHOD].call(document,SELECTOR);
+					if(!result)throw new ReferenceError(result+" matched no element");
+					while(ARGS.length){
+						if(!result.shadowRoot)throw new ReferenceError(result+" has no shadowRoot");
+						result=this.queryMethods[METHOD].call(result.shadowRoot,ARGS.shift());
+					}
+					return result;
+			}else{
+					const SHADOW = this.gl.canvas.parentNode.host;
+					const PARENT = this.parentNode;
+					
+					if(SELECTOR in SHADOW)return SHADOW[SELECTOR];
+					else if (SELECTOR in PARENT)return PARENT[SELECTOR];
+					else if (SHADOW.getAttribute(SELECTOR))return parseAttribute(SHADOW,SELECTOR);
+					else if (PARENT.getAttribute(SELECTOR))return parseAttribute(PARENT,SELECTOR);
+					else return new Error(SELECTOR+" not found");
+			}
+			function parseAttribute(target,query){
+				var ATTR = JSON.parse(target.getAttribute(query));
+				if(ATTR instanceof Array){
+					return ATTR.map(function(e){
+						if(typeof e === "string")return target[e];
+						else return e;
+					})
+				}
+				else if(onchange){
+					new MutationObserver(attributeObserver).observe(target,OBSOPTIONS);
+				}
+			}
+		},
+		processShaders:function(shaders){
+			this.createProgram();
+			this.attachShader(shaders[0]);
+			this.attachShader(shaders[1]);
+			this.linkProgram().useProgram();
+			return this;
+		},
+	};
+	const ATTRIBUTES = {
+		shaderquery:"",
+		draw:"drawArrays",
+		clearMask:"COLOR_BUFFER_BIT DEPTH_BUFFER_BIT",
+		mode:"TRIANGLES",
+		first:0,
+		x:0,
+		y:0,
+		width:0,
+		height:0
+	};
+*/</script>
+</polymer-element>

@@ -4,23 +4,225 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
 		<title>GLElements Test</title>
-  
-		<link rel="import" href="gl-elements.html">
+  		
+		
+		<iframe src="src/PolyCore.html"></iframe>
 		<style>
-			canvas{
-				width:100%;
-				height:100%;
-				position:fixed;
-				top:0;
-				left:0;
-				background:#444;
+			body {
+				background : #333;
+			}
+			canvas {
+				width : 100%;
+				height : 100%;
+				position : fixed;
+				top : 0;
+				left : 0;
+				background : #444;
+			}
+			iframe {
+				display : none;
 			}
 		</style>
-		 
 	</head> 
 	<body>
-		<canvas id="mainWindow"></canvas>
+		<script id="vsCode" type="GLSL">
+			precision lowp float;
+			precision highp int;
+			attribute vec2 aVertex;
+			attribute vec4 aColor;
+			attribute float test;
+			varying vec4 vColor;
+			void main ( void ) {
+				float a = test;
+				gl_Position = vec4( aVertex , 0, 1 );
+				vColor = aColor;
+			}
+		</script>
+		<script id="fsCode" type="GLSL">
+			precision lowp float;
+			precision highp int;
+			varying vec4 vColor;
+			void main ( void ) {
+				gl_FragColor = vColor;
+			}
+		</script>
 		<script>
+			function main (
+				canvas, 
+				gl, 
+				core,
+				math 
+			) {
+				window.gl = gl;
+				window.core = core;
+				window.math = math;
+
+				const Program = core.Program;
+				const VertexShader = core.VertexShader;
+				const FragmentShader = core.FragmentShader;
+				const StaticArrayBuffer = core.StaticArrayBuffer;
+				const StaticElementBuffer = core.StaticElementBuffer;
+				const DynamicArrayBuffer = core.DynamicArrayBuffer;
+			
+
+				canvas.width = innerWidth;
+				canvas.height = innerHeight;
+				gl.viewport(0,0,innerWidth,innerHeight);
+				document.body.appendChild(canvas);
+				
+				program = new Program()
+				.attachShader( new VertexShader( vsCode.innerText ))
+				.attachShader( new FragmentShader( fsCode.innerText ))
+				.bindAttribLocation( 0, "aVertex" )
+				.bindAttribLocation( 1, "aColor" )
+				.link()
+				.validate()
+				.use();
+
+
+				vertices = new StaticArrayBuffer( new Float32Array([
+					 0,  0,
+					-1,  1,
+					-1, -1,
+					 1, -1,
+					 1,  1
+				]) )
+				.vertexAttribPointer( 0, 2, gl.FLOAT, false, 0, 0)
+				.enableVertexAttribArray( 0 )
+				;
+				
+				colors = new DynamicArrayBuffer( new Float32Array(5 * 4) )
+				.vertexAttribPointer( 1, 4, gl.FLOAT, false, 0, 0)
+				.enableVertexAttribArray( 1 )
+				;
+
+				indices = new StaticElementBuffer( new Uint8Array([
+					0,1,2,0,3,0,4,0,1
+				]) );
+
+				var frame = 0;
+				var size = indices.getSize;
+				void function draw(){
+					frame++;
+					requestAnimationFrame(draw);
+					colors.bind();
+					colors.data.set([
+						1,
+						1,
+						1,
+						0,
+						(Math.sin(frame*.19)+1)*.5, 
+						(Math.cos(-frame*.11)+1)*.5, 
+						(Math.cos(frame*.13)+1)*.5, 
+						1,
+						(Math.cos(frame*.12)+1)*.5, 
+						(Math.sin(-frame*.15)+1)*.5, 
+						(Math.sin(frame*.1)+1)*.5, 
+						1,
+						(Math.cos(frame*.12)+1)*.5, 
+						(Math.sin(frame*.11)+1)*.5, 
+						(Math.cos(-frame*.1)+1)*.5, 
+						1,
+						(Math.sin(-frame*.1)+1)*.5, 
+						(Math.cos(frame*.16)+1)*.5, 
+						(Math.sin(frame*.122)+1)*.5, 
+						1
+					])
+					colors.bufferSubData( 0, colors.data );
+					
+					program.drawElements(gl.TRIANGLE_STRIP, size, gl.UNSIGNED_BYTE, 0);
+					//program.drawElements(GL.LINE_STRIP,indices.SIZE / 2,GL.UNSIGNED_SHORT,0);
+				}();	
+			}
+		</script>
+	</body>
+</html>
+<!--canvas id="mainWindow"></canvas>
+		<script>
+
+			const GL 			= WebGLRenderingContext.prototype;
+			const NS 			= Symbol.for("GLElements");
+			const GLOBAL 		= window[NS];
+			const Resource 		= GLOBAL.Class.GLResource;
+			const Context 		= GLOBAL.Class.GLContext;
+			const Mesh 			= GLOBAL.Class.GLMesh;
+			
+			var ctx = new Context ( mainWindow, 1 );
+			var program = ctx.createProgram();
+
+			var vs = program.createShader( GL.VERTEX_SHADER );
+			Resource.url( "test.vert" ).setTarget( vs.code );
+
+			var fs = program.createShader( GL.FRAGMENT_SHADER );
+			Resource.url( "test.frag" ).setTarget( fs.code );
+
+			var mesh = new Mesh;
+			
+			Resource.url( "cube.obj" ).setTarget( Resource.parseObj() );
+
+			var vertices = program.createVertexbuffer( GL.ARRAY_BUFFER,{
+				index:0,
+				size:2
+			});
+
+			var vertexSource = Resource.float32(
+				 0,  0,
+				-1,  1,
+				-1, -1,
+				 1, -1,
+				 1,  1
+			).setTarget( vertices.buffer );
+
+			var colors = program.createVertexbuffer( GL.ARRAY_BUFFER,{
+				index:1,
+				size:4
+			});
+			colors.usage = GL.DYNAMIC_DRAW;
+			var cBuffer = new Float32Array( 20 );
+			colors.buffer.process( cBuffer );
+			/*var colorSource = GLResource.float32(new Float32Array(16)
+			).setTarget( colors.buffer );*/
+
+			var indices = program.createVertexbuffer();
+			var indexSource = Resource.uint16(
+				0,1,2,0,3,0,4,0,1
+			).setTarget( indices.buffer );
+
+			var frame = 0;
+			void function loop(){
+				frame++;
+				requestAnimationFrame(loop);
+				
+				cBuffer.set([
+					0,
+					0,
+					0,
+					1,
+					(Math.sin(frame*.19)+1)*.5, 
+					(Math.cos(-frame*.11)+1)*.5, 
+					(Math.cos(frame*.13)+1)*.5, 
+					1,
+					(Math.cos(frame*.12)+1)*.5, 
+					(Math.sin(-frame*.15)+1)*.5, 
+					(Math.sin(frame*.1)+1)*.5, 
+					1,
+					(Math.cos(frame*.12)+1)*.5, 
+					(Math.sin(frame*.11)+1)*.5, 
+					(Math.cos(-frame*.1)+1)*.5, 
+					1,
+					(Math.sin(-frame*.1)+1)*.5, 
+					(Math.cos(frame*.16)+1)*.5, 
+					(Math.sin(frame*.122)+1)*.5, 
+					1
+				])
+				colors.buffer.process( cBuffer );
+				
+				program.drawElements(GL.LINES,indices.SIZE / 2,GL.UNSIGNED_SHORT,0);
+				//program.drawElements(GL.LINE_STRIP,indices.SIZE / 2,GL.UNSIGNED_SHORT,0);
+			} ( )
+		</script-->
+<!--
+<script>
 			(function(){
 				mainWindow.addEventListener("click",function(){
 					mainWindow.requestPointerLock();
@@ -36,31 +238,51 @@
 			<gl-texture 	id="tree" 			src="textest.png"></gl-texture>
 			<gl-geometry 	id="fsq" 			src="cube.obj"></gl-geometry>
 			<gl-program 	id="fullscreenQuad">
-				<gl-vertexbuffer id="vertices" target="ARRAY" size="2" data="Float32:
-					-1 -1
-					 1 -1
-					-1  1
-					-1  1
-					 1 -1
-					 1  1
+				<gl-vertexbuffer 
+					id="vertices" 
+					target="ARRAY" 
+					pointer="size:2,index:0"
+					data="float32
+						-1 -1
+						 1 -1
+						-1  1
+						-1  1
+						 1 -1
+						 1  1
 				"></gl-vertexbuffer>
-				<gl-vertexbuffer id="colorCoords" target="ARRAY" size="4" data="Float32:
-					1 1 1 1
-					0 1 0 1
-					1 0 1 1
-					1 0 1 1
-					0 1 0 1
-					0 0 0 1
+				<gl-vertexbuffer 
+					id="colorCoords" 
+					target="ARRAY"
+					pointer="size:4,index:1" 
+					data="float32 
+						1 1 1 1 
+						0 1 0 1
+						1 0 1 1
+						1 0 1 1
+						0 1 0 1
+						0 0 0 1
 				"></gl-vertexbuffer>
-				<gl-shader 	type="VERTEX" 		id="VS"	src="test.vert"></gl-shader>
-				<gl-shader type="FRAGMENT" 		id="FS"	src="test.frag"></gl-shader>
+
+				<gl-shader 	type="VERTEX" id="VS" code="
+					precision mediump float;
+					#include url test.vert interval:15000;
+					attribute vec2 vertices;
+					attribute vec4 colorCoords;
+					varying vec4 color;
+					void main(void){
+						gl_Position = vec4(vertices,0,1);
+						color = colorCoords;
+					}
+				"></gl-shader>
+				<gl-shader type="FRAGMENT" 		id="FS"	code="
+					precision mediump float;
+					varying vec4 color;
+					void main(void){
+						gl_FragColor = color;
+					}
+				"></gl-shader>
 			</gl-program>
 		</gl-context>
-
-	</body>
-</html>
-<!--
-
 	Model
 	value:{fun1(a,b),fun2(a,b}
 	HTML

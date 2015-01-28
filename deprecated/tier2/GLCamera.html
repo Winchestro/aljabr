@@ -1,0 +1,33 @@
+<link rel="import" href="../tier1/GLElement.html">
+<link rel="import" href="../tier2/GLVector.html">
+<link rel="import" href="../tier2/GLMat4.html">
+
+<script>(function(){
+	"use strict";
+	const GL 		= WebGLRenderingContext.prototype;
+	const NS 		= Symbol.for("GLElements");
+	const GLOBAL 	= window[NS];
+
+	const vec2		= GLOBAL.Class.vec2;
+	const vec3 		= GLOBAL.Class.vec3;
+	const quat4 	= GLOBAL.Class.quat4;
+	const mat4 		= GLOBAL.Class.mat4;
+
+	function GLCamera(){
+		this.matrix = new mat4.identity();
+		this.up = new vec3(0,0,1);
+
+	};
+	const PROTOTYPE = {
+
+		
+	};
+	
+
+	new GLOBAL.Class(PROTOTYPE,GLPerspectiveCamera)
+
+	;
+
+})();
+/*
+*/</script>

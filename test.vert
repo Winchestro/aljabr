@@ -1,15 +1,12 @@
 precision mediump float;
 
-attribute vec3 Vertex;
-attribute vec2 Uv;
+attribute vec2 Vertex;
+attribute vec4 Colors;
 
-uniform mat4 projection;
-uniform mat4 model;
-uniform mat4 view;
 
-varying vec2 texCoords;
+varying vec4 color;
 
 void main(void){
-	gl_Position = projection*model*view*vec4(Vertex,1.);
-	texCoords = Uv;
-}
+	gl_Position = vec4(Vertex*.95,0,1);
+	color = Colors;
+} 
