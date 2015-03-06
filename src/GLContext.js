@@ -1,172 +1,216 @@
-const canvas = document.createElement("canvas");
-var gl = canvas.getContext("webgl",{alpha:true, depth:true});
+import { Properties, Getters, Setters, GetterSetters, E, C, W } from "./utilities/ULPropertyDescriptors";
 
-void function GLContext(){
-	const PROTOTYPE 			= WebGLRenderingContext.prototype;
-	const __createProgram = gl.createProgram;
+export const GL = WebGLRenderingContext.prototype;
 
-	const STATES_FLAGS = {
-		getActiveTextureFlag : "ACTIVE_TEXTURE",
-		getBlendDstAlphaFlag : "BLEND_DST_ALPHA",
-		getBlendDstRGBFlag : "BLEND_DST_RGB",
-		getBlendEquationAlphaFlag : "BLEND_EQUATION_ALPHA",
-		getBlendEquationRGBFlag : "BLEND_EQUATION_RGB",
-		getBlendSrcAlphaFlag : "BLEND_SRC_ALPHA",
-		getBlendSrcRGBFlag : "BLEND_SRC_RGB",
-		getCullFaceModeFlag : "CULL_FACE_MODE",
-		getDepthFuncFlag : "DEPTH_FUNC",
-		getFrontFaceFlag : "FRONT_FACE",
-		getGenerateMipmapHintFlag : "GENERATE_MIPMAP_HINT",
-		getImplementationColorReadTypeFlag : "IMPLEMENTATION_COLOR_READ_TYPE",
-		getPackAlignmentFlag : "PACK_ALIGNMENT",
-		getStencilBackFailFlag : "STENCIL_BACK_FAIL",
-		getStencilBackFuncFlag : "STENCIL_BACK_FUNC",
-		getStencilBackPassDepthFailFlag : "STENCIL_BACK_PASS_DEPTH_FAIL",
-		getStencilBackPassDepthPassFlag : "STENCIL_BACK_PASS_DEPTH_PASS",
-		getStencilBackRefFlag : "STENCIL_BACK_REF",
-		getStencilBitsFlag : "STENCIL_BITS",
-		getStencilClearValueFlag : "STENCIL_CLEAR_VALUE",
-		getStencilFailFlag : "STENCIL_FAIL",
-		getStencilFuncFlag : "STENCIL_FUNC",
-		getStencilPassDepthFailFlag : "STENCIL_PASS_DEPTH_FAIL",
-		getStencilPassDepthPassFlag : "STENCIL_PASS_DEPTH_PASS",
-		getStencilRefFlag : "STENCIL_REF",
-		getUnpackAlignmentFlag : "UNPACK_ALIGNMENT",
-		getUnpackColorspaceConversionWebGLFlag : "UNPACK_COLORSPACE_CONVERSION_WEBGL",
-	};
-	const STATES = {
-		getActiveTexture : "ACTIVE_TEXTURE",
-		getAliasedLineWidthRange : "ALIASED_LINE_WIDTH_RANGE",
-		getAliasedPointSizeRange : "ALIASED_POINT_SIZE_RANGE",
-		getAlphaBits : "ALPHA_BITS",
-		getArrayBufferBinding : "ARRAY_BUFFER_BINDING",
-		getBlend : "BLEND",
-		getBlendColor : "BLEND_COLOR",
-		getBlendDstAlpha : "BLEND_DST_ALPHA",
-		getBlendDstRGB : "BLEND_DST_RGB",
-		getBlendEquationAlpha : "BLEND_EQUATION_ALPHA",
-		getBlendEquationRGB : "BLEND_EQUATION_RGB",
-		getBlendSrcAlpha : "BLEND_SRC_ALPHA",
-		getBlendSrcRGB : "BLEND_SRC_RGB",
-		getBlueBits : "BLUE_BITS",
-		getColorClearValue : "COLOR_CLEAR_VALUE",
-		getColorWritemask : "COLOR_WRITEMASK",
-		getCompressedTextureFormats : "COMPRESSED_TEXTURE_FORMATS",
-		getCullFace : "CULL_FACE",
-		getCullFaceMode : "CULL_FACE_MODE",
-		getCurrentProgram : "CURRENT_PROGRAM",
-		getDepthBits : "DEPTH_BITS",
-		getDepthClearValue : "DEPTH_CLEAR_VALUE",
-		getDepthFunc : "DEPTH_FUNC",
-		getDepthRange : "DEPTH_RANGE",
-		getDepthTest : "DEPTH_TEST",
-		getDepthWritemask : "DEPTH_WRITEMASK",
-		getDither : "DITHER",
-		getElementArrayBufferBinding : "ELEMENT_ARRAY_BUFFER_BINDING",
-		getFramebufferBinding : "FRAMEBUFFER_BINDING",
-		getFrontFace : "FRONT_FACE",
-		getGenerateMipmapHint : "GENERATE_MIPMAP_HINT",
-		getGreenBits : "GREEN_BITS",
-		getImplementationColorReadFormat : "IMPLEMENTATION_COLOR_READ_FORMAT",
-		getImplementationColorReadType : "IMPLEMENTATION_COLOR_READ_TYPE",
-		getLineWidth : "LINE_WIDTH",
-		getMaxCombinedTextureImageUnits : "MAX_COMBINED_TEXTURE_IMAGE_UNITS",
-		getMaxCubeMaptextureSize : "MAX_CUBE_MAP_TEXTURE_SIZE",
-		getMaxFragmentUniformVectors : "MAX_FRAGMENT_UNIFORM_VECTORS",
-		getMaxRenderbufferSize : "MAX_RENDERBUFFER_SIZE",
-		getMaxtextureImageUnits : "MAX_TEXTURE_IMAGE_UNITS",
-		getMaxTextureSize : "MAX_TEXTURE_SIZE",
-		getMaxVaryingVectors : "MAX_VARYING_VECTORS",
-		getMaxVertexAttribs : "MAX_VERTEX_ATTRIBS",
-		getMaxVertexTextureImageUnits : "MAX_VERTEX_TEXTURE_IMAGE_UNITS",
-		getMaxVertexUniformVectors : "MAX_VERTEX_UNIFORM_VECTORS",
-		getMaxViewportDims : "MAX_VIEWPORT_DIMS",
-		getPackAlignment : "PACK_ALIGNMENT",
-		getPolygonOffsetFactor : "POLYGON_OFFSET_FACTOR",
-		getPolygonOffsetFill : "POLYGON_OFFSET_FILL",
-		getPolygonOffsetUnits : "POLYGON_OFFSET_UNITS",
-		getRedBits : "RED_BITS",
-		getRenderbufferBinding : "RENDERBUFFER_BINDING",
-		getRenderer : "RENDERER",
-		getSampleBuffers : "SAMPLE_BUFFERS",
-		getSampleCoverageInvert : "SAMPLE_COVERAGE_INVERT",
-		getSampleCoverageValue : "SAMPLE_COVERAGE_VALUE",
-		getSamples : "SAMPLES",
-		getScissorBox : "SCISSOR_BOX",
-		getScissorTest : "SCISSOR_TEST",
-		getShadingLanguageVersion : "SHADING_LANGUAGE_VERSION",
-		getStencilBackFail : "STENCIL_BACK_FAIL",
-		getStencilBackFunc : "STENCIL_BACK_FUNC",
-		getStencilBackPassDepthFail : "STENCIL_BACK_PASS_DEPTH_FAIL",
-		getStencilBackPassDepthPass : "STENCIL_BACK_PASS_DEPTH_PASS",
-		getStencilBackRef : "STENCIL_BACK_REF",
-		getStencilBackValueMask : "STENCIL_BACK_VALUE_MASK",
-		getStencilBackWriteMask : "STENCIL_BACK_WRITEMASK",
-		getStencilBits : "STENCIL_BITS",
-		getStencilClearValue : "STENCIL_CLEAR_VALUE",
-		getStencilFail : "STENCIL_FAIL",
-		getStencilFunc : "STENCIL_FUNC",
-		getStencilPassDepthFail : "STENCIL_PASS_DEPTH_FAIL",
-		getStencilPassDepthPass : "STENCIL_PASS_DEPTH_PASS",
-		getStencilRef : "STENCIL_REF",
-		getStencilTest : "STENCIL_TEST",
-		getStencilValueMask : "STENCIL_VALUE_MASK",
-		getStencilWritemask : "STENCIL_WRITEMASK",
-		getSubpixelBits : "SUBPIXEL_BITS",
-		getTextureBinding2D : "TEXTURE_BINDING_2D",
-		getTextureBindingCubeMap : "TEXTURE_BINDING_CUBE_MAP",
-		getUnpackAlignment : "UNPACK_ALIGNMENT",
-		getUnpackColorspaceConversionWebGL : "UNPACK_COLORSPACE_CONVERSION_WEBGL",
-		getUnpackFlipYWebGL : "UNPACK_FLIP_Y_WEBGL",
-		getUnpackPremultiplyAlphaWebGL : "UNPACK_PREMULTIPLY_ALPHA_WEBGL",
-		getVendor : "VENDOR",
-		getVersion : "VERSION",
-		getViewport : "VIEWPORT",
-		getMaxVertexAttribs : "MAX_VERTEX_ATTRIBS",
-		getArrayBufferBinding : "ARRAY_BUFFER_BINDING",
-		getElementArrayBufferBinding : "ELEMENT_ARRAY_BUFFER_BINDING"
-	};
+export var canvas = document.createElement("canvas");
+export var gl = canvas.getContext("webgl", { 
+	alpha : true,
+	depth : true,
+//	stencil : false,
+//	antialias : false,
+//	premultipliedAlpha : false,
+//	preserveDrawingBuffer : false,
+//	preferLowPowerToHighPerformance : false,
+//	failIfMajorPerformanceCaveat : false
+} );
 
-	
-	function ExtensionCollection ( extArray  ) {
-		
-	}
-	var extArray = gl.getSupportedExtensions();
-	var $ = ExtensionCollection.prototype;
-	extArray.forEach( function (ext) {
-		Object.defineProperty( $, ext, {
-			configurable : true,
-			get : function ( ) {
-				var e = gl.getExtension ( ext );
-				Object.defineProperty( this, ext, {
-					value : e
-				} );
-				return e;
-			}
-		} );
+class ExtensionLoader {};
+gl.getSupportedExtensions().forEach( function ( extension ) {
+	Object.defineProperty( this, extension, {
+		enumerable : true,
+		configurable : true,
+		get : function ( ) {
+			var resolved = gl.getExtension ( extension );
+			Object.defineProperty( this, extension, {
+				enumerable : true,
+				value : resolved
+			} );
+			return resolved;
+		}
 	} );
+}, ExtensionLoader.prototype );
+export const extensions = new ExtensionLoader;
+
+export const textureUnit = new class TextureUnit {
+	get getGenerateMipmapHintFlag()					{ return gl.flags[ this.getGenerateMipmapHint ];}
+	get getImplementationColorReadTypeFlag()		{ return gl.flags[ this.getImplementationColorReadType ];}
+	get getUnpackColorspaceConversionWebGLFlag()	{ return gl.flags[ this.getUnpackColorspaceConversionWebGL ];}
+	get getImplementationColorReadFormatFlag()		{ return gl.flags[ this.getImplementationColorReadFormat ];}
+	get getActiveTextureUnit() 						{ return gl.getParameter( GL.ACTIVE_TEXTURE ) - GL.TEXTURE0;}
+	get getActiveTexture() 							{ return gl.getParameter( GL.ACTIVE_TEXTURE );}
+	get getUnpackAlignment()						{ return gl.getParameter( GL.UNPACK_ALIGNMENT );}
+	get getPackAlignment()							{ return gl.getParameter( GL.PACK_ALIGNMENT );}
+	get getUnpackColorspaceConversionWebGL()		{ return gl.getParameter( GL.UNPACK_COLORSPACE_CONVERSION_WEBGL );}
+	get getUnpackFlipYWebGL()						{ return gl.getParameter( GL.UNPACK_FLIP_Y_WEBGL );}
+	get getUnpackPremultiplyAlphaWebGL()			{ return gl.getParameter( GL.UNPACK_PREMULTIPLY_ALPHA_WEBGL );}
+	get getCompressedTextureFormats()				{ return gl.getParameter( GL.COMPRESSED_TEXTURE_FORMATS );}
+	get getGenerateMipmapHint()						{ return gl.getParameter( GL.GENERATE_MIPMAP_HINT );}
+	get getImplementationColorReadFormat()			{ return gl.getParameter( GL.IMPLEMENTATION_COLOR_READ_FORMAT );}
+	get getImplementationColorReadType()			{ return gl.getParameter( GL.IMPLEMENTATION_COLOR_READ_TYPE );}
+};
+
+export const bindings = new class Bindings {
+	get getActiveProgram() 		{ return gl.getParameter( GL.CURRENT_PROGRAM );}
+	get getArrayBuffer() 		{ return gl.getParameter( GL.ARRAY_BUFFER_BINDING );}
+	get getElementArrayBuffer()	{ return gl.getParameter( GL.ELEMENT_ARRAY_BUFFER_BINDING );}
+	get getTexture2D() 			{ return gl.getParameter( GL.TEXTURE_BINDING_2D );}
+	get getTextureCubeMap()		{ return gl.getParameter( GL.TEXTURE_BINDING_CUBE_MAP );}
+	get getFramebuffer()		{ return gl.getParameter( GL.FRAMEBUFFER_BINDING );}
+	get getRenderbuffer()		{ return gl.getParameter( GL.RENDERBUFFER_BINDING );}
+};
+
+export const capabilities = new class Capabilities { 
+	get getMaxVertexAttribs() 				{ return gl.getParameter( GL.MAX_VERTEX_ATTRIBS );}
+	get getMaxCombinedTextureImageUnits() 	{ return gl.getParameter( GL.MAX_COMBINED_TEXTURE_IMAGE_UNITS );}
+	get getMaxCubeMaptextureSize() 			{ return gl.getParameter( GL.MAX_CUBE_MAP_TEXTURE_SIZE );}
+	get getMaxFragmentUniformVectors() 		{ return gl.getParameter( GL.MAX_FRAGMENT_UNIFORM_VECTORS );}
+	get getMaxVertexUniformVectors() 		{ return gl.getParameter( GL.MAX_VERTEX_UNIFORM_VECTORS );}
+	get getMaxRenderbufferSize() 			{ return gl.getParameter( GL.MAX_RENDERBUFFER_SIZE );}
+	get getMaxtextureImageUnits() 			{ return gl.getParameter( GL.MAX_TEXTURE_IMAGE_UNITS );}
+	get getMaxTextureSize() 				{ return gl.getParameter( GL.MAX_TEXTURE_SIZE );}
+	get getMaxVaryingVectors() 				{ return gl.getParameter( GL.MAX_VARYING_VECTORS );}
+	get getMaxVertexTextureImageUnits() 	{ return gl.getParameter( GL.MAX_VERTEX_TEXTURE_IMAGE_UNITS );}
+	get getMaxViewportDims() 				{ return gl.getParameter( GL.MAX_VIEWPORT_DIMS );}
+	get getAliasedLineWidthRange()	{ return gl.getParameter( GL.ALIASED_LINE_WIDTH_RANGE );}
+	get getAliasedPointSizeRange()	{ return gl.getParameter( GL.ALIASED_POINT_SIZE_RANGE );}
+};
 
 
 
-	const METHODS = {
-		quality : 1,
-		extensions : new ExtensionCollection,
-		options : {
-			alpha:true,
-			depth:true,
-			stencil:false,
-			antialias:false,
-			premultipliedAlpha:false,
-			preserveDrawingBuffer:false
-		},
 
-		setOptions : function ( options ) {
+export const draw = new class Draw {
+	setClearDepth ( depth ) {
+		gl.clearDepth(
+			//GLclampf set clear depth
+			depth
+		);
+		return this;
+	}
+	setClearStencil ( stencil ) {
+		gl.clearStencil(
+			//GLint set stencil buffer index to clear
+			stencil
+		);
+		return this;
+	}
+	setClearColor ( red, green, blue, alpha ) {
+		gl.clearColor(
+			//GLclampf
+			red,
+			//GLclampf
+			green,
+			//GLclampf
+			blue,
+			//GLclampf
+			alpha
+		);
+		return this;
+	}
+	clear ( mask = GL.COLOR_BUFFER_BIT | GL.DEPTH_BUFFER_BIT | GL.STENCIL_BUFFER_BIT ) {
+		gl.clear(
+			//GLbitfield COLOR_BUFFER_BIT | DEPTH_BUFFER_BIT | STENCIL_BUFFER_BIT
+			mask
+		);
+		return this;
+	}
+	drawArrays ( mode, first, count ) {
+		gl.drawArrays(
+			//GLenum POINTS | LINE_STRIP | LINE_LOOP | LINES | TRIANGLE_STRIP | TRIANGLE_FAN | TRIANGLES
+			mode,
+			//GLint
+			first,
+			//GLsizei
+			count
+		);
+		return this;
+	}
+	drawElements ( mode, count, type, indices ) {
+		gl.drawElements(
+			//GLenum POINTS | LINE_STRIP | LINE_LOOP | LINES | TRIANGLE_STRIP | TRIANGLE_FAN | TRIANGLES
+			mode,
+			//GLsizei
+			count,
+			//GLenum UNSIGNED_BYTE | UNSIGNED_SHORT | [UNSIGNED_INT]
+			type,
+			//GLvoid *
+			indices
+		);
+		return this;
+	}
+	setLineWidth ( width ) {
+		gl.lineWidth(
+			//GLfloat
+			width
+		);
+		return this;
+	}
+	get getStencilClear()	{ return gl.getParameter( GL.STENCIL_CLEAR_VALUE );}
+	get getDepthClear()		{ return gl.getParameter( GL.DEPTH_CLEAR_VALUE );}
+	get getColorClear()		{ return gl.getParameter( GL.COLOR_CLEAR_VALUE );}
+	get getRedBits()		{ return gl.getParameter( GL.RED_BITS );}
+	get getGreenBits()		{ return gl.getParameter( GL.GREEN_BITS );}
+	get getBlueBits()		{ return gl.getParameter( GL.BLUE_BITS );}
+	get getAlphaBits()		{ return gl.getParameter( GL.ALPHA_BITS );}
+	get getSubpixelBits()	{ return gl.getParameter( GL.SUBPIXEL_BITS );}
+	get getDepthBits()		{ return gl.getParameter( GL.DEPTH_BITS );}
+	get getStencilBits()	{ return gl.getParameter( GL.STENCIL_BITS );}
+	get getColorWritemask()	{ return gl.getParameter( GL.COLOR_WRITEMASK );}
+	get getLineWidth()		{ return gl.getParameter( GL.LINE_WIDTH );}
+};
+
+export const viewport = new class Viewport {
+	setViewport ( x = 0, y = 0, width = canvas.clientWidth, height = canvas.clientHeight ) {
+		gl.viewport(
+			//GLint
+			x,
+			//GLint
+			y,
+			//GLint
+			width,
+			//GLint
+			height
+		);
+		return this;
+	}
+	get getViewport()				{ return gl.getParameter( GL.VIEWPORT );}
+};
+
+
+
+
+Object.defineProperties( GL, {
+	getShadingLanguageVersion : { 
+		get : function ( ) { return gl.getParameter( GL.SHADING_LANGUAGE_VERSION ); }
+	},
+	getVersion : {
+		get : function ( ) { return gl.getParameter( GL.VERSION ); }
+	},
+	getVendor : {
+		get : function ( ) { return gl.getParameter( GL.VENDOR ); }
+	},
+	getRenderer : {
+		get : function ( ) { return gl.getParameter( GL.RENDERER ); }
+	},
+	options : {
+		value : {
+			alpha : true,
+			depth : true,
+			stencil : false,
+			antialias : false,
+			premultipliedAlpha : false,
+			preserveDrawingBuffer : false
+		}
+	},
+	setOptions : {
+		value : function ( options ) {
 			this.options = options || this.options;
 			gl = canvas.getContext( "webgl", this.options ) || 
 			canvas.getContext( "experimental-webgl", this.options );
 			return this;
-		},
-		setQuality : function ( v ) {
+		}
+	},
+	setQuality : {
+		value : function ( v ) {
 			isNaN( v ) ? v = 2 : v = v || 2;
 			this.quality = v;
 			canvas.width = canvas.clientWidth / v;
@@ -175,23 +219,11 @@ void function GLContext(){
 			return this;
 		}
 	}
+} );
 
-	PROTOTYPE.flags = [];
-	for ( var e in PROTOTYPE ) {
-		if ( typeof PROTOTYPE[e] === "number") PROTOTYPE.flags[PROTOTYPE[e]] = e;
-	}
+GL.flags = [];
+for ( var e in GL ) {
+	if ( typeof GL[e] === "number") GL.flags[GL[e]] = e;
+}
 
-	for ( var p in METHODS ) PROTOTYPE[p] = METHODS[p];
-	for ( var s in STATES ) Object.defineProperty(PROTOTYPE,s,{
-		get: new Function(
-			"return this.getParameter("+PROTOTYPE[STATES[s]]+")"
-		)
-	});
-	for ( var s in STATES_FLAGS ) Object.defineProperty(PROTOTYPE,s,{
-		get: new Function(
-			"return this.flags[this.getParameter("+PROTOTYPE[STATES_FLAGS[s]]+")]"
-		)
-	});
-	
-}();
 

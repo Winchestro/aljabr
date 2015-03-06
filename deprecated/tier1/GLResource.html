@@ -324,18 +324,17 @@
 				//console.log(x.readyState);
 				switch(XHR.readyState){
 					case XHR.UNSENT:
-						break;
+					break;
 					case XHR.OPENED:
-						
-						break;
+					break;
 					case XHR.HEADERS_RECEIVED:
 						SOURCE.lastModified = new Date(
 							XHR.getResponseHeader("Last-Modified")
 						).getTime();
 
-						//console.log(x,r.source.lastModified-r.source.lastUpdated);
+						
 						if(SOURCE.lastModified > SOURCE.lastUpdated)
-							SOURCE.lastUpdated = Date.now();
+							SOURCE.lastUpdated = SOURCE.lastModified;
 						else {
 							XHR.abort();
 							//console.log("no change");
@@ -344,9 +343,9 @@
 								SOURCE.options.interval
 							);
 						}
-						break;
+					break;
 					case XHR.LOADING:
-						break;
+					break;
 					case XHR.DONE:
 						switch(XHR.status){
 							case 200:

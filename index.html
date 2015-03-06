@@ -4,20 +4,15 @@
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 		<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
 		<title>GLElements Test</title>
-  		
-		
-		<iframe src="src/PolyCore.html"></iframe>
+		<iframe src="bin/core.html"></iframe>
 		<style>
-			body {
-				background : #333;
-			}
 			canvas {
 				width : 100%;
 				height : 100%;
 				position : fixed;
 				top : 0;
 				left : 0;
-				background : #444;
+				background : #000;
 			}
 			iframe {
 				display : none;
@@ -25,121 +20,159 @@
 		</style>
 	</head> 
 	<body>
-		<script id="vsCode" type="GLSL">
-			precision lowp float;
-			precision highp int;
-			attribute vec2 aVertex;
-			attribute vec4 aColor;
-			attribute float test;
-			varying vec4 vColor;
-			void main ( void ) {
-				float a = test;
-				gl_Position = vec4( aVertex , 0, 1 );
-				vColor = aColor;
-			}
-		</script>
-		<script id="fsCode" type="GLSL">
-			precision lowp float;
-			precision highp int;
-			varying vec4 vColor;
-			void main ( void ) {
-				gl_FragColor = vColor;
-			}
-		</script>
 		<script>
-			function main (
-				canvas, 
-				gl, 
-				core,
-				math 
-			) {
-				window.gl = gl;
-				window.core = core;
-				window.math = math;
-
-				const Program = core.Program;
-				const VertexShader = core.VertexShader;
-				const FragmentShader = core.FragmentShader;
-				const StaticArrayBuffer = core.StaticArrayBuffer;
-				const StaticElementBuffer = core.StaticElementBuffer;
-				const DynamicArrayBuffer = core.DynamicArrayBuffer;
-			
-
+			function main() {
 				canvas.width = innerWidth;
 				canvas.height = innerHeight;
-				gl.viewport(0,0,innerWidth,innerHeight);
+				gl.viewport( 0, 0, innerWidth, innerHeight );
+				//gl.setQuality( 2 );
 				document.body.appendChild(canvas);
 				
-				program = new Program()
-				.attachShader( new VertexShader( vsCode.innerText ))
-				.attachShader( new FragmentShader( fsCode.innerText ))
-				.bindAttribLocation( 0, "aVertex" )
-				.bindAttribLocation( 1, "aColor" )
-				.link()
-				.validate()
-				.use();
+				window.program = Program.VertexColors().use();
+
+				window.attr = program.getAttributeLocations;
+				window.geometry = Geometry.Polygon2D(6,.7);
 
 
-				vertices = new StaticArrayBuffer( new Float32Array([
-					 0,  0,
-					-1,  1,
-					-1, -1,
-					 1, -1,
-					 1,  1
-				]) )
-				.vertexAttribPointer( 0, 2, gl.FLOAT, false, 0, 0)
-				.enableVertexAttribArray( 0 )
-				;
+				window.firstVertex = geometry.dynamic.createVertexView( 1 );
 				
-				colors = new DynamicArrayBuffer( new Float32Array(5 * 4) )
-				.vertexAttribPointer( 1, 4, gl.FLOAT, false, 0, 0)
-				.enableVertexAttribArray( 1 )
-				;
+				window.uniforms = program.getUniforms;
 
-				indices = new StaticElementBuffer( new Uint8Array([
-					0,1,2,0,3,0,4,0,1
-				]) );
+				if ( uniforms.perspective ) {
+					//perspective = mat4.perspective( innerWidth/innerHeight, 60, 0.01, 10);
+					//uniforms.perspective.setMatrix( perspective.data );
+				}
+				if ( uniforms.modelView ) {
+
+					//modelView = mat4.translation( 1, 1, 1 );
+					//uniforms.modelView.setMatrix( modelView.data );
+				}
+				if ( uniforms.resolution ) {
+					//uniforms.resolution.setFloat( innerWidth, innerHeight );
+				}
+				if ( uniforms.mouse ) {
+					canvas.addEventListener( "mousemove", function ( e ) {
+						uniforms.mouse.location.setFloat( 
+							e.clientX / innerWidth, 
+							1. - e.clientY / innerHeight 
+						);
+					} );
+				}
+				if ( uniforms.zoom ) {
+					var zoom = 1.;
+					uniforms.zoom.setFloat( zoom );
+					canvas.addEventListener( "mousedown", function ( e ) {
+						//console.log( e );
+						if( e.button === 0){
+							zoom += .01;
+						} else {
+							zoom -= .01;
+						}
+						uniforms.zoom.setFloat( zoom );
+					} );
+					canvas.addEventListener( "contextmenu", function ( e ) {
+						e.preventDefault();
+					} );
+				}
+				//view = mat4.translation( 1, 1, 1);
 
 				var frame = 0;
-				var size = indices.getSize;
-				void function draw(){
+				var startTime = Date.now();
+				var time = 0.0;
+				alpha.enable().setFunc( gl.SRC_ALPHA, gl.DST_ALPHA );
+				
+				
+				window.TRIANGLES = true;
+				window.LINES = true;
+				window.POINTS = true;
+				
+				update()
+				function update ( ) {
+					requestAnimationFrame( update );
+					draw();
+				}
+				
+				function draw ( ) {
 					frame++;
-					requestAnimationFrame(draw);
-					colors.bind();
-					colors.data.set([
-						1,
-						1,
-						1,
-						0,
-						(Math.sin(frame*.19)+1)*.5, 
-						(Math.cos(-frame*.11)+1)*.5, 
-						(Math.cos(frame*.13)+1)*.5, 
-						1,
-						(Math.cos(frame*.12)+1)*.5, 
-						(Math.sin(-frame*.15)+1)*.5, 
-						(Math.sin(frame*.1)+1)*.5, 
-						1,
-						(Math.cos(frame*.12)+1)*.5, 
-						(Math.sin(frame*.11)+1)*.5, 
-						(Math.cos(-frame*.1)+1)*.5, 
-						1,
-						(Math.sin(-frame*.1)+1)*.5, 
-						(Math.cos(frame*.16)+1)*.5, 
-						(Math.sin(frame*.122)+1)*.5, 
-						1
-					])
-					colors.bufferSubData( 0, colors.data );
+					time = ( Date.now() - startTime ) / 1000;
+					ctx.draw.clear( gl.COLOR_BUFFER_BIT );
+					var s = Math.sin( time );
+					var c = Math.cos( time );
+					firstVertex[ 0 ] = s * 0.2;
+					firstVertex[ 1 ] = c * 0.2;
+					firstVertex[ 3 ] = ( s + 1.0 ) * 0.5;
+					geometry.dynamic.update( firstVertex );
+					geometry.use();
+					if( TRIANGLES ) ctx.draw.drawElements(
+						gl.TRIANGLES,
+						geometry.index.data.length,
+						gl.UNSIGNED_INT,
+						0
+					);
+					if( POINTS ) ctx.draw.drawElements(
+						gl.POINTS,
+						geometry.index.data.length,
+						gl.UNSIGNED_INT,
+						0
+					);
+					if( LINES ) ctx.draw.drawElements(
+						gl.LINES,
+						geometry.index.data.length,
+						gl.UNSIGNED_INT,
+						0
+					);
 					
-					program.drawElements(gl.TRIANGLE_STRIP, size, gl.UNSIGNED_BYTE, 0);
-					//program.drawElements(GL.LINE_STRIP,indices.SIZE / 2,GL.UNSIGNED_SHORT,0);
-				}();	
+				};
 			}
 		</script>
 	</body>
 </html>
 <!--canvas id="mainWindow"></canvas>
 		<script>
+				/*
+						colors.bind();
+						colors.data.set([
+							(Math.sin(frame*.19)+1)*.5, 
+							(Math.cos(-frame*.11)+1)*.5, 
+							(Math.cos(frame*.13)+1)*.5, 
+							1,
+							(Math.cos(frame*.12)+1)*.5, 
+							(Math.sin(-frame*.15)+1)*.5, 
+							(Math.sin(frame*.1)+1)*.5, 
+							1,
+							(Math.cos(frame*.12)+1)*.5, 
+							(Math.sin(frame*.11)+1)*.5, 
+							(Math.cos(-frame*.1)+1)*.5, 
+							1,
+							(Math.sin(-frame*.1)+1)*.5, 
+							(Math.cos(frame*.16)+1)*.5, 
+							(Math.sin(frame*.122)+1)*.5, 
+							1
+						])
+						colors.bufferSubData( 0, colors.data );
+					*/
+					
+				float f = ( sin( float(frame)*.02 ) + 2. ) * 12.5 ;
+				vec2 uv = gl_FragCoord.xy / resolution.xx;
+				
+				vec2 c =   ( uv - .5) * zoom - mouse;
 
+				vec2 z = c;
+				
+				for ( int i = 0; i < maxIterations; i++  ){
+					if( float(i) > f ) break;
+
+					float x = ( z.x * z.x - z.y * z.y ) + c.x;
+					float y = ( z.y * z.x + z.x * z.y ) + c.y;
+
+					if ( ( x * x + y * y ) > ( (2.-zoom) * 4.) ) break;
+					z.x = x;
+					z.y = y;
+
+
+					
+					iterations += 1.;
+				}
 			const GL 			= WebGLRenderingContext.prototype;
 			const NS 			= Symbol.for("GLElements");
 			const GLOBAL 		= window[NS];

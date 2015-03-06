@@ -1,15 +1,9 @@
-void function GLActiveInfo(){
-	const GL 						= WebGLRenderingContext.prototype;
-	const Resource 					= Resource;
-	const PROTOTYPE 				= WebGLActiveInfo.prototype;
+import { gl, GL } from "./GLContext";
 
-	const ACCESSORS = {
-		typeFlag : {
-			get : function ( ) {
-				return gl.flags[ this.type ];
-			}
+Object.defineProperties( WebGLActiveInfo.prototype, { 
+	typeFlag : {
+		get : function ( ) {
+			return gl.flags[ this.type ];
 		}
 	}
-
-	Object.defineProperties(PROTOTYPE,ACCESSORS);
-}()
+} );
