@@ -46,7 +46,7 @@
 				material = geometry.material;
 				material.depth.enableWrite().enable();
 				//material.alpha.enable().setColor( .33, .9, .33, 1 ).setFunc( Alpha.FN_SRC_ALPHA, Alpha.FN_CONSTANT_COLOR );
-				let programSource = new Program.DynamicSource( "../test", 1000 );
+				let programSource = new Program.DynamicSource( "../test" );
 				programSource.setTarget( function ( program ) {
 					material.program = program.bindLocations(
 						"position",
