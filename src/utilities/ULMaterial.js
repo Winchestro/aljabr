@@ -1,8 +1,7 @@
-import Program from "../GLProgram";
-import Shader from "../GLShader";
-
-import { gl, GL, canvas } from "../GLContext";
-import { Properties, Getters, Setters, GetterSetters, E, C, W } from "./ULPropertyDescriptors";
+import { Property, Properties, Getters, Setters, GetterSetters, E, C, W } from "../utilities/ULPropertyDescriptors";
+import { gl, GL, canvas } from "../webgl/GLContext";
+import Program from "../webgl/GLProgram";
+import Shader from "../webgl/GLShader";
 
 var currentProgram = null;
 var currentUniforms = null;
@@ -10,147 +9,181 @@ var globalUsage = 0;
 
 const DEFAULT_PROGRAM = new Program.VertexColors;
 
-const BLEND_ENABLED						= 1 <<  0;
-const BLEND_COLOR_SET					= 1 <<  1;
-const BLEND_FUNC_SET					= 1 <<  2;
-const BLEND_EQUATION_SET				= 1 <<  3;
-const CULL_FACE_ENABLED 				= 1 <<  4;
-const CULL_FACE_SET						= 1 <<  5;
-const CULL_FACE_FRONT_SET				= 1 <<  6;
-const DEPTH_ENABLED						= 1 <<  7;
-const DEPTH_WRITE_SET					= 1 <<  8;
-const DEPTH_FUNC_SET 					= 1 <<  9;
-const DEPTH_RANGE_SET 					= 1 << 10;
-const DITHER_ENABLED 					= 1 << 11;
-const OFFSET_ENABLED					= 1 << 12;
-const OFFSET_SET						= 1 << 13;
-const SAMPLE_ALPHA_ENABLED 				= 1 << 14;
-const SAMPLE_ENABLED 					= 1 << 15;
-const SAMPLE_SET						= 1 << 16;
-const SCISSOR_ENABLED					= 1 << 17;
-const SCISSOR_SET						= 1 << 18;
-const STENCIL_ENABLED					= 1 << 19;
-const STENCIL_FRONT_FUNC_SET			= 1 << 20;
-const STENCIL_FRONT_MASK_SET			= 1 << 21;
-const STENCIL_FRONT_OP_SET				= 1 << 22;
-const STENCIL_BACK_FUNC_SET				= 1 << 23;
-const STENCIL_BACK_MASK_SET				= 1 << 24;
-const STENCIL_BACK_OP_SET				= 1 << 25;
-
-const STENCIL_FUNC_SET	= STENCIL_FRONT_FUNC_SET
-						| STENCIL_BACK_FUNC_SET
-						;
-const STENCIL_OP_SET	= STENCIL_FRONT_OP_SET
-						| STENCIL_BACK_OP_SET
-						;
-const STENCIL_MASK_SET	= STENCIL_FRONT_MASK_SET
-						| STENCIL_BACK_MASK_SET
-						;
-const BLEND_ANY_SET 	= BLEND_COLOR_SET
-						| BLEND_FUNC_SET
-						| BLEND_EQUATION_SET
-						;
-const STENCIL_ANY_SET	= STENCIL_FUNC_SET
-						| STENCIL_MASK_SET
-						| STENCIL_OP_SET
-						;
-
-class Dither {
+export class Dither {
+	constructor( ) { 
+	}
 	enable ( ) {
-		if ( ~globalUsage & DITHER_ENABLED ) {
-			globalUsage |= DITHER_ENABLED;
+		Dither.enable();
+		this.enabled = true;
+		return this;
+	}
+	disable ( ) {
+		Dither.disable();
+		this.enabled = false;
+		return this;
+	}
+	static enable ( ) {
+		if ( !Dither.enabled ) {
+			Dither.enabled = true;
 			gl.enable( GL.DITHER_TEST );
 		}
-		return this;
+		return Dither;
 	}
-	disable ( ) {
-		if ( globalUsage & DITHER_ENABLED ) {
-			globalUsage &= ~DITHER_ENABLED;
+	static disable ( ) {
+		if ( Dither.enabled ) {
+			Dither.enabled = false;
 			gl.disable( GL.DITHER_TEST );
 		}
-		return this;
+		return Dither;
 	}
-	get getEnabled ( ) { return gl.getParameter( GL.DITHER ); }
+	static get getEnabled ( ) { return gl.getParameter( GL.DITHER ); }
 }
+Properties( Dither, {
+	enabled			: false,	
+}, E | C | W );
 
-class SampleCoverage {
+export class Multisample {
+	constructor ( value, invert ) {
+		if ( value !== undefined ) this.setCoverage( value, invert );
+	}
 	enable ( ) {
-		if ( ~globalUsage & SAMPLE_ENABLED ) {
-			globalUsage |= SAMPLE_ENABLED;
-			gl.enable( GL.SAMPLE_COVERAGE );
-		}
+		this.enabled = true;
+		Multisample.enable();
 		return this;
 	}
 	disable ( ) {
-		if ( globalUsage & SAMPLE_ENABLED ) {
-			globalUsage &= ~SAMPLE_ENABLED;
-			gl.disable( GL.SAMPLE_COVERAGE );
-		}
+		this.enabled = false;
+		Multisample.disable();
 		return this;
 	}
 	enableAlpha ( ) {
-		if ( ~globalUsage & SAMPLE_ALPHA_ENABLED ) {
-			globalUsage |= SAMPLE_ALPHA_ENABLED;
-			gl.enable( GL.SAMPLE_ALPHA_TO_COVERAGE );
-		}
+		this.alphaEnabled = true;
+		Multisample.enableAlpha();
 		return this;
 	}
 	disableAlpha ( ) {
-		if ( globalUsage & SAMPLE_ALPHA_ENABLED ) {
-			globalUsage &= ~SAMPLE_ALPHA_ENABLED;
-			gl.disable( GL.SAMPLE_ALPHA_TO_COVERAGE );
-		}
+		this.alphaEnabled = false;
+		Multisample.disableAlpha();
 		return this;
 	}
-	set ( value = this.value, invert = this.invert ) {
-		globalUsage |= SAMPLE_SET;
+	setCoverage ( value, invert ) {
+		this.coverageSet = true;
+		if ( value ) this.value = value;
+		if ( invert ) this.invert = invert;
+		Multisample.setCoverage( this.value, this.invert );
+	}
+	unsetCoverage ( ) {
+		this.coverageSet = false;
+		Multisample.unsetCoverage();
+		return this;
+	}
+	static enable ( ) {
+		if ( !Multisample.enabled ) {
+			Multisample.enabled = true;
+			gl.enable( GL.SAMPLE_COVERAGE );
+		}
+		return Multisample;
+	}
+	static disable ( ) {
+		if ( Multisample.enabled ) {
+			Multisample.enabled = false;
+			gl.disable( GL.SAMPLE_COVERAGE );
+		}
+		return Multisample;
+	}
+	static enableAlpha ( ) {
+		if ( !Multisample.alphaEnabled ) {
+			Multisample.alphaEnabled = true;
+			gl.enable( GL.SAMPLE_ALPHA_TO_COVERAGE );
+		}
+		return Multisample;
+	}
+	static disableAlpha ( ) {
+		if ( Multisample.alphaEnabled ) {
+			Multisample.alphaEnabled = false;
+			gl.disable( GL.SAMPLE_ALPHA_TO_COVERAGE );
+		}
+		return Multisample;
+	}
+	static setCoverage ( value = Multisample.value, invert = Multisample.invert ) {
+		Multisample.coverageSet = true;
 		gl.sampleCoverage(
 			//GLclampf
 			value,
 			//GLboolean
 			invert
 		);
-		return this;
+		return Multisample;
 	}
-	unset ( ) {
-		if ( globalUsage & SAMPLE_SET ) {
-			globalUsage &= ~SAMPLE_SET;
+	static unsetCoverage ( ) {
+		if( Multisample.coverageSet ) {
+			Multisample.coverageSet = false;
 			gl.sampleCoverage(
 				//GLclampf
-				SampleCoverage.prototype.value,
+				Multisample.value,
 				//GLboolean
-				SampleCoverage.prototype.invert
+				Multisample.invert
 			);
 		}
-		return this;
+		return Multisample;
 	}
 	get getSampleBuffers()			{ return gl.getParameter( GL.SAMPLE_BUFFERS );}
 	get getInvert()					{ return gl.getParameter( GL.SAMPLE_COVERAGE_INVERT );}
 	get getValue()					{ return gl.getParameter( GL.SAMPLE_COVERAGE_VALUE );}
 	get getSamples()				{ return gl.getParameter( GL.SAMPLES );}
 }
-Properties( SampleCoverage.prototype, {
-	value 		: 1,
-	invert 		: GL.FALSE,
-}, E | C );
+Properties( Multisample, {
+	enabled			: false,
+	alphaEnabled	: false,
+	coverageSet		: false,
+	value 			: 1,
+	invert 			: GL.FALSE,
+}, E | C | W );
 
-class ScissorTest {
+export class ScissorTest {
+	constructor ( x, y, width, height ) {
+		if ( x !== undefined ) this.set( x, y, width, height );
+	}
 	enable ( ) {
-		if ( ~globalUsage & SCISSOR_ENABLED ) {
-			globalUsage |= SCISSOR_ENABLED;
-			gl.enable( GL.SCISSOR_TEST );
-		}
+		this.enabled = true;
+		ScissorTest.enable();
 		return this;
 	}
 	disable ( ) {
-		if ( globalUsage & SCISSOR_ENABLED ) {
-			globalUsage &= ~SCISSOR_ENABLED;
-			gl.disable( GL.SCISSOR_TEST );
-		}
+		this.enabled = false;
+		ScissorTest.disable();
 		return this;
 	}
-	set ( x = this.x, y = this.y, width = this.width, height = this.height ) {
-		globalUsage |= SCISSOR_SET;
+	setDimensions ( x, y, width, height ) {
+		this.dimensionsSet = true;
+		if ( x !== undefined ) this.x = x;
+		if ( y !== undefined ) this.y = y;
+		if ( width !== undefined ) this.width = width;
+		if ( height !== undefined ) this.height = height;
+		ScissorTest.setDimensions( this.x, this.y, this.width, this.height );
+		return this;
+	}
+	unset ( ) {
+		this.dimensionsSet = false;
+		ScissorTest.unset();
+		return this;
+	}
+	static enable ( ) {
+		if ( !ScissorTest.enabled ) {
+			ScissorTest.enabled = true;
+			gl.enable( GL.SCISSOR_TEST );
+		}
+		return ScissorTest;
+	}
+	static disable ( ) {
+		if ( ScissorTest.enabled ) {
+			ScissorTest.enabled = false;
+			gl.disable( GL.SCISSOR_TEST );
+		}
+		return ScissorTest;
+	}
+	static setDimensions ( x = ScissorTest.x, y = ScissorTest.y, width = ScissorTest.width, height = ScissorTest.height ) {
+		ScissorTest.dimensionsSet = true;
 		gl.scissor(
 			//GLint
 			x,
@@ -161,47 +194,104 @@ class ScissorTest {
 			//GLint
 			height
 		);
-		return this;
+		return ScissorTest;
 	}
-	unset ( ) {
-		if ( globalUsage & SCISSOR_SET ) {
-			globalUsage &= ~SCISSOR_SET;
+	static unset ( ) {
+		if ( ScissorTest.dimensionsSet ) {
+			ScissorTest.dimensionsSet = false;
 			gl.scissor(
-				ScissorTest.prototype.x,
-				ScissorTEst.prototype.y,
-				ScissorTest.prototype.width,
-				ScissorTest.prototype.height
+				ScissorTest.x,
+				ScissorTest.y,
+				ScissorTest.width,
+				ScissorTest.height
 			);
 		}
-		return this;
+		return ScissorTest;
 	}
 	get getEnabled()				{ return gl.getParameter( GL.SCISSOR_TEST );}
 	get getScissorBox()				{ return gl.getParameter( GL.SCISSOR_BOX );}
 }
-Properties( ScissorTest.prototype, {
-	x 			: 0,
-	y 			: 0,
-	width 		: canvas.clientWidth,
-	height 		: canvas.clientHeight
-}, E | C );
+Properties( ScissorTest, {
+	enabled			: false,
+	dimensionsSet	: false,
+	x 				: 0,
+	y 				: 0,
+	width 			: canvas.clientWidth,
+	height 			: canvas.clientHeight
+}, E | C | W );
 
-class Alpha {
+export class Alpha {
+	constructor ( rgbFunc, alphaFunc, equation, red, green, blue, alpha ) {
+		if ( red !== undefined ) this.setColor( red, green, blue, alpha );
+		if ( rgbFunc !== undefined ) this.setFunc( rgbFunc, alphaFunc, rgbFunc, alphaFunc );
+		if ( equation !== undefined ) this.setEquation( equation );
+	}
 	enable ( ) {
-		if ( ~globalUsage & BLEND_ENABLED ) {
-			globalUsage |= BLEND_ENABLED;
-			gl.enable( GL.BLEND );
-		}
+		this.enabled = true;
+		Alpha.enable();
 		return this;
 	}
 	disable ( ) {
-		if ( globalUsage & BLEND_ENABLED ) {
-			globalUsage &= ~BLEND_ENABLED;
-			gl.disable( GL.BLEND );
-		}
+		this.enabled = false;
+		Alpha.disable();
 		return this;
 	}
-	setColor ( red = this.colorRed, green = this.colorGreen, blue = this.colorBlue, alpha = this.colorAlpha ) {
-		globalUsage |= BLEND_COLOR_SET;
+	setColor ( red, green, blue, alpha ) {
+		this.colorSet = true;
+		if ( red !== undefined ) this.red = red;
+		if ( green !== undefined ) this.green = green;
+		if ( blue !== undefined ) this.blue = blue;
+		if ( alpha !== undefined ) this.alpha = alpha;
+		Alpha.setColor( this.red, this.green, this.blue, this.alpha );
+		return this;
+	}
+	unsetColor ( ) {
+		this.colorSet = false;
+		Alpha.unsetColor();
+		return this;
+	}
+	setFunc ( srcRGB, dstRGB, srcAlpha, dstAlpha ) {
+		this.funcSet = true;
+		if ( srcRGB 	!== undefined )	this.srcRGB 	= srcRGB;
+		if ( dstRGB 	!== undefined )	this.dstRGB 	= dstRGB;
+		if ( srcAlpha 	!== undefined )	this.srcAlpha 	= srcAlpha;
+		if ( dstAlpha 	!== undefined )	this.dstAlpha 	= dstAlpha;
+		Alpha.setFunc( this.srcRGB, this.dstRGB, this.srcAlpha, this.dstAlpha );
+		return this;
+	}
+	unsetFunc ( ) {
+		this.funcSet = false;
+		Alpha.unsetFunc();
+		return this;
+	}
+	setEquation ( modeRGB, modeAlpha ) {
+		this.equationSet = true;
+		if ( modeRGB ) this.modeRGB = modeRGB;
+		if ( modeAlpha ) this.modeAlpha = modeAlpha;
+		Alpha.setEquation( this.modeRGB, this.modeAlpha );
+		return this;
+	}
+	unsetEquation ( ) {
+		this.equationSet = false;
+		Alpha.unsetEquation;
+		return this;
+	}
+	static enable ( ) {
+		if ( !Alpha.enabled ) {
+			Alpha.enabled = true;
+			gl.enable( GL.BLEND );
+		}
+		return Alpha;
+	}
+	static disable ( ) {
+		if ( Alpha.enabled ) {
+			Alpha.enabled = false;
+			gl.disable( GL.BLEND );
+		}
+		return Alpha;
+	}
+	static setColor ( red = Alpha.colorRed, green = Alpha.colorGreen, blue = Alpha.colorBlue, alpha = Alpha.colorAlpha ) {
+		Alpha.colorSet = true;
 		gl.blendColor(
 			//GLclampf
 			red,
@@ -214,23 +304,23 @@ class Alpha {
 		);
 		return this; 
 	}
-	unsetColor ( ) {
-		if ( globalUsage & BLEND_COLOR_SET ) {
-			globalUsage &= ~BLEND_COLOR_SET;
+	static unsetColor ( ) {
+		if ( Alpha.colorSet ) {
+			Alpha.colorSet = false;
 			gl.blendColor(
-				Alpha.prototype.colorRed,
-				Alpha.prototype.colorGreen,
-				Alpha.prototype.colorBlue,
-				Alpha.prototype.colorAlpha 
+				Alpha.colorRed,
+				Alpha.colorGreen,
+				Alpha.colorBlue,
+				Alpha.colorAlpha 
 			);
 		}
-		return this;
+		return Alpha;
 	}
-	setFunc ( srcRGB = this.srcRGB, dstRGB = this.dstRGB, srcAlpha = this.srcAlpha, dstAlpha = this.dstAlpha ) {
-		globalUsage |= BLEND_FUNC_SET;
+	static setFunc ( srcRGB = Alpha.srcRGB, dstRGB = Alpha.dstRGB, srcAlpha = Alpha.srcAlpha, dstAlpha = Alpha.dstAlpha ) {
+		Alpha.funcSet = true;
 		//  all combos of [ ONE_MINUS ?] _ [ SRC | DST | CONSTANT ] _ [ COLOR | ALPHA ]
 		gl.blendFuncSeparate(
-			//GLenum ZERO | ONE | SRC_Alpha.SATURATE + combos
+			//GLenum ZERO | ONE | SRC_ALPHA_SATURATE + combos
 			srcRGB,
 			//GLenum ZERO | ONE + combos
 			dstRGB,
@@ -239,36 +329,36 @@ class Alpha {
 			//GLenum accepts same as dstRGB
 			dstAlpha
 		);
-		return this;
+		return Alpha;
 	}
-	unsetFunc ( ) {
-		if ( globalUsage & BLEND_FUNC_SET ) {
-			globalUsage &= ~BLEND_FUNC_SET;
+	static unsetFunc ( ) {
+		if ( Alpha.funcSet ) {
+			Alpha.funcSet = false;
 			gl.blendFuncSeparate(
-				Alpha.prototype.srcRGB,
-				Alpha.prototype.dstRGB,
-				Alpha.prototype.srcAlpha,
-				Alpha.prototype.dstAlpha
+				Alpha.srcRGB,
+				Alpha.dstRGB,
+				Alpha.srcAlpha,
+				Alpha.dstAlpha
 			);
 		}
-		return this;
+		return Alpha;
 	}
-	setEquation ( modeRGB = this.modeRGB, modeAlpha = this.modeAlpha ) {
-		globalUsage |= BLEND_EQUATION_SET;
+	static setEquation ( modeRGB = Alpha.modeRGB, modeAlpha = Alpha.modeAlpha ) {
+		Alpha.equationSet = true;
 		gl.blendEquationSeparate(
 			//GLenum FUNC_ADD | FUNC_SUBTRACT | FUNC_REVERSE_SUBTRACT
 			modeRGB,
 			//GLenum same
 			modeAlpha
 		);
-		return this;
+		return Alpha;
 	}
-	unsetEquation ( ) {
-		if ( globalUsage & BLEND_EQUATION_SET ) {
-			globalUsage &= ~BLEND_EQUATION_SET;
+	static unsetEquation ( ) {
+		if ( Alpha.equationSet ) {
+			Alpha.equationSet = false;
 			gl.blendEquationSeparate(
-				Alpha.prototype.modeRGB,
-				Alpha.prototype.modeAlpha
+				Alpha.modeRGB,
+				Alpha.modeAlpha
 			);
 		}
 		return this;
@@ -291,7 +381,11 @@ class Alpha {
 	get getEquationRGBFlag()		{ return gl.flags[ this.getEquationRGB ];}
 	get getEquationAlphaFlag()		{ return gl.flags[ this.getEquationAlpha ];}
 }
-Properties( Alpha.prototype, {
+Properties( Alpha, {
+	enabled		: false,
+	colorSet	: false,
+	funcSet		: false,
+	equationSet	: false,
 	colorRed 	: 0,
 	colorGreen 	: 0,
 	colorBlue 	: 0,
@@ -302,73 +396,141 @@ Properties( Alpha.prototype, {
 	srcAlpha 	: GL.ONE,
 	dstRGB 		: GL.ZERO,
 	dstAlpha 	: GL.ZERO
-}, E | C );
+}, E | C | W );
+Properties( Alpha, {
+	EQ_ADD						: GL.FUNC_ADD,
+	EQ_SUBTRACT 				: GL.FUNC_SUBTRACT,
+	EQ_REVERSE_SUBTRACT 		: GL.FUNC_REVERSE_SUBTRACT,
+	FN_ZERO						: GL.ZERO,
+	FN_ONE						: GL.ONE,
+	FN_SRC_COLOR				: GL.SRC_COLOR,
+	FN_DST_COLOR				: GL.DST_COLOR,
+	FN_SRC_ALPHA				: GL.SRC_ALPHA,
+	FN_DST_ALPHA				: GL.DST_ALPHA,
+	FN_CONSTANT_COLOR			: GL.CONSTANT_COLOR,
+	FN_CONSTANT_ALPHA			: GL.CONSTANT_ALPHA,
+	FN_SRC_ALPHA_SATURATE		: GL.SRC_ALPHA_SATURATE,
+	FN_ONE_MINUS_SRC_COLOR 		: GL.ONE_MINUS_SRC_COLOR,
+	FN_ONE_MINUS_DST_COLOR		: GL.ONE_MINUS_DST_COLOR,
+	FN_ONE_MINUS_SRC_ALPHA		: GL.ONE_MINUS_SRC_ALPHA,
+	FN_ONE_MINUS_DST_ALPHA		: GL.ONE_MINUS_DST_ALPHA,
+	FN_ONE_MINUS_CONSTANT_COLOR : GL.ONE_MINUS_CONSTANT_COLOR,
+	FN_ONE_MINUS_CONSTANT_ALPHA : GL.ONE_MINUS_CONSTANT_ALPHA
+}, E );
 
-class DepthTest {
+export class DepthTest {
+	constructor ( write, func, zNear, zFar ) {
+		if ( write ) this.enableWrite();
+		if ( func !== undefined ) this.setFunc( func );
+		if ( zNear !== undefined ) this.setRange( zNear, zFar );
+	}
 	enable ( ) {
-		if ( ~globalUsage & DEPTH_ENABLED ) {
-			globalUsage |= DEPTH_ENABLED;
-			gl.enable( GL.DEPTH_TEST );
-		}
+		this.enabled = true;
+		DepthTest.enable();
 		return this;
 	}
 	disable ( ) {
-		if ( globalUsage & DEPTH_ENABLED ) {
-			globalUsage &= ~DEPTH_ENABLED;
+		this.enabled = false;
+		DepthTest.disable();
+		return this;
+	}
+	enableWrite ( ) {
+		this.writeEnabled = true;
+		DepthTest.enableWrite();
+		return this;
+	}
+	disableWrite ( ) {
+		this.writeEnabled = false;
+		DepthTest.disableWrite();
+		return this;
+	}
+	setFunc ( func ) {
+		this.funcSet = true;
+		if ( func !== undefined ) this.func = func;
+		DepthTest.setFunc( this.func );
+		return this;
+	}
+	unsetFunc ( ) {
+		this.funcSet = false;
+		DepthTest.unsetFunc( );
+		return this;
+	}
+	setRange ( zNear, zFar ) {
+		this.rangeSet = true;
+		if ( zNear !== undefined ) this.zNear = zNear;
+		if ( zFar !== undefined ) this.zFar = zFar;
+		DepthTest.setRange( this.zNear, this.zFar );
+		return this;
+	}
+	unsetRange ( ) {
+		this.rangeSet = false;
+		DepthTest.unsetRange();
+		return this;
+	}
+	static enable ( ) {
+		if ( DepthTest.enabled === false ) {
+			DepthTest.enabled = true;
+			gl.enable( GL.DEPTH_TEST );
+		}
+		return DepthTest;
+	}
+	static disable ( ) {
+		if ( DepthTest.enabled === true ) {
+			DepthTest.enabled = false;
 			gl.disable( GL.DEPTH_TEST );
 		}
-		return this;
+		return DepthTest;
 	}
-	setWrite ( enable = this.write ) {
-		globalUsage |= DEPTH_WRITE_SET;
-		gl.depthMask( enable );
-		return this;
-	}
-	unsetWrite ( ) {
-		if ( globalUsage & DEPTH_WRITE_SET ) {
-			globalUsage &= ~DEPTH_WRITE_SET;
-			gl.depthMask(
-				DepthTest.prototype.write 
-			);
+	static enableWrite ( ) {
+		if ( DepthTest.writeEnabled === false ) {
+			DepthTest.writeEnabled = true;
+			gl.depthMask( true );
 		}
-		return this;
+		return DepthTest;
 	}
-	setFunc ( func = this.func ) {
-		globalUsage |= DEPTH_FUNC_SET;
+	static disableWrite ( ) {
+		if ( DepthTest.writeEnabled === true ) {
+			DepthTest.writeEnabled = false;
+			gl.depthMask( false );
+		}
+		return DepthTest;
+	}
+	static setFunc ( func = DepthTest.func ) {
+		DepthTest.funcSet;
 		gl.depthFunc(
 			//GLenum NEVER | LESS | EQUAL | LEQUAL | GREATER | NOTEQUAL | GEEQUAL | ALWAYS
 			func
 		);
-		return this;
+		return DepthTest;
 	}
-	unsetFunc ( ) {
-		if ( globalUsage & DEPTH_FUNC_SET ) {
-			globalUsage &= ~DEPTH_FUNC_SET;
+	static unsetFunc ( ) {
+		if ( DepthTest.funcSet ) {
+			DepthTest.funcSet = false;
 			gl.depthFunc(
-				DepthTest.prototype.func
+				DepthTest.func
 			);
 		}
-		return this;
+		return DepthTest;
 	}
-	setRange ( zNear = this.zNear, zFar = this.zFar ) {
-		globalUsage |= DEPTH_RANGE_SET;
+	static setRange ( zNear = DepthTest.zNear, zFar = DepthTest.zFar ) {
+		DepthTest.rangeSet = true;
 		gl.depthRange(
 			//GLclampf
 			zNear,
 			//GLclampf
 			zFar
 		);
-		return this;
+		return DepthTest;
 	}
-	unsetRange ( ) {
-		if ( globalUsage & DEPTH_RANGE_SET ) {
-			globalUsage &= ~DEPTH_RANGE_SET;
+	static unsetRange ( ) {
+		if ( DepthTest.rangeSet ) {
+			DepthTest.rangeSet = false;
 			gl.depthRange(
-				DepthTest.prototype.zNear,
-				DepthTest.prototype.zFar
+				DepthTest.zNear,
+				DepthTest.zFar
 			);
 		}
-		return this;
+		return DepthTest;
 	}
 	get getEnabled()		{ return gl.getParameter( GL.DEPTH_TEST );}
 	get getFunc()			{ return gl.getParameter( GL.DEPTH_FUNC );}
@@ -376,103 +538,181 @@ class DepthTest {
 	get getWrite()			{ return gl.getParameter( GL.DEPTH_WRITEMASK );}
 	get getFuncFlag()		{ return gl.flags[ this.getFunc ];}
 }
-Properties( DepthTest.prototype, {
-	write		: true,
-	func 	 	: GL.LESS,
-	zNear		: 0,
-	zFar		: 1,
-}, E | C );
+Properties( DepthTest, {
+	enabled			: true,
+	writeEnabled	: true,
+	funcSet 		: false,
+	rangeSet		: false,
+	func 	 		: GL.LESS,
+	zNear			: 0,
+	zFar			: 1,
+}, E | C | W );
+Properties( DepthTest, {
+	FN_NEVER		: GL.NEVER,
+	FN_LESS			: GL.LESS,
+	FN_EQUAL		: GL.EQUAL,
+	FN_LEQUAL		: GL.LEQUAL,
+	FN_GREATER		: GL.GREATER,
+	FN_NOTEQUAL		: GL.NOTEQUAL,
+	FN_GEQUAL		: GL.GEQUAL,
+	FN_ALWAYS		: GL.ALWAYS
+}. E );
 
-class PolygonOffset {
+export class PolygonOffset {
+	constructor ( factor, units ) {
+		if ( factor !== undefined ) this.setFill( factor, units );
+	}
 	enable ( ) {
-		if ( globalUsage & OFFSET_ENABLED ) return this;
-		globalUsage |= OFFSET_ENABLED;
-		gl.enable( GL.POLYGON_OFFSET_FILL );
+		this.enabled = true;
+		PolygonOffset.enable();
 		return this;
 	}
 	disable ( ) {
-		if ( ~globalUsage & OFFSET_ENABLED ) return this;
-		globalUsage &= ~OFFSET_ENABLED;
-		gl.disable( GL.POLYGON_OFFSET_FILL );
+		this.enabled = false;
+		PolygonOffset.disable();
 		return this;
 	}
-	set ( factor = this.factor, units = this.units ) {
-		globalUsage |= OFFSET_SET;
+	setFill ( factor, units ) {
+		this.fillSet = true;
+		if ( factor !== undefined ) this.factor = factor;
+		if ( units !== undefined ) this.units = units;
+		PolygonOffset.setFill( this.factor, this.units );
+		return this;
+	}
+	unsetFill ( ) {
+		this.fillSet = false;
+		PolygonOffset.unsetFill();
+		return this;
+	}
+	static enable ( ) {
+		if ( !PolygonOffset.enabled ) {
+			PolygonOffset.enabled = true;
+			gl.enable( GL.POLYGON_OFFSET_FILL );
+		}
+		return PolygonOffset;
+	}
+	static disable ( ) {
+		if ( PolygonOffset.enabled ) {
+			PolygonOffset.enabled = false;
+			gl.disable( GL.POLYGON_OFFSET_FILL );
+		}
+		return PolygonOffset;
+	}
+	static setFill ( factor = PolygonOffset.factor, units = PolygonOffset.units ) {
+		PolygonOffset.fillSet = true;
 		gl.polygonOffset(
 			//GLfloat
 			factor,
 			//GLfloat
 			units
 		);
-		return this;
+		return PolygonOffset;
 	}
-	unset ( ) {
-		if ( globalUsage & OFFSET_SET ) {
-			globalUsage &= ~OFFSET_SET;
+	static unsetFill ( ) {
+		if ( PolygonOffset.fillSet ) {
+			PolygonOffset.fillSet = false;
 			gl.polygonOffset(
-				PolygonOffset.prototype.factor,
-				PolygonOffset.prototype.units
+				PolygonOffset.factor,
+				PolygonOffset.units
 			);
 		}
-		return this;
+		return PolygonOffset;
 	}
 	get getEnabled()		{ return gl.getParameter( GL.POLYGON_OFFSET_FILL );}
 	get getFactor()			{ return gl.getParameter( GL.POLYGON_OFFSET_FACTOR );}
 	get getUnits()			{ return gl.getParameter( GL.POLYGON_OFFSET_UNITS );}
 }
-Properties( PolygonOffset.prototype, {
+Properties( PolygonOffset, {
+	enabled : false,
+	fillSet	: false,
 	factor	: 0,
 	units	: 0
-}, E | C );
+}, E | C | W );
 
-class CullFace {
+export class CullFace {
+	constructor ( mode, front ) {
+		if ( mode !== undefined ) this.setMode( mode );
+		if ( front !== undefined ) this.setFront( front );
+	}
 	enable ( ) {
-		if ( ~globalUsage & CULL_FACE_ENABLED ) {
-			globalUsage |= CULL_FACE_ENABLED;
-			gl.enable( GL.CULL_FACE );
-		}
+		this.enabled = true;
+		CullFace.enable();
 		return this;
 	}
 	disable ( ) {
-		if ( globalUsage & CULL_FACE_ENABLED ) {
-			globalUsage &= ~CULL_FACE_ENABLED;
-			gl.disable( GL.CULL_FACE );
-		}
+		this.enabled = false;
+		CullFace.disable();
 		return this;
 	}
-	set ( mode = this.mode ) {
-		globalUsage |= CULL_FACE_SET;
+	setMode ( mode ) {
+		this.modeSet = true;
+		if ( mode !== undefined ) this.mode = mode;
+		CullFace.setMode( this.mode );
+		return this;
+	}
+	unsetMode ( ) {
+		this.modeSet = false;
+		CullFace.unsetMode();
+		return this;
+	}
+	setFront ( front ) {
+		this.frontSet = true;
+		if ( front !== undefined ) this.front = front;
+		CullFace.setFront( this.front );
+		return this;
+	}
+	unsetFront ( ) {
+		this.frontSet = false;
+		CullFace.unsetFront();
+		return this;
+	}
+	static enable ( ) {
+		if ( !CullFace.enabled ) {
+			CullFace.enabled = true;
+			gl.enable( GL.CULL_FACE );
+		}
+		return CullFace;
+	}
+	static disable ( ) {
+		if ( CullFace.enabled ) {
+			CullFace.enabled = false;
+			gl.disable( GL.CULL_FACE );
+		}
+		return CullFace;
+	}
+	static setMode ( mode = CullFace.mode ) {
+		CullFace.modeSet = true;
 		gl.cullFace( 
 			//GLenum FRONT | BACK | FRONT_AND_BACK
 			mode
 		);
-		return this;
+		return CullFace;
 	}
-	unset ( ) {
-		if ( globalUsage & CULL_FACE_SET ) {
-			globalUsage &= ~CULL_FACE_SET;
+	static unsetMode ( ) {
+		if ( CullFace.modeSet ) {
+			CullFace.modeSet = false;
 			gl.cullFace(
-				CullFace.prototype.mode
+				CullFace.mode
 			);
 		}
-		return this;
+		return CullFace;
 	}
-	setFront ( front = this.front ) {
-		globalUsage |= CULL_FACE_FRONT_SET;
+	static setFront ( front = CulLFace.front ) {
+		CullFace.frontSet = true;
 		gl.frontFace( 
 			//GLenum CW | CCW
 			front
 		); 
-		return this; 
+		return CullFace; 
 	}
-	unsetFront ( ) {
-		if ( globalUsage & CULL_FACE_FRONT_SET ) {
-			globalUsage &= ~CULL_FACE_FRONT_SET;
+	static unsetFront ( ) {
+		if ( CullFace.fronSet ) {
+			CullFace.frontSet = false;
 			gl.frontFace(
-				CullFace.prototype.front
+				CullFace.front
 			);
 		}
-		return this;
+		return CullFace;
 	}
 	get getEnabled()		{ return gl.getParameter( GL.CULL_FACE );}
 	get getFront()			{ return gl.getParameter( GL.FRONT_FACE );}
@@ -480,38 +720,145 @@ class CullFace {
 	get getFrontFlag()		{ return gl.flags[ this.getFront ];}
 	get getModeFlag()		{ return gl.flags[ this.getMode ];}
 }
-Properties( CullFace.prototype, {
+Properties( CullFace, {
+	enabled : false,
+	modeSet : false,
+	frontSet: false,
 	mode 	: GL.FRONT,
 	front 	: GL.CCW
-}, E | C );
+}, E | C | W );
+Properties( CullFace, {
+	MD_FRONT			: GL.FRONT,
+	MD_BACK				: GL.BACK,
+	MD_FRONT_AND_BACK 	: GL.FRONT_AND_BACK,
+	FR_CW				: GL.CW,
+	FR_CCW				: GL.CCW
+}, E );
 
-class StencilTest {
+export class StencilTest {
 	enable ( ) {
-		if ( ~globalUsage & STENCIL_ENABLED ) {
-			globalUsage |= STENCIL_ENABLED;
-			gl.enable( GL.STENCIL_TEST );
-		}
+		this.enabled = true;
+		StencilTest.enable();
 		return this;
 	}
 	disable ( ) {
-		if ( globalUsage & STENCIL_ENABLED ) {
-			globalUsage &= ~STENCIL_ENABLED;
-			gl.disable( GL.STENCIL_TEST );
-		}
+		this.enabled = false;
+		StencilTest.disable();
 		return this;
 	}
-
-	setFunc ( func = this.frontFunc, ref = this.frontRef, mask = this.frontValueMask ) {
-		globalUsage |= STENCIL_FUNC_SET;
+	setFunc ( func, ref, mask ) {
+		this.frontFuncSet = true;
+		this.backFuncSet = true;
+		if ( func !== undefined ) this.func = func;
+		if ( ref !== undefined ) this.ref = ref;
+		if ( mask !== undefined ) this.mask = mask;
+		StencilTest.setFunc( this.func, this.ref, this.mask );
+		return this;
+	}
+	setFrontFunc ( func, ref, mask ) {
+		this.frontFuncSet = true;
+		if ( func !== undefined ) this.frontFunc = func;
+		if ( ref !== undefined ) this.frontRef = ref;
+		if ( mask !== undefined ) this.frontMask = mask;
+		StencilTest.setFrontFunc( this.frontFunc, this.frontRef, this.frontMask );
+		return this;
+	}
+	setBackFunc ( func, ref, mask ) {
+		this.backFuncSet = true;
+		if ( func !== undefined ) this.backFunc = func;
+		if ( ref !== undefined ) this.backRef = ref;
+		if ( mask !== undefined ) this.backMask = mask;
+		StencilTest.setBackFunc( this.backFunc, this.backRef, this.backMask );
+		return this;
+	}
+	unsetFunc ( ) {
+		this.frontFuncSet = false;
+		this.backFuncSet = false;
+		StencilTest.unsetFunc();
+		return this;
+	}
+	setWriteMask ( mask ) {
+		this.frontMaskSet = true;
+		this.backMaskSet = true;
+		if ( mask !== undefined ) this.writeMask = mask;
+		StencilTest.setWriteMask( this.writeMask );
+		return this;
+	}
+	setFrontWriteMask ( mask ) {
+		this.frontMaskSet = true;
+		if ( mask !== undefined ) this.frontWriteMask = mask;
+		Stenciltest.setFrontWriteMask( this.frontWriteMask );
+		return this;
+	}
+	setBackWriteMask ( mask ) {
+		this.backWriteMaskSet = true;
+		if ( mask !== undefined ) this.backWriteMask = mask;
+		StencilTest.setBackWriteMask( this.backWriteMask );
+		return this;
+	}
+	unsetWriteMask ( ) {
+		this.frontMaskSet = false;
+		this.backMaskSet = false;
+		StencilTest.unsetWriteMask();
+		return this;
+	}
+	setOp ( stencilFail, depthFail, depthPass ) {
+		this.frontOpSet = true;
+		this.backOpSet = true;
+		if ( stencilFail !== undefined ) this.stencilFail = stencilFail;
+		if ( depthFail !== undefined ) this.depthFail = depthFail;
+		if ( depthPass !== undefined ) this.depthPass = depthPass;
+		StencilTest.setOp( this.stencilFail, this.depthFail, this.depthPass );
+		return this;
+	}
+	setFrontOp ( stencilFail, depthFail, depthPass ) {
+		this.frontOpSet = true;
+		if ( stencilFail !== undefined ) this.frontStencilFail = stencilFail;
+		if ( depthFail !== undefined ) this.frontDepthFail = depthFail;
+		if ( depthPass !== undefined ) this.frontDepthPass = depthPass;
+		StencilTest.setFrontOp( this.frontStencilFail, this.frontDepthFail, this.frontDepthPass );
+		return this;
+	}
+	setBackOp ( stencilFail, depthFail, depthPass ) {
+		this.backOpSet = true;
+		if ( stencilFail !== undefined ) this.backStencilFail = stencilFail;
+		if ( depthFail !== undefined ) this.backDepthFail = depthFail;
+		if ( depthPass !== undefined ) this.backDepthPass = depthPass;
+		StencilTest.setBackOp( this.backStencilFail, this.backDepthFail, this.backDepthPass );
+		return this;
+	}
+	unsetOp ( ) {
+		this.frontOpSet = false;
+		this.backOpSet = false;
+		StencilTest.unsetOp();
+		return this;
+	}
+	static enable ( ) {
+		if ( !StencilTest.enabled ) {
+			StencilTest.enabled = true;
+			gl.enable( GL.STENCIL_TEST );
+		}
+		return StencilTest;
+	}
+	static disable ( ) {
+		if ( StencilTest.enabled ) {
+			StencilTest.enabled = false;
+			gl.disable( GL.STENCIL_TEST );
+		}
+		return StencilTest;
+	}
+	static setFunc ( func = StencilTest.func, ref = StencilTest.ref, mask = StencilTest.valueMask ) {
+		StencilTest.frontFuncSet = true;
+		StencilTest.backFuncSet = true;
 		gl.stencilFunc(
 			func,
 			ref,
 			mask
 		);
-		return this;
+		return StencilTest;
 	}
-	setFrontFunc ( func = this.frontFunc, ref = this.frontRef, mask = this.frontValueMask ) {
-		globalUsage |= STENCIL_FRONT_FUNC_SET;
+	static setFrontFunc ( func = StencilTest.frontFunc, ref = StencilTest.frontRef, mask = StencilTest.frontValueMask ) {
+		StencilTest.frontFuncSet = true;
 		gl.stencilFuncSeparate(
 			// GLenum FRONT | BACK |FRONT_AND_BACK
 			GL.FRONT,
@@ -522,82 +869,93 @@ class StencilTest {
 			// GLuint
 			mask
 		);
-		return this;
+		return StencilTest;
 	}
-	setBackFunc( func = this.backFunc, ref = this.backRef, mask = this.backValueMask ) {
-		globalUsage |= STENCIL_BACK_FUNC_SET;
+	static setBackFunc( func = StencilTest.backFunc, ref = StencilTest.backRef, mask = StencilTest.backValueMask ) {
+		StencilTest.backFuncSet = true;
 		gl.stencilFuncSeparate(
 			GL.BACK,
 			func,
 			ref,
 			mask
 		);
-		return this;
+		return StencilTest;
 	}
-	unsetFunc ( ) {
-		if ( globalUsage & STENCIL_FRONT_FUNC_SET || globalUsage & STENCIL_BACK_FUNC_SET ) {
-			globalUsage & ~STENCIL_FUNC_SET;
+	static unsetFunc ( ) {
+		if ( StencilTest.frontFuncSet || StencilTest.backFuncSet ) {
+			StencilTest.frontFuncSet = false;
+			StencilTest.backFuncSet = false;
 			gl.stencilFunc(
-				StencilTest.prototype.frontFunc,
-				StencilTest.prototype.frontRef,
-				StencilTest.prototype.frontValueMask
+				StencilTest.func,
+				StencilTest.ref,
+				StencilTest.valueMask
 			);
 		}
-		return this;
+		return StencilTest;
 	}
-
-	setWriteMask ( mask = this.frontWriteMask ) {
-		globalUsage |= STENCIL_MASK_SET;
+	static setWriteMask ( mask = StencilTest.frontWriteMask ) {
+		StencilTest.frontMaskSet = true;
+		StencilTest.backMaskSet	= true;
 		gl.stencilMask( 
 			// GLuint
 			mask 
 		);
-		return this;
+		return StencilTest;
 	}
-	setFrontWriteMask ( mask = this.frontWriteMask ) {
-		globalUsage |= STENCIL_FRONT_MASK_SET;
+	static setFrontWriteMask ( mask = StencilTest.frontWriteMask ) {
+		StencilTest.frontMaskSet = true;
 		gl.stencilMaskSeparate(
 			// GLenum FRONT | BACK |FRONT_AND_BACK
 			GL.FRONT, 
 			// GLuint
 			mask 
 		);
-		return this;
+		return StencilTest;
 	}
-	setBackWriteMask ( mask = this.backWriteMask ) {
-		globalUsage |= STENCIL_BACK_MASK_SET;
+	static setBackWriteMask ( mask = StencilTest.backWriteMask ) {
+		StencilTest.backMaskSet = true;
 		gl.stencilMaskSeparate(
 			// GLenum FRONT | BACK |FRONT_AND_BACK
 			GL.FRONT, 
 			// GLuint
 			mask 
 		);
-		return this;
+		return StencilTest;
 	}
-	unsetWriteMask ( ) {
-		if ( globalUsage & STENCIL_FRONT_MASK_SET || globalUsage & STENCIL_BACK_MASK_SET ) {
-			globalUsage &= ~STENCIL_MASK_SET;
+	static unsetWriteMask ( ) {
+		if ( StencilTest.frontMaskSet || StencilTest.backMaskSet ) {
+			StencilTest.frontMaskSet = false;
+			StencilTest.backMaskSet = false;
 			gl.stencilMask(
-				StencilTest.prototype.frontWriteMask
+				StencilTest.writeMask
 			);
 		}
-		return this;
+		return StencilTest;
 	}
-
-	setOp ( stencilFail = this.frontFail, depthFail = this.frontDepthFail, depthPass = this.frontDepthPass ) {
-		globalUsage |= STENCIL_OP_SET;
+	static setOp ( stencilFail = StencilTest.frontFail, depthFail = StencilTest.frontDepthFail, depthPass = StencilTest.frontDepthPass ) {
+		StencilTest.frontOpSet = true;
+		StencilTest.backOpSet = true;
 		gl.stencilOp(
-			//GLenum KEEP | ZERO | REPLACE | INCR | INCR_WRAP | DECR | DECR_WRAP | INVERT
+			/*GLenum 
+				KEEP : Keeps current value
+				ZERO : Sets the stencil buffer value to 0
+				REPLACE : Sets the stencil buffer to ref, as specified in stencilFunc
+				INCR : Increments the current stencil buffer value. Clamps to the maximum representable unsigned value.
+				INCR_WRAP : Incremenets the current stencil buffer value. Wraps stencil buffer value to zero when incrementing the maximum representable value.
+				DECR : Decrements the current stencil buffer value. Clamps to 0.
+				DECR_WRAP : Decrements the current stencil buffer value. Wraps stencil buffer value to the maximum representable unsigned value when decrementing a stencil buffer value of zero.
+				INVERT : Bitwise inverts the current stencil buffer value.
+			*/
 			stencilFail,
 			// GLenum same
 			depthFail,
 			// GLenum same
 			depthPass
 		);
-		return this;
+		return StencilTest;
 	}
-	setFrontOp ( stencilFail = this.frontFail, depthFail = this.frontDepthFail, depthPass = this.frontDepthPass ) {
-		globalUsage |= STENCIL_FRONT_OP_SET;
+	static setFrontOp ( stencilFail = StencilTest.frontFail, depthFail = StencilTest.frontDepthFail, depthPass = StencilTest.frontDepthPass ) {
+		StencilTest.frontOpSet = true;
 		gl.stencilOpSeparate(
 			// GLenum FRONT | BACK |FRONT_AND_BACK
 			GL.FRONT,
@@ -608,10 +966,10 @@ class StencilTest {
 			// GLenum same
 			depthPass
 		);
-		return this;
+		return StencilTest;
 	}
-	setBackOp ( stencilFail = this.backFail, depthFail = this.backDepthFail, depthPass = this.backDepthPass ) {
-		globalUsage |= STENCIL_BACK_OP_SET;
+	static setBackOp ( stencilFail = StencilTest.backFail, depthFail = StencilTest.backDepthFail, depthPass = StencilTest.backDepthPass ) {
+		StencilTest.backOpSet = true;
 		gl.stencilOpSeparate(
 			// GLenum FRONT | BACK |FRONT_AND_BACK
 			GL.BACK,
@@ -622,18 +980,19 @@ class StencilTest {
 			// GLenum same
 			depthPass
 		);
-		return this;
+		return StencilTest;
 	}
-	unsetOp ( ) {
-		if ( globalUsage & STENCIL_FRONT_OP_SET || globalUsage & STENCIL_BACK_OP_SET) {
-			globalUsage &= ~STENCIL_OP_SET;
+	static unsetOp ( ) {
+		if ( StencilTest.frontOpSet || StencilTest.backOpSet ) {
+			StencilTest.frontOpSet = false;
+			StencilTest.backOpSet = false;
 			gl.stencilOp(
-				StencilTest.prototype.frontFail,
-				StencilTest.prototype.frontDepthFail,
-				StencilTest.prototype.frontDepthPass
+				StencilTest.fail,
+				StencilTest.depthFail,
+				StencilTest.depthPass
 			);
 		}
-		return this;
+		return StencilTest;
 	}
 
 	get getEnabled()				{ return gl.getParameter( GL.STENCIL_TEST );}
@@ -666,141 +1025,176 @@ class StencilTest {
 	get getBackPassDepthPassFlag()	{ return gl.flags[ this.getBackPassDepthPass ];}
 	get getBackPassDepthFailFlag()	{ return gl.flags[ this.getBackPassDepthFail ];}
 }
-Properties( StencilTest.prototype, {
+Properties( StencilTest, {
+	enabled			: false,
+
+	frontFuncSet	: false,
+	frontOpSet		: false,
+	frontMaskSet	: false,
+
+	backFuncSet		: false,
+	backOpSet		: false,
+	backMaskSet		: false,
+
+	func			: GL.ALWAYS,
+	ref				: 0,
+	valueMask		: ( 1 << 16 ) - 1,
+	writeMask		: ( 1 << 16 ) - 1,
+	stencilfail		: GL.KEEP,
+	depthFail		: GL.KEEP,
+	depthPass		: GL.KEEP,
+
+
 	frontFunc 		: GL.ALWAYS,
 	frontRef 		: 0,
 	frontValueMask 	: ( 1 << 16 ) - 1,
-	frontFail 		: GL.KEEP,
+	frontWriteMask 	: ( 1 << 16 ) - 1,
+	frontStencilFail: GL.KEEP,
 	frontDepthFail 	: GL.KEEP,
 	frontDepthPass 	: GL.KEEP,
-	frontWriteMask 	: ( 1 << 16 ) - 1,
 	
 	backFunc 		: GL.ALWAYS,
 	backRef 		: 0,
 	backValueMask 	: ( 1 << 16 ) - 1,
-	backFail 		: GL.KEEP,
+	backWriteMask 	: ( 1 << 16 ) - 1,
+	backStencilFail	: GL.KEEP,
 	backDepthFail 	: GL.KEEP,
 	backDepthPass 	: GL.KEEP,
-	backWriteMask 	: ( 1 << 16 ) - 1,
-}, E | C );
+}, E | C | W );
+Properties( StencilTest, {
+	FN_NEVER		: GL.NEVER,
+	FN_LESS			: GL.LESS,
+	FN_LEQUAL		: GL.LEQUAL,
+	FN_GREATER		: GL.GREATER,
+	FN_GEQUAL		: GL.GEQUAL,
+	FN_EQAUL		: GL.EQUAL,
+	FN_NOTEQUAL		: GL.NOTEQUAL,
+	FN_ALWAYS		: GL.ALWAYS,
+	OP_KEEP			: GL.KEEP,
+	OP_ZERO			: GL.ZERO,
+	OP_REPLACE		: GL.REPLACE,
+	OP_INCR			: GL.INCR,
+	OP_INCR_WRAP	: GL.INCR_WRAP,
+	OP_DECR			: GL.DECR,
+	OP_DECR_WRAP	: GL.DECR_WRAP,
+	OP_INVERT		: GL.INVERT
+}, E );
 
-
-export const polygonOffset 	= new PolygonOffset;
-export const alpha 			= new Alpha;
-export const depthTest 		= new DepthTest;
-export const stencilTest 	= new StencilTest;
-export const cullFace 		= new CullFace;
-export const scissorTest	= new ScissorTest;
-export const dither			= new Dither;
-export const sampleCoverage = new SampleCoverage;
 export default class Material {
-	constructor( ) {
+	constructor( program = DEFAULT_PROGRAM ) {
 		this.usage 			= 0;
-		this.program 		= DEFAULT_PROGRAM;
-		this.uniforms 		= this.program.getUniforms.material.instantiate();
+		this.polygonOffset	= new PolygonOffset;
+		this.alpha 			= new Alpha;
+		this.depth			= new DepthTest;
+		this.stencil		= new StencilTest;
+		this.cullFace		= new CullFace;
+		this.scissor		= new ScissorTest;
+		this.dither			= new Dither;
+		this.multisample 	= new Multisample;
+		this.setProgram( program );
+	}
+	setProgram ( program ) {
+		let uniforms = program.getUniforms.material;
+		this.program = program;
+		if ( uniforms ) this.uniforms = uniforms;
 	}
 	use ( ) {
-		let bit = Material;
-		let locations = this.uniforms;
+		if ( this.program && currentProgram !== this.program ) 	
+			currentProgram 	= this.program.use();
+		if ( this.uniforms && currentUniforms !== this.uniforms ) 
+			currentUniforms = this.uniforms.set();
 
-		if ( currentProgram !== this.program ) currentProgram = this.program.use();
-		if ( currentUniforms !== this.uniforms ) currentUniforms = this.uniforms.set();
+		if ( this.alpha.enabled ) {					this.alpha.enable();
+			if ( this.alpha.colorSet ) 				this.alpha.setColor();
+			else									this.alpha.unsetColor();
+			if ( this.alpha.funcSet ) 				this.alpha.setFunc();
+			else									this.alpha.unsetFunc();
+			if ( this.alpha.equationSet ) 			this.alpha.setEquation();
+		} else 										this.alpha.disable();
 		
+		if ( this.cullFace.enabled ) {				this.cullFace.enable();
+			if ( this.cullFace.modeSet ) 			this.cullFace.setMode();
+			else 									this.cullFace.unsetMode();
+			if ( this.cullFace.frontSet )			this.cullFace.setFront();
+			else 									this.cullFace.unsetFront();
+		} else 										this.cullFace.disable();
 
-		if ( this.usage & bit.BLEND_ENABLED ) {
-			globalUsage |= bit.BLEND_ENABLED; 
-			this.alpha.use();
-		} else
-		if ( globalUsage & bit.BLEND_ENABLED ) {
-			globalUsage &= ~bit.BLEND_ENABLED; 
-			gl.disable( GL.BLEND );
-		}
+		if ( this.depth.enabled ) {					this.depth.enable();
+			if ( this.depth.writeEnabled ) 			this.depth.enableWrite();
+			else 									this.depth.disableWrite();
+			if ( this.depth.funcSet )		 		this.depth.setFunc();
+			else 									this.depth.unsetFunc();
+			if ( this.depth.rangeSet )				this.depth.setRange();
+			else 									this.depth.unsetRange();
+		} else										this.depth.disable();
 
-		if ( this.usage & bit.CULL_FACE_ENABLED ) {
-			globalUsage |= bit.CULL_FACE_ENABLED;
-			this.cullFace.use();
-		} else
-		if ( globalUsage & bit.CULL_FACE_ENABLED ) {
-			globalUsage &= ~bit.CULL_FACE_ENABLED; 
-			gl.disable( GL.CULL_FACE );
-		}
+		if ( this.dither.enabled ) {				this.dither.enable();
+		} else										this.dither.disable();
 
-		if ( this.usage & bit.DEPTH_TEST_ENABLED ) {
-			globalUsage |= bit.DEPTH_TEST_ENABLED;
-			this.depthTest.use();
-		} else
-		if ( globalUsage & bit.DEPTH_TEST_ENABLED ) {
-			globalUsage &= ~bit.DEPTH_TEST_ENABLED;
-			gl.disable( GL.DEPTH_TEST );
-		}
+		if ( this.polygonOffset.enabled  ) {		this.polygonOffset.enable();
+			if ( this.polygonOffset.fillSet ) 		this.polygonOffset.setFill();
+			else									this.polygonOffset.unsetFill();
+		} else										this.polygonOffset.disable();
 
-		if ( this.usage & bit.DITHER_ENABLED ) {
-			globalUsage |= bit.DITHER_ENABLED;
-			this.dither.use();
-		} else
-		if ( globalUsage & bit.DITHER_ENABLED ) {
-			globalUsage &= ~bit.DITHER_ENABLED;
-			gl.disable( GL.DITHER );
-		}
+		if ( this.multisample.enabled ) {			this.multisample.enable();
+			if ( this.multisample.alphaEnabled )	this.multisample.enableAlpha();
+			else									this.multisample.disableAlpha();
+			if ( this.multisample.coverageSet ) 	this.multisample.setCoverage();
+			else									this.multisample.unsetCoverage();
+		} else										this.multisample.disable();
 
-		if ( this.usage & bit.POLYGON_OFFSET_FILL_ENABLED ) {
-			globalUsage |= bit.POLYGON_OFFSET_FILL_ENABLED;
-			this.polygonOffset.use();
-		} else
-		if ( globalUsage & bit.POLYGON_OFFSET_FILL_ENABLED ) {
-			globalUsage &= ~bit.POLYGON_OFFSET_FILL_ENABLED;
-			gl.disable( GL.POLYGON_OFFSET_FILL );
-		}
+		if ( this.scissor.enabled ) {				this.scissor.enable();
+			if ( this.scissor.dimensionsSet ) 		this.scissor.setDimensions();
+			else									this.scissor.unsetDimensions();
+		} else 										this.scissor.disable();
 
-		if ( this.usage & bit.SAMPLE_ALPHA_TO_COVERAGE_ENABLED ) {
-			globalUsage |= bit.SAMPLE_ALPHA_TO_COVERAGE_ENABLED;
-			this.sampleAlphaToCoverage.use();
-		} else
-		if ( globalUsage & bit.SAMPLE_ALPHA_TO_COVERAGE_ENABLED ) {
-			globalUsage &= ~bit.SAMPLE_ALPHA_TO_COVERAGE_ENABLED;
-			gl.disable( GL.SAMPLE_ALPHA_TO_COVERAGE );
-		}
-
-		if ( this.usage & bit.SAMPLE_COVERAGE_ENABLED ) {
-			globalUsage |= bit.SAMPLE_COVERAGE_ENABLED;
-			this.sampleCoverage.use();
-		} else
-		if ( globalUsage & bit.SAMPLE_COVERAGE_ENABLED ) {
-			globalUsage &= ~bit.SAMPLE_COVERAGE_ENABLED;
-			gl.disable( GL.SAMPLE_COVERAGE );
-		}
-
-		if ( this.usage & bit.SCISSOR_TEST_ENABLED ) {
-			globalUsage |= bit.SCISSOR_TEST_ENABLED;
-			this.scissorTest.use();
-		} else
-		if ( globalUsage & bit.SCISSOR_TEST_ENABLED ) {
-			globalUsage &= ~bit.SCISSOR_TEST_ENABLED;
-			gl.disable( GL.SCISSOR_TEST );
-		}
-
-		if ( this.usage & bit.STENCIL_TEST_ENABLED ) {
-			globalUsage |= bit.STENCIL_TEST_ENABLED;
-			this.stencilTest.use();
-		} else
-		if ( globalUsage & bit.STENCIL_TEST_ENABLED ) {
-			globalUsage &= ~bit.STENCIL_TEST_ENABLED;
-			gl.disable( GL.STENCIL_TEST );
-		}
+		if ( this.stencil.enabled ) {				this.stencil.enable();
+			if ( 
+				this.stencil.frontOpSet && 
+				this.stencil.backOpSet 
+			) 										this.stencil.setOp();
+			else {									this.stencil.unsetOp();
+				if ( this.stencil.frontOpSet )		this.stencil.setFrontOp();
+				if ( this.stencil.backOpSet ) 		this.stencil.setBackOp();
+			}
+			if ( 
+				this.stencil.frontFuncSet &&
+				this.stencil.backFuncSet 
+			)										this.stencil.setFunc();
+			else { 									this.stencil.unsetFunc();
+				if ( this.stencil.frontFuncSet ) 	this.stencil.setFrontFunc();
+				if ( this.stencil.backFuncSet ) 	this.stencil.setBackFunc();
+			}
+			if ( 
+				this.stencil.frontMaskSet &&
+				this.stencil.backMaskSet
+			)										this.stencil.setMask();
+			else {									this.stencil.unsetMask();
+				if ( this.stencil.frontMaskSet ) 	this.stencil.setFrontMask();
+				if ( this.stencil.backMaskSet ) 	this.stencil.setBackMask();
+			}
+		} else										this.stencil.disable();
+		
 
 		return this;
 	}
 
+
+}
+Properties( Material, {
+	
+}, E | C );
+
+/*
+
 	enableAlpha ( ) {
 		this.usage |= BLEND_ENABLED;
-		if ( this.alpha === undefined ) this.alpha = new Alpha;
 		this.alpha.enable();
 		return this;
 	}
 	disableAlpha ( ) {
 		this.usage &= ~BLEND_ENABLED;
 		this.alpha.disable();
-		delete this.alpha;
 		return this;
 	}
 	setAlphaColor ( colorRed = this.alpha.colorRed, colorGreen = this.alpha.colorGreen, colorBlue = this.alpha.colorBlue, colorAlpha = this.alpha.colorAlpha ) {
@@ -855,14 +1249,12 @@ export default class Material {
 
 	enableCullFace ( ) {
 		this.usage |= CULL_FACE_ENABLED;
-		if ( this.cullFace === undefined ) this.cullFace = new CullFace;
 		this.cullFace.enable();
 		return this;
 	}
 	disableCullFace ( ) {
 		this.usage &= ~CULL_FACE_ENABLED;
 		this.cullFace.disable();
-		delete this.cullFace;
 		return this;
 	}
 	setCullFace ( mode = this.cullFace.mode ) {
@@ -895,20 +1287,18 @@ export default class Material {
 
 	enableDepth ( ) {
 		this.usage |= DEPTH_ENABLED;
-		if ( this.depth === undefined ) this.depth = new DepthTest;
 		this.depth.enable();
 		return this;
 	}
 	disableDepth ( ) {
 		this.usage &= ~DEPTH_ENABLED;
 		this.depth.disable();
-		delete this.depth;
 		return this;
 	}
 	setDepthWrite ( write = this.depth.write ) {
 		this.usage |= DEPTH_WRITE_SET;
 		Properties( this.depth, { write }, C | E );
-		this.depth.setDepthWrite();
+		this.depth.setWrite();
 		return this;
 	}
 	unsetDepthWrite ( ) {
@@ -951,27 +1341,23 @@ export default class Material {
 
 	enableDither ( ) {
 		this.usage |= DITHER_ENABLED;
-		if ( this.dither === undefined ) this.dither = new Dither;
 		this.dither.enable();
 		return this;
 	}
 	disableDither ( ) {
 		this.usage &= ~DITHER_ENABLED;
 		this.dither.disable();
-		delete this.dither;
 		return this;
 	}
 
 	enablePolygonOffset ( ) {
 		this.usage |= OFFSET_ENABLED;
-		if( this.polygonOffset === undefined ) this.polygonOffset = new PolygonOffset;
 		this.polygonOffset.enable();
 		return this;
 	}
 	disablePolygonOffset ( ) {
 		this.usage &= ~OFFSET_ENABLED;
 		this.polygonOffset.disable();
-		delete this.polygonOffset;
 		return this;
 	}
 	setPolygonOffset ( factor = this.polygonOffset.factor, units = this.polygonOffset.units ) {
@@ -992,14 +1378,12 @@ export default class Material {
 
 	enableSampleCoverage ( ) {
 		this.usage |= SAMPLE_ENABLED;
-		if ( this.sampleCoverage === undefined ) this.sampleCoverage = new SampleCoverage;
 		this.sampleCoverage.enable();
 		return this;
 	}
 	disableSampleCoverage ( ) {
 		this.usage &= ~SAMPLE_ENABLED;
 		this.sampleCoverage.disable();
-		delete this.sampleCoverage;
 		return this;
 	}
 	enableAlphaToCoverage ( ) {
@@ -1034,14 +1418,12 @@ export default class Material {
 
 	enableScissorTest ( ) {
 		this.usage |= SCISSOR_ENABLED;
-		if ( this.scissorTest === undefined ) this.scissorTest = new ScissorTest;
-		this.scissorTest.enable();
+		this.scissor.enable();
 		return this;
 	}
 	disableScissorTest ( ) {
 		this.usage &= ~SCISSOR_ENABLED;
-		this.scissorTest.disable();
-		delete this.scissorTest;
+		this.scissor.disable();
 		return this;
 	}
 	setScissor ( x = this.scissor.x, y = this.scissor.y, width = this.scissor.width, height = this.scissor.height ) {
@@ -1064,14 +1446,12 @@ export default class Material {
 
 	enableStencilTest ( ) {
 		this.usage |= STENCIL_ENABLED;
-		if ( this.stencil === undefined ) this.stencil = new Stencil;
 		this.stencil.enable();
 		return this;
 	}
 	disableStencilTest ( ) {
 		this.usage &= ~STENCIL_ENABLED;
 		this.stencil.disable();
-		delete this.stencil;
 		return this;
 	}
 	setStencilFunc ( frontFunc = this.stencil.frontFunc, frontRef = this.stencil.frontRef, frontMask = this.stencil.frontValueMask ) {
@@ -1162,8 +1542,4 @@ export default class Material {
 		}
 		this.stencil.unsetOp();
 		return this;
-	}
-}
-Properties( Material, {
-	
-}, E | C );
+	}*/

@@ -1,0 +1,10 @@
+﻿  geometry.c
+GCCLINK : warning : unresolved symbol: _embind_register_void
+GCCLINK : warning : unresolved symbol: _embind_register_bool
+GCCLINK : warning : unresolved symbol: _embind_register_integer
+GCCLINK : warning : unresolved symbol: _embind_register_float
+GCCLINK : warning : unresolved symbol: _embind_register_std_string
+GCCLINK : warning : unresolved symbol: _embind_register_std_wstring
+GCCLINK : warning : unresolved symbol: _embind_register_emval
+GCCLINK : warning : unresolved symbol: _embind_register_memory_view
+  geometry.vcxproj -> D:\web\polymer\dev\gl-elements\lib\Emscripten\Debug\geometry.html

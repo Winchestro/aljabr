@@ -1,6 +1,6 @@
-import { mat4 } from "../math/MLMatrix";
+import { Property, Properties, Getters, Setters, GetterSetters, E, C, W } from "../utilities/ULPropertyDescriptors";
 import { vec2, vec3, vec4, quat4 } from "../math/MLVector";
-import { Properties, Getters, Setters, GetterSetters, E, C, W } from "./ULPropertyDescriptors";
+import { mat4 } from "../math/MLMatrix";
 
 export default class Camera {
 	static Perspective ( aspect, fov ) {

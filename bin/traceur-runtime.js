@@ -889,6 +889,8 @@
         }
         return this.value_ = this.func.call(global, relativeRequire);
       } catch (ex) {
+        console.error( ex.stack );
+        
         if (ex instanceof ModuleEvaluationError) {
           ex.loadedBy(this.url);
           throw ex;
@@ -912,7 +914,9 @@
           });
           ex.stack = evaled.join('\n');
         }
+
         throw new ModuleEvaluationError(this.url, ex);
+        
       }
     }}, {}, UncoatedModuleEntry);
   function getUncoatedModuleInstantiator(name) {

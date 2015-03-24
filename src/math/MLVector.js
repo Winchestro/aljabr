@@ -20,26 +20,29 @@ Properties( Vector.prototype, {
 		return new this.constructor().set( this );
 	},
 	set ( vA ) {
-		for ( var i in vA ) this[ i ] = vA[ i ];
+		for ( let i in vA ) this[ i ] = vA[ i ];
 	},
 	add ( vA ) {
-		for ( var i in vA ) this[ i ] += vA[ i ];
+		for ( let i in vA ) this[ i ] += vA[ i ];
 		return this;
 	},
+	addScalar ( s ) {
+		for ( let i in this ) this[ i ] += s;
+	},
 	sub ( vA ) {
-		for ( var i in vA ) this[ i ] -= vA[ i ];
+		for ( let i in vA ) this[ i ] -= vA[ i ];
 		return this;
 	},
 	multiply ( vA ) {
-		for ( var i in vA ) this[ i ] *= vA[ i ];
+		for ( let i in vA ) this[ i ] *= vA[ i ];
 		return this;
 	},
 	multiplyScalar ( s ) {
-		for ( var i in this ) this[ i ] *= s;
+		for ( let i in this ) this[ i ] *= s;
 		return this;
 	},
 	lerp ( vA, s ) {
-		for ( var i in this ) this[ i ] += ( vA[ i ] - this[ i ] ) * s;
+		for ( let i in this ) this[ i ] += ( vA[ i ] - this[ i ] ) * s;
 		return this;
 	},
 	dot ( vA ) {
@@ -48,7 +51,7 @@ Properties( Vector.prototype, {
 		}, 0 );
 	},
 	normalize ( ) {
-		const l = this.vectorLength;
+		const l = this.getLength;
 		if( l === 0 ) return this;
 		else this.multiplyScalar( 1 / l );
 		return this;
@@ -68,7 +71,7 @@ Getters( Vector.prototype, {
 			return p += Math.abs( c );
 		}, 0 );
 	}
-});
+}, C );
 
 
 export class vec2 extends Vector {
@@ -123,7 +126,17 @@ Properties( vec2.prototype, {
 		return vec2.dot( this, vA );
 	}	
 });
-
+Getters( vec2.prototype, {
+	getLength ( ) {
+		return Math.sqrt( this[ 0 ] * this[ 0 ] + this[ 1 ] * this[ 1 ] );	
+	},
+	getLengthSq ( ) {
+		return this[ 0 ] * this[ 0 ] + this[ 1 ] * this[ 1 ];	
+	},
+	getLengthManhattan ( ) {
+		return Math.abs( this[ 0 ] ) + Math.abs( this[ 1 ] );
+	}
+}, C );
 
 export class vec3 extends Vector {
 	constructor ( x, y, z ) {
@@ -189,6 +202,17 @@ Properties( vec3.prototype, {
 		return vec3.dot ( this, vA );
 	}
 });
+Getters( vec3.prototype, {
+	getLength ( ) {
+		return Math.sqrt( this[ 0 ] * this[ 0 ] + this[ 1 ] * this[ 1 ] + this[ 2 ] * this[ 2 ] );	
+	},
+	getLengthSq ( ) {
+		return this[ 0 ] * this[ 0 ] + this[ 1 ] * this[ 1 ] + this[ 2 ] * this[ 2 ];	
+	},
+	getLengthManhattan ( ) {
+		return Math.abs( this[ 0 ] ) + Math.abs( this[ 1 ] ) + Math.abs( this[ 2 ] );
+	}
+}, C );
 
 export class vec4 extends Vector {
 	constructor ( x, y, z, w ) {
@@ -248,6 +272,17 @@ Properties( vec4.prototype, {
 		return vec4.dot( this, vB );
 	}
 });
+Getters( vec3.prototype, {
+	getLength ( ) {
+		return Math.sqrt( this[ 0 ] * this[ 0 ] + this[ 1 ] * this[ 1 ] + this[ 2 ] * this[ 2 ] + this[ 3 ] * this[ 3 ] );	
+	},
+	getLengthSq ( ) {
+		return this[ 0 ] * this[ 0 ] + this[ 1 ] * this[ 1 ] + this[ 2 ] * this[ 2 ] + this[ 3 ] * this[ 3 ];	
+	},
+	getLengthManhattan ( ) {
+		return Math.abs( this[ 0 ] ) + Math.abs( this[ 1 ] ) + Math.abs( this[ 2 ] ) + Math.abs( this[ 3 ] );
+	}
+}, C );
 	
 export class quat4 extends Vector {
 	constructor ( x = 0, y = 0, z = 0, w = 1 ) {

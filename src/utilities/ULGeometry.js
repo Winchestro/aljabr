@@ -1,10 +1,11 @@
-import Buffer from "../GLVertexbuffer";
-import VertexArrayObject from "../GLVertexArrayObject";
-import AttributeLocation from "../GLAttributeLocation";
-import { InterleavedFloat32 } from "./ULInterleavedArrays";
-import { Properties, Getters, Setters, GetterSetters, E, C, W } from "./ULPropertyDescriptors";
-
-const GL = WebGLRenderingContext.prototype;
+import { Property, Properties, Getters, Setters, GetterSetters, E, C, W } from "../utilities/ULPropertyDescriptors";
+import { VertexAttribute, VertexAttributeGroup } from "../utilities/ULGeometryAttributes";
+import { gl, GL } from "../webgl/GLContext";
+import VertexArrayObject from "../webgl/GLVertexArrayObject";
+import AttributeLocation from "../webgl/GLAttributeLocation";
+import Material from "../utilities/ULMaterial";
+import Draw from "../webgl/GLDraw";
+/*
 const TYPEDEF = new Map([
 	[ "Int8Array", GL.BYTE ],
 	[ "Uint8ClampedArray", GL.UNSIGNED_BYTE ],
@@ -15,53 +16,113 @@ const TYPEDEF = new Map([
 	[ "Uint32Array", GL.UNSIGNED_INT ],
 	[ "Float32Array", GL.FLOAT ],
 	[ "Float64Array", GL.FLOAT ]
-]);
-
-const VAO_NAME = "bindings";
-const INDEX_NAME = "index";
+]);*/
+const DEFAULT_MATERIAL = new Material;
 
 export default class Geometry {
-	use ( ) {
-		if( this[ VAO_NAME ] ) this[ VAO_NAME ].use();
-		return this;
+	constructor ( material = DEFAULT_MATERIAL ) {
+		Properties( this, { bindings : new VertexArrayObject, material } );
 	}
-	unbind ( ) {
-		if( this[ VAO_NAME ] ) this[ VAO_NAME ].unbind();
-		return this;
-	}
-	createIndex ( data, usage ) {
-		let buffer 	= new Buffer.Index;
-		let attr 	= new AttributeIndex( data, buffer, usage );
-		let vao 	= getOrCreate( this, VAO_NAME, VertexArrayObject );
+	static Cube( name = "cube", x1 = 1, x2 = -1, y1 = x1, y2 = x2, z1 = x1, z2 = x2 ) {
+		let { structure, colorIterator, usage } = Geometry.Cube.options;
+		let geometry = new Geometry;
 		
-		this.index 	= attr;
-		
-		vao.setIndexBinding( buffer );
-		
-		return this;
-	}
-	addAttributeGroup ( name, structure, length ) {
-		let data 	= new InterleavedFloat32( ...structure );
-		let buffer 	= new Buffer.Vertex;
-		let vao 	= getOrCreate( this, VAO_NAME, VertexArrayObject );
-		let attr 	= new AttributeGroup( data, buffer ).setPointers( vao );
-		
-		this[ name ] = attr;
-		if( length ) attr.allocate( length );
-		
-		return this;
-	}
-	addAttribute ( name, structure ) {
-		let data 	= structure.type ? structure.type : structure;
-		let buffer 	= new Buffer.Vertex;
-		let vao 	= getOrCreate( this, "bindings", VertexArrayObject );
-		let attr 	= new Attribute( structure, buffer ).setPointer( vao );
+		geometry.createVertexAttributeGroup( name, structure, 8, usage );
 
-		this[ name ] = attr;
+		let attribute = geometry[ name ];
+		let vertex = attribute.view;
+		let stride = attribute.data.stride / vertex.BYTES_PER_ELEMENT;
+		let { position, color, normal, texCoord } = attribute.data.structure;
+		
+		if ( position ) {
+			let offset = position.offset / vertex.BYTES_PER_ELEMENT;
+			let i = offset;
+			vertex[ i                        ] = x1; vertex[ ++i ] = y1; vertex[ ++i ] = z1;
+			vertex[ i =  1 * stride + offset ] = x1; vertex[ ++i ] = y2; vertex[ ++i ] = z1;
+			vertex[ i =  2 * stride + offset ] = x1; vertex[ ++i ] = y1; vertex[ ++i ] = z2;
+			vertex[ i =  3 * stride + offset ] = x1; vertex[ ++i ] = y2; vertex[ ++i ] = z2;
+			
+			vertex[ i =  4 * stride + offset ] = x2; vertex[ ++i ] = y1; vertex[ ++i ] = z2;
+			vertex[ i =  5 * stride + offset ] = x2; vertex[ ++i ] = y2; vertex[ ++i ] = z2;
+			vertex[ i =  6 * stride + offset ] = x2; vertex[ ++i ] = y1; vertex[ ++i ] = z1;
+			vertex[ i =  7 * stride + offset ] = x2; vertex[ ++i ] = y2; vertex[ ++i ] = z1;
+		}
+		if ( color ) {
+			let offset = color.offset / vertex.BYTES_PER_ELEMENT;
+			let max = 7 * stride + offset + color.type.length;
+			for ( let i = offset; i < max; i += stride ) {
+				colorIterator( vertex, i );
+			}
+		}
+		if ( texCoord ) {
+		}
+		if ( normal ) {
+		}
 
-		return this;
+		attribute.set();
+		return geometry;
+		
 	}
-	static Polygon2D ( sides = 7, r = 1, x = 0, y = 0 ) {
+	static Sphere ( name = "sphere", longitude = 10, latitude = 10, radius = 1 ) {
+		let { structure, colorIterator, usage } = Geometry.Sphere.options;
+		let { PI, sin, cos } = Math;
+		
+		let geometry = new Geometry;
+		
+		geometry.createVertexAttributeGroup( name, structure, longitude * latitude, usage );
+
+		let attribute = geometry[ name ];
+		let vertex = attribute.view;
+		let stride = attribute.data.stride / vertex.BYTES_PER_ELEMENT;
+
+
+		let { position, color, texCoord, normal } = attribute.data.structure;
+
+		for ( let lat = 1; lat <= ( latitude + 1 ); lat++ ) {
+			let theta = lat * PI / ( latitude + 1 );
+			let sinTheta = sin( theta );
+			let cosTheta = cos( theta );
+
+			for ( let lon = 0; lon <= longitude; lon++ ) {
+				let phi = lon * 2 * PI / longitude;
+				let sinPhi = sin( phi );
+				let cosPhi = cos( phi );
+				let index = ( ( lat - 1 ) * longitude + lon ) * stride;
+				let x = cosPhi * sinTheta;
+				let y = cosTheta;
+				let z = sinPhi * sinTheta;
+				if ( position ) {
+					let offset = position.offset / vertex.BYTES_PER_ELEMENT;
+					let i = index + offset;
+					vertex[ i     ] = x;
+					vertex[ i + 1 ] = y;
+					vertex[ i + 2 ] = z;
+				}
+				if ( color ) {
+					let offset = color.offset / vertex.BYTES_PER_ELEMENT;
+					colorIterator( vertex, index + offset, lat / latitude, lon / longitude );
+				}
+				if ( normal ) {
+					let offset = normal.offset / vertex.BYTES_PER_ELEMENT;
+					let i = index + offset;
+					vertex[ i     ] = x;
+					vertex[ i + 1 ] = y;
+					vertex[ i + 2 ] = z;
+				}
+				if ( texCoord ) {
+					let offset = normal.offset / vertex.BYTES_PER_ELEMENT;
+					let i = index + offset;
+					vertex[ i     ] = 1 - lon / longitude;
+					vertex[ i + 1 ] = lat / latitude;
+				}
+
+			}
+
+		}
+		attribute.set();
+		return geometry;
+	}
+	static Polygon ( name = "polygon", sides = 7, r = 1, x = 0, y = 0 ) {
 		let positions = 2;
 		let colors = 3;
 		let stride = positions + colors;
@@ -75,8 +136,7 @@ export default class Geometry {
 
 		v.set( [ x, y,  0, 1, 1 ] )
 		
-		for ( let i = 1; i < sides + 1; i++ ) 
-		{
+		for ( let i = 1; i < sides + 1; i++ ) {
 			let a = Math.PI * 2 * i / sides;
 			v.set( [
 				Math.sin( a ) * r + x, 
@@ -101,8 +161,7 @@ export default class Geometry {
 				center,
 				i,
 				next 
-			], offset );	
-			
+			], offset );
 		}
 		
 		geometry.dynamic.update();
@@ -110,100 +169,139 @@ export default class Geometry {
 		return geometry;
 	}
 }
-function getOrCreate ( instance, name, constructor, isEnumerable = false, isWritable = false, isConfigurable = false ) {
-	return instance[ name ] ? instance[ name ] : Object.defineProperty( instance, name, {
-		value : new constructor,
-		enumerable : isEnumerable,
-		writable : isWritable,
-		configurable : isConfigurable
-	} )[ name ];
-}
-
-class BufferAttribute {
-	constructor ( defaultValue, buffer ) {
-		this.defaultValue = defaultValue;
-		this.buffer = buffer;
+Properties( Geometry.Cube, {
+	options : {
+		structure : {
+			position : { type : new Float32Array( [ 0, 0, 0 ] ) },
+			color : 	{ type : new Float32Array( [ 0, 1, 0, 1 ] ) },
+			normal : 	{ type : new Float32Array( [ 1, 1, 1 ] ) },
+			texCoord :	{ type : new Float32Array( [ 0, 0 ] ) }
+		},
+		colorIterator ( data, offset ) {
+			data[ offset     ] = Math.random(); 
+			data[ offset + 1 ] = Math.random(); 
+			data[ offset + 2 ] = Math.random(); 
+			data[ offset + 3 ] = 1;
+		},
+		usage : GL.DYNAMIC_DRAW
 	}
-}
-
-class AttributeIndex extends BufferAttribute {
-	constructor ( data, buffer, usage ) {
-		this.data = data;
-		this.buffer = buffer;
-		buffer.data( data, usage );
+});
+Properties( Geometry.Sphere, {
+	options : {
+		structure : {
+			position : { type : new Float32Array( [ 0, 0, 0 ] ) },
+			color : 	{ type : new Float32Array( [ 0, 1, 0, 1 ] ) },
+			normal : 	{ type : new Float32Array( [ 1, 1, 1 ] ) },
+			texCoord :	{ type : new Float32Array( [ 0, 0 ] ) }
+		},
+		colorIterator ( data, offset, latitude, longitude ) {
+			data[ offset     ] = latitude; 
+			data[ offset + 1 ] = .1 * Math.random(); 
+			data[ offset + 2 ] = 1-latitude; 
+			data[ offset + 3 ] = 1;
+		},
+		usage : GL.DYNAMIC_DRAW
 	}
-}
-// TODO
-class Attribute extends BufferAttribute {
-	set ( data, offset = 0 ) {
-		let constructor = this.defaultValue.constructor;
-		if( data.byteLength === undefined ) data = new constructor(data);
-		if( this.data )
-		{
-			if( data.length <= this.data.length )
-			{
-			//	let location = this.location;
-			//	let elementOffset = location.size * offset;
-			//	let byteOffset = elementOffset * data.BYTES_PER_ELEMENT;
-			//	this.data.set( data, elementOffset );
-				buffer.bufferSubData( this.data, byteOffset );
-			}
-			else
-			{
-				this.data = new constructor( data.buffer );
-				buffer.bufferData( this.data, GL.STATIC_DRAW );
-			}
-		}
-		else 
-		{
+});
 
-			this.data = data;
-			buffer.bufferData( this.data, GL.STATIC_DRAW );
-		}
+Properties( Geometry.prototype, {
+	use ( ) {
+		this.bindings.use();
 		return this;
-	}
-	setPointer ( vao ) {
-		// TODO
-	}
-}
-class AttributeGroup extends BufferAttribute {
-	constructor ( data, buffer ) {
-		this.buffer = buffer;
-		this.data = data;
-		this.view = null;
-	}
-	allocate ( length, usage = GL.DYNAMIC_DRAW ) {
-		this.data.allocate( length );
-		this.view = new Float32Array( this.data.buffer );
-		this.buffer.data( this.view.byteLength, usage );
+	},
+	unbind ( ) {
+		this.bindings.unbind();
 		return this;
-	}
-	setPointers( vao ) {
-		let structure = this.data.structure;
-		let stride = this.data.stride;
-		structure.forEach( e => {
-			//let slot = vao.getNextFreeSlot();
-			let location = e.location;
-			let offset = e.offset;
-			let size = e.type.length;
-			if ( !location ) location = new AttributeLocation( vao.getNextFreeSlot() );
-			location.setSize( size ).setStride( stride ).setOffset( offset ).setFloatVector( e.type, size );
+	},
+	draw ( offset = 0, count = this.getLength ) {
+		this.use();
+		this.material.use();
+		gl.drawArrays( GL.POINTS, offset, count );
+		return this; 
+	},
+	createVertexAttributeGroup ( name, structure, length, usage ) {
+		let attr = new VertexAttributeGroup( name, structure );
+		if ( length ) attr.allocate( length, usage );
+		return this.attachVertexAttributeGroup( attr );
+	},
+	createVertexAttribute ( name, structure, length, usage ) {
+		let attr = new VertexAttribute( name, structure );
+		if ( length ) attr.allocate( length, usage );
+		return this.attachVertexAttribute( attr );
+	},
+	attachVertexAttribute ( attribute, location ) {
+		let vao = this.bindings;
+		if ( location === undefined ) location = new AttributeLocation( vao.getNextFreeSlot() );
 
-			vao.addVertexBinding( location, this.buffer );
+		let size = attribute.size;
+		let buffer = attribute.buffer;
+
+		location.setSize( size );
+		vao.addVertexBinding( location, buffer );
+		Properties( this, { [ name ] : attribute }, C );
+		return this;
+	},
+	attachVertexAttributeGroup( attributeGroup ) {
+		let vao = this.bindings;
+		let name = attributeGroup.name;
+		let structure = attributeGroup.data.structure;
+		let stride = attributeGroup.data.stride;
+		let buffer = attributeGroup.buffer;
+		
+		for ( let property in structure ) {
+			let member = structure[ property ];
+			let location = member.location ? member.location : new AttributeLocation( vao.getNextFreeSlot() );
+			let offset = member.offset;
+			let defaultValue = member.type;
+			let size = defaultValue.length;
+			location.setSize( size ).setStride( stride ).setOffset( offset ).setFloatVector( defaultValue, size );
+
+			vao.addVertexBinding( location, buffer );
 			
-		} );
+		};
+		this[ name ] = attributeGroup;
 		return this;
+	},
+	/*
+	createVertexView ( offset, size, filter ) {
+		return new VertexView( this, offset, size, filter );
 	}
-	createVertexView( vertices = this.data.maxLength, offset = 0 ){
-		let size = Float32Array.BYTES_PER_ELEMENT;
-		return new Float32Array(
-			this.data.buffer,
-			offset * this.data.stride,
-			vertices * this.data.stride / size
-		);
+	*/
+} );
+Getters( Geometry.prototype, {
+	getLength ( ) {	
+		let max = 0;
+		for ( let attr in this ) {
+			let data = this[ attr ].data;
+			if ( data !== undefined ) {
+				let length = data.length || data.maxLength;
+				
+				if ( length > max ) max = length;
+			}
+		}
+		Property( this, "getLength", max, C );
+		return max;
+	
 	}
-	update( bufferView = this.view ) {
-		this.buffer.subData( bufferView, bufferView.byteOffset );
-		return this;
+} );
+/*
+class VertexView {
+	constructor ( geometry, offset = 0, length = 1, filter ) {
+		Properties( this, { geometry, offset, length }, C );
+		if( filter === undefined ) {
+			for ( var property in geometry ) {
+				console.log( geometry[ property ] );
+			}
+		} else {
+			for ( var property in geometry ) {
+				if( filter[ property ] ) {
+
+				} 
+			}
+		}
 	}
 }
+Properties( VertexView.prototype, {
+	splice : [].splice
+});
+*/

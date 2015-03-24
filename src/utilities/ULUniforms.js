@@ -1,14 +1,14 @@
-import { vec2, vec3, vec4 }	from "../math/MLVector";
+import { Property, Properties, Getters, Setters, GetterSetters, E, C, W } from "../utilities/ULPropertyDescriptors";
+import { gl, GL } from "../webgl/GLContext";
+import { vec2, vec3, vec4 } from "../math/MLVector";
 import { mat2, mat3, mat4 } from "../math/MLMatrix";
-import { Properties, Getters, Setters, GetterSetters, E, C,	W } from "./ULPropertyDescriptors";
-import { GL } from "../GLContext";
-
+import "../webgl/GLUniformLocation";
 
 export class Uniform {
 	static create( info, location ) {
 		let uniform =  new ( TYPES.get( info.type ) );
 		
-		Properties( uniform, { location }, E );
+		Property( uniform, "location", location, E );
 		
 		return uniform;
 	}
@@ -16,7 +16,7 @@ export class Uniform {
 Properties( Uniform.prototype, {
 	instantiate ( ) {
 		let o = Object.create( this );
-		Properties( o, { value : this.value }, E | C | W );
+		Property( o, "value", this.value, E | C | W );
 		return o;
 	}
 } );
@@ -25,14 +25,14 @@ class UniformVector { }
 Properties( UniformVector.prototype, {
 	instantiate ( ) {
 		let o = Object.create( this );
-		Properties( o, { value : this.value.clone() }, E | C );
+		Property( o, "value", this.value.clone(), E | C );
 		return o;
 	}
 } );
 
 class UniformFloat extends Uniform {
 	constructor ( ) {
-		Properties( this, { value : 0.0 }, E | W );
+		Property( this, "value", 0.0, E | W );
 	}
 }
 Properties( UniformFloat.prototype, {
@@ -44,7 +44,7 @@ Properties( UniformFloat.prototype, {
 
 class UniformFloatVec2 extends UniformVector {
 	constructor ( ) { 
-		Properties( this, { value : new vec2 }, E );
+		Property( this, "value", new vec2, E );
 	}
 }
 Properties( UniformFloatVec2.prototype, {
@@ -57,7 +57,7 @@ Properties( UniformFloatVec2.prototype, {
 
 class UniformFloatVec3 extends UniformVector {
 	constructor ( ) { 
-		Properties( this, { value : new vec3 }, E );
+		Property( this, "value", new vec3, E );
 	}
 }
 Properties( UniformFloatVec3.prototype, {
@@ -70,7 +70,7 @@ Properties( UniformFloatVec3.prototype, {
 
 class UniformFloatVec4 extends UniformVector {
 	constructor ( ) { 
-		Properties( this, { value : new vec4 }, E );
+		Property( this, "value", new vec4, E );
 	}
 }
 Properties( UniformFloatVec4.prototype, {
@@ -83,46 +83,46 @@ Properties( UniformFloatVec4.prototype, {
 
 class UniformFloatMat2 extends UniformVector {
 	constructor ( ) { 
-		Properties( this, { value : new mat2 }, E );
+		Property( this, "value", new mat2, E );
 	}
 }
 Properties( UniformFloatMat2.prototype, {
 	set ( m ) {
-		if ( m !== undefined ) this.value.set( m );
-		this.location.setMat2( this.value );
+		if ( m !== undefined ) this.value.copy( m );
+		this.location.setMat2( this.value.data );
 		return this;
 	}
 });
 
 class UniformFloatMat3 extends UniformVector {
 	constructor ( ) {
-		Properties( this, { value : new mat3 }, E );
+		Property( this, "value", new mat3, E );
 	}
 }
 Properties( UniformFloatMat3.prototype, {
 	set ( m ) {
-		if ( m !== undefined ) this.value.set( m );
-		this.location.setMat3( this.value );
+		if ( m !== undefined ) this.value.copy( m );
+		this.location.setMat3( this.value.data );
 		return this;
 	}
 });
 
 class UniformFloatMat4 extends UniformVector {
 	constructor ( ) {
-		Properties( this, { value : new mat4 }, E );
+		Property( this, "value", new mat4, E );
 	}
 }
 Properties( UniformFloatMat4.prototype, {
 	set ( m ) {
-		if ( m !== undefined ) this.value.set( m );
-		this.location.setMat4( this.value );
+		if ( m !== undefined ) this.value.copy( m );
+		this.location.setMat4( this.value.data );
 		return this;
 	}
 });
 
 class UniformInt extends Uniform {
 	constructor ( ) { 
-		Properties( this, { value : 0 }, E | W );
+		Property( this, "value", 0, E | W );
 	}
 }
 Properties( UniformInt.prototype, {
@@ -135,7 +135,7 @@ Properties( UniformInt.prototype, {
 
 class UniformIntVec2 extends UniformVector {
 	constructor ( ) { 
-		Properties( this, { value : new vec2 }, E );
+		Property( this, "value", new vec2, E );
 	}
 }
 Properties( UniformIntVec2.prototype, {
@@ -148,7 +148,7 @@ Properties( UniformIntVec2.prototype, {
 
 class UniformIntVec3 extends UniformVector {
 	constructor ( ) {
-		Properties( this, { value : new vec3 }, E );
+		Property( this, "value", new vec3, E );
 	}
 }
 Properties( UniformIntVec3.prototype, {
@@ -161,7 +161,7 @@ Properties( UniformIntVec3.prototype, {
 
 class UniformIntVec4 extends UniformVector {
 	constructor ( ) { 
-		Properties( this, { value : new vec4 }, E );
+		Property( this, "value", new vec4, E );
 	}
 }
 Properties( UniformIntVec4.prototype, {
@@ -172,8 +172,8 @@ Properties( UniformIntVec4.prototype, {
 	}
 });
 
-class UniformTexture2D extends Uniform {
-	constructor ( ) { }
+class UniformTexture2D extends UniformInt {
+	
 }
 
 class UniformTextureCubeMap extends Uniform {

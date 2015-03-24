@@ -9,9 +9,10 @@
 			canvas {
 				width : 100%;
 				height : 100%;
-				position : fixed;
+				position: fixed;
 				top : 0;
 				left : 0;
+				
 				background : #000;
 			}
 			iframe {
@@ -21,114 +22,260 @@
 	</head> 
 	<body>
 		<script>
+		"use strict";
+			var startTime = Date.now();
+			var time,mesh,material,geometry,uniforms;
+
 			function main() {
+				
 				canvas.width = innerWidth;
 				canvas.height = innerHeight;
 				gl.viewport( 0, 0, innerWidth, innerHeight );
-				//gl.setQuality( 2 );
-				document.body.appendChild(canvas);
+				document.body.appendChild( canvas );
+				let PI = Math.PI;
+				let sin = Math.sin;
+				Geometry.Sphere.options.colorIterator = function ( data, offset, latitude, longitude ) {
+					data[ offset     ] = latitude; 
+					data[ offset + 1 ] =  ( sin( longitude * PI ) + 1 ) * .5;
+					data[ offset + 2 ] = 1. - latitude; 
+					data[ offset + 3 ] = 1;
+				},
+				//mesh = new Geometry.Sphere;
+				geometry = new Geometry.Sphere( "sphere", 100, 100 );
 				
-				window.program = Program.VertexColors().use();
-
-				window.attr = program.getAttributeLocations;
-				window.geometry = Geometry.Polygon2D(6,.7);
-
-
-				window.firstVertex = geometry.dynamic.createVertexView( 1 );
-				
-				window.uniforms = program.getUniforms;
-
-				if ( uniforms.perspective ) {
-					//perspective = mat4.perspective( innerWidth/innerHeight, 60, 0.01, 10);
-					//uniforms.perspective.setMatrix( perspective.data );
-				}
-				if ( uniforms.modelView ) {
-
-					//modelView = mat4.translation( 1, 1, 1 );
-					//uniforms.modelView.setMatrix( modelView.data );
-				}
-				if ( uniforms.resolution ) {
-					//uniforms.resolution.setFloat( innerWidth, innerHeight );
-				}
-				if ( uniforms.mouse ) {
-					canvas.addEventListener( "mousemove", function ( e ) {
-						uniforms.mouse.location.setFloat( 
-							e.clientX / innerWidth, 
-							1. - e.clientY / innerHeight 
-						);
-					} );
-				}
-				if ( uniforms.zoom ) {
-					var zoom = 1.;
-					uniforms.zoom.setFloat( zoom );
-					canvas.addEventListener( "mousedown", function ( e ) {
-						//console.log( e );
-						if( e.button === 0){
-							zoom += .01;
-						} else {
-							zoom -= .01;
-						}
-						uniforms.zoom.setFloat( zoom );
-					} );
-					canvas.addEventListener( "contextmenu", function ( e ) {
-						e.preventDefault();
-					} );
-				}
-				//view = mat4.translation( 1, 1, 1);
-
-				var frame = 0;
-				var startTime = Date.now();
-				var time = 0.0;
-				alpha.enable().setFunc( gl.SRC_ALPHA, gl.DST_ALPHA );
-				
-				
-				window.TRIANGLES = true;
-				window.LINES = true;
-				window.POINTS = true;
-				
-				update()
-				function update ( ) {
-					requestAnimationFrame( update );
-					draw();
-				}
-				
-				function draw ( ) {
-					frame++;
-					time = ( Date.now() - startTime ) / 1000;
-					ctx.draw.clear( gl.COLOR_BUFFER_BIT );
-					var s = Math.sin( time );
-					var c = Math.cos( time );
-					firstVertex[ 0 ] = s * 0.2;
-					firstVertex[ 1 ] = c * 0.2;
-					firstVertex[ 3 ] = ( s + 1.0 ) * 0.5;
-					geometry.dynamic.update( firstVertex );
-					geometry.use();
-					if( TRIANGLES ) ctx.draw.drawElements(
-						gl.TRIANGLES,
-						geometry.index.data.length,
-						gl.UNSIGNED_INT,
-						0
+				material = geometry.material;
+				material.depth.enableWrite().enable();
+				//material.alpha.enable().setColor( .33, .9, .33, 1 ).setFunc( Alpha.FN_SRC_ALPHA, Alpha.FN_CONSTANT_COLOR );
+				let programSource = new Program.DynamicSource( "../test", 1000 );
+				programSource.setTarget( function ( program ) {
+					material.program = program.bindLocations(
+						"position",
+						"color",
+						"normal",
+						"texCoord"
+					).link().use();
+					uniforms = program.getUniforms;
+					if ( uniforms.projectionMatrix ) uniforms.projectionMatrix.set(
+						mat4.Perspective(
+							innerWidth / innerHeight,
+							Math.PI / 3,
+							.01,
+							20 
+						)/*
+						mat4.Orthographic( 
+							-innerWidth / 200,
+							innerWidth / 200, 
+							-innerHeight / 200,
+							innerHeight / 200
+							,
+							.01,
+							100 
+						)*/
 					);
-					if( POINTS ) ctx.draw.drawElements(
-						gl.POINTS,
-						geometry.index.data.length,
-						gl.UNSIGNED_INT,
-						0
+					if ( uniforms.modelMatrix ) uniforms.modelMatrix.set(
+						new mat4.Translation( 0, 0, -2 )//.rotate( Math.PI / 2, 0, 1, 1)
 					);
-					if( LINES ) ctx.draw.drawElements(
-						gl.LINES,
-						geometry.index.data.length,
-						gl.UNSIGNED_INT,
-						0
+					if ( uniforms.viewMatrix ) uniforms.viewMatrix.set(
+						new mat4.Translation( 0, 0, 0 )
 					);
-					
-				};
+					if ( uniforms.modelScale ) uniforms.modelScale.set(
+						[ 1, 1, 1 ]
+					);
+					if ( uniforms.tex0 ) uniforms.tex0.location.set1i( 0 );
+				} );
+				uniforms = material.program.getUniforms;
+				loop();
 			}
+			function loop ( ) {
+				requestAnimationFrame( loop );
+				draw();
+			};
+			window.ADDS = 300;
+			window.MULTS = Math.PI;
+			window.LEN = 26;
+			window.CALLS = 300;
+			window.DIVS = 1;
+			function draw ( ) {	
+
+				geometry.use();
+				time = Date.now() - startTime;
+
+				Draw.clear( gl.COLOR_BUFFER_BIT  | gl.DEPTH_BUFFER_BIT );
+				if( uniforms.time ) uniforms.time.set( time );
+				
+				if ( uniforms.modelMatrix ){
+					uniforms.modelMatrix.value.rotate( 
+						0.01,
+						Math.sin( time * 0.001 ),
+						Math.cos( time * 0.002 ),
+						Math.sin( time * 0.003 )
+					);
+					uniforms.modelMatrix.set();
+				}
+				let length = geometry.getLength;
+				//geometry.draw();
+				let t = time / 60;
+				for ( let i = 1; i < CALLS - Math.sin( time / 1000 ) * 200; i++ ) {
+					let start = ( Math.sin( ( t + 10 ) / ( i + ADDS * MULTS ) ) + 1 ) * length / 2 ;
+					let count = LEN + Math.cos( time / 1000 ) * 25;
+					geometry.draw( Math.max( start  % length, 0  ) , Math.min( count, length - start ) ); 
+				}
+				
+				/*
+				geometry.draw( range, ( ( r2 / range ) + 15 ) % ( length - range ) ); 
+
+				range = ( Math.sin( time / 500 ) + 1 ) * length / 2 ;
+				r2 = Math.abs( ( Math.sin( time / 500 )  ) * length ) 
+				geometry.draw( range, ( ( r2 / range ) + 15 ) % ( length - range ) ); 
+
+				range = ( Math.sin( time / 400 ) + 1 ) * length / 2 ;
+				r2 = Math.abs( ( Math.sin( time / 500 )  ) * length ) 
+				geometry.draw( range, ( ( r2 / range ) + 15 ) % ( length - range ) ); 
+
+				range = ( Math.sin( time / 300 ) + 1 ) * length / 2 ;
+				r2 = Math.abs( ( Math.sin( time / 500 )  ) * length ) 
+				geometry.draw( range, ( ( r2 / range ) + 15 ) % ( length - range ) ); 
+				*/
+				
+			};
 		</script>
 	</body>
 </html>
 <!--canvas id="mainWindow"></canvas>
 		<script>
+			/*
+				window.el = document.createElement("button");
+				el.innerText = "abcd";
+				el.style.background = "yellowgreen";
+				el.style.color = "white";
+				window.texture = new Texture;
+				function generateTestTex( a, b) {
+					let data = new Uint8Array( [ a,a,a,255, b,b,b,255, a,a,a,255, b,b,b,255 ] );
+					texture
+					.bind()
+					.texData( data, 2, 2 )
+					.setActiveTexture( 0 );
+					return data;
+				}
+				window.generateTestTex = generateTestTex;
+				//console.log( generateTestTex( 60, 180 ) );
+
+				function htmlToTex( element ) {
+					window.htmlResource = new Resource.htmlTexture( element );
+					htmlResource.setTarget( function( img ) { 
+						texture
+						.bind()
+						.texImage( img )
+						.setWrapS()
+						.setWrapT()
+						.setMagFilter()
+						.setMinFilter()
+						//.pixelStorei( gl.UNPACK_FLIP_Y_WEBGL, true )
+						.setActiveTexture( 0 );
+					});
+					
+					
+					
+				}
+				window.htmlToTex = htmlToTex;
+				//htmlToTex( el );
+
+				window.objectSource = new Resource.http( "../cube.obj", { interval : 1000 } )
+				.setTarget( new Resource.parseObj()
+					.setTarget( new Resource( function ( scene ) {
+						//console.log( scene );		
+						for ( var object in scene ) {
+							var obj = scene[ object ];
+							var length = Math.max( 
+								obj.v ? obj.v.length : 0,
+								obj.vt ? obj.vt.length : 0,
+								obj.vn ? obj.vn.length : 0 
+							);
+							var structure = [];
+							if ( obj.v ) structure.push( new Float32Array( obj.v[0].length ) );
+							if ( obj.vt ) structure.push( new Float32Array( obj.vt[0].length ) );
+							if ( obj.vn ) structure.push( new Float32Array( obj.vn[0].length ) );
+							structure.push( new Float32Array( 3 ) );
+							//console.log( length );
+							window.geometry = new Geometry().createVertexAttributeGroup(
+								object,
+								structure,
+								length
+							);
+							var view = geometry[ object ].view;
+							var stride = geometry[ object ].data.stride / 4;
+							var index = new Uint16Array( obj.f.length * 3 );
+							var offset = 0;
+							var UV = [];
+							var Normals = [];
+							for ( var face of obj.f ) {
+								if ( obj.vt ) {
+									UV[ face [ 0 ][ 0 ] ] = UV[ face [ 0 ][ 0 ] ] || obj.vt[ face[ 0 ][ 1 ] ];
+									UV[ face [ 1 ][ 0 ] ] = UV[ face [ 1 ][ 0 ] ] || obj.vt[ face[ 1 ][ 1 ] ];
+									UV[ face [ 2 ][ 0 ] ] = UV[ face [ 2 ][ 0 ] ] || obj.vt[ face[ 2 ][ 1 ] ];
+								}
+								if ( obj.vn ) {
+									Normals[ face [ 0 ][ 0 ] + 1 ] = obj.vn[ face[ 0 ][ 2 ] + 1 ];
+									Normals[ face [ 1 ][ 0 ] + 1 ] = obj.vn[ face[ 1 ][ 2 ] + 1 ];
+									Normals[ face [ 2 ][ 0 ] + 1 ] = obj.vn[ face[ 2 ][ 2 ] + 1 ];
+								}
+								index.set( [
+									face[ 0 ][ 0 ],
+									face[ 1 ][ 0 ],
+									face[ 2 ][ 0 ]
+								], offset );
+								
+
+								offset += 3;
+							}
+							//console.log( obj, UV );
+							offset = 0;
+							for ( var i in obj.v ) {
+								var data = [];
+								data.push.apply( data, obj.v[ i ] );
+								if ( obj.vt ) data.push.apply( data, UV[ i ] );
+								if ( obj.vn ) data.push.apply( data, Normals[ i ] );
+								data.push( Math.random(), Math.random(), Math.random() );
+								view.set( data, offset );
+								//console.log( data );
+								offset += stride;
+							}
+							geometry[ object ].set( view );
+							geometry.createElementAttribute( object + "Triangles", index, material, gl.TRIANGLES );
+							
+
+							//geometry.createElementAttribute( object + "Points", gl.POINTS );
+							window.geometry = geometry;
+							//console.log( geometry, index );
+						}
+					} ) ) 
+				)
+				*/
+				/*
+				window.programSource = new Program.DynamicSource( "../test" );
+				var init = false;
+				programSource.setTarget( function ( program ) {
+					
+					console.log( "update" );
+				} );
+				*/
+				//window.program = material.program;
+				//window.uniforms = program.getUniforms;
+				/*
+				window.firstVertex = geometry.dynamic.createVertexView( 1 );
+
+				uniforms.projectionMatrix.set(
+					mat4.Perspective( innerWidth / innerHeight, 90, 0.1, 10 ) 
+				);
+				uniforms.modelMatrix.set(
+					new mat4
+				);
+				uniforms.viewMatrix.set(
+					new mat4().translate( 1, 1, 1 ).invert()
+				);
+				
+				*/
+				
 				/*
 						colors.bind();
 						colors.data.set([

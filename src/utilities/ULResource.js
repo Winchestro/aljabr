@@ -1,4 +1,4 @@
-import { Properties, Getters, Setters, GetterSetters, E, C, W } from "./ULPropertyDescriptors";
+import { Property, Properties, Getters, Setters, GetterSetters, E, C, W } from "../utilities/ULPropertyDescriptors";
 
 // instead of preventing circular structures I limit the depth to something silly
 const MAX_STEPS = 5000;
@@ -20,8 +20,10 @@ export default class Resource {
 				
 				switch(TYPE){
 					case "o":
-						SCENE[ line ] = {};
-						target = SCENE[ line ];
+						//console.log( line[0] );
+						var t = {}
+						SCENE[ line[ 0 ].match(/\w*/)[ 0 ] ] = t;
+						target = t;
 						break;
 					case "v":
 					case "vt":
@@ -56,7 +58,7 @@ export default class Resource {
 					return target[ TYPE ];
 				}
 			});
-			console.log( SCENE );
+			//console.log( SCENE );
 			return SCENE;
 		});
 		if ( string ) RESSOURCE.process( string );
@@ -76,68 +78,32 @@ export default class Resource {
 			} ) );
 		}, target );
 	}
-	static int8 ( ) {
-		var r = new Resource().setSource( function ( ) { 
-			return new Int8Array( arguments );
-		});
-		if ( arguments.length > 0 ) r.process.apply( r, arguments );
-		return r;
-	}
-	static uint8 ( ) {
-		var r = new Resource().setSource( function ( ) { 
-			return new Uint8Array( arguments );
-		});
-		if ( arguments.length > 0 ) r.process.apply( r, arguments );
-		return r;
-	}
-	static uint8clamped ( ) {
-		var r = new Resource().setSource( function ( ) { 
-			return new Uint8ClampedArray( arguments );
-		});
-		if ( arguments.length > 0 ) r.process.apply( r, arguments );
-		return r;
-	}
-	static int16 ( ) {
-		var r = new Resource().setSource( function ( ) { 
-			return new Int16Array( arguments );
-		});
-		if ( arguments.length > 0 ) r.process.apply( r, arguments );
-		return r;
-	}
-	static uint16 ( ) {
-		var r = new Resource().setSource( function ( ) { 
-			return new Uint16Array( arguments );
-		});
-		if( arguments.length > 0 ) r.process.apply( r, arguments );
-		return r;
-	}
-	static int32 ( ) {
-		var r = new Resource().setSource( function ( ) { 
-			return new Int32Array( arguments );
-		});
-		if ( arguments.length > 0 ) r.process.apply( r, arguments );
-		return r;
-	}
-	static uint32 ( ) {
-		var r = new Resource().setSource( function ( ) { 
-			return new Uint32Array( arguments );
-		});
-		if ( arguments.length > 0 ) r.process.apply( r, arguments );
-		return r;
-	}
-	static float32 ( ) {
-		var r = new Resource().setSource( function ( ) { 
-			return new Float32Array( arguments );
-		});
-		if ( arguments.length > 0 ) r.process.apply( r, arguments );
-		return r;
-	}
-	static float64 ( ) {
-		var r = new Resource().setSource( function ( ) { 
-			return new Float64Array( arguments );
-		});
-		if ( arguments.length > 0 ) r.process.apply( r, arguments );
-		return r;
+	static htmlTexture ( element ) {
+		element.setAttribute( "xmlns",  "http://www.w3.org/1999/xhtml" );
+
+		const STATIC = Resource.htmlTexture;
+		let serializer 	= STATIC.serializer ? STATIC.serializer : STATIC.serializer = new XMLSerializer;
+		
+		//let img 		= STATIC.img 		? STATIC.img 		: STATIC.img 		= new Image;
+
+		let img = new Image;
+		let resource = new Resource( img );
+
+		//let width = element.clientWidth;
+		//let height = element.clientHeight;
+		let width = 200;
+		let height = 100;
+		let htmlString = serializer.serializeToString( element );
+		let uri = `data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+				<foreignObject width="100%" height="100%" x="20" y="50">
+					${htmlString}
+				</foreignObject>
+			</svg>
+		`;
+		
+		img.onload = resource.process.bind( resource );
+		img.src = uri;
+		return resource;
 	}
 	static css ( property ) {
 		const PRIMITIVE = CSSPrimitiveValue;
@@ -264,7 +230,7 @@ Properties( Resource.prototype, {
 		);
 		else {
 			if ( this.source !== undefined ) Array.isArray( this.source ) ? 
-			arguments.unshift.apply( arguments, this.source ) : arguments.unshift( this.source );
+			[].unshift.apply( arguments, this.source ) : [].unshift.call( arguments, this.source );
 
 			return this.next.apply( this, arguments );
 		}
