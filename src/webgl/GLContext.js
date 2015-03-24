@@ -130,9 +130,9 @@ Getters( WebGLRenderingContext.prototype, {
 });
 
 Property( GL, "flags", [] );
-for ( let property in GL ) 
-	if ( typeof GL[ property ] === "number")
-		Property( GL.flags, property, GL[ property ], E );
+for ( let property in WebGLRenderingContext ) 
+	if ( typeof WebGLRenderingContext[ property ] === "number")
+		Property( GL.flags, GL[ property ], property, E | C );
 
 
 
