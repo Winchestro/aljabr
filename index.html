@@ -25,15 +25,25 @@
 		"use strict";
 			var startTime = Date.now();
 			var time,mesh,material,geometry,uniforms;
+			
+			var PI = Math.PI;
+			var sin = Math.sin;
+			var cos = Math.cos;
+			var max = Math.max;
+			var min = Math.min;
 
+			var ADDS = 300;
+			var MULTS = Math.PI;
+			var LEN = 26;
+			var CALLS = 300;
+			var DIVS = 1;
 			function main() {
 				
 				canvas.width = innerWidth;
 				canvas.height = innerHeight;
 				gl.viewport( 0, 0, innerWidth, innerHeight );
 				document.body.appendChild( canvas );
-				let PI = Math.PI;
-				let sin = Math.sin;
+				
 				Geometry.Sphere.options.colorIterator = function ( data, offset, latitude, longitude ) {
 					data[ offset     ] = latitude; 
 					data[ offset + 1 ] =  ( sin( longitude * PI ) + 1 ) * .5;
@@ -46,7 +56,7 @@
 				material = geometry.material;
 				material.depth.enableWrite().enable();
 				//material.alpha.enable().setColor( .33, .9, .33, 1 ).setFunc( Alpha.FN_SRC_ALPHA, Alpha.FN_CONSTANT_COLOR );
-				let programSource = new Program.DynamicSource( "../test" );
+				var programSource = new Program.DynamicSource( "../test" );
 				programSource.setTarget( function ( program ) {
 					material.program = program.bindLocations(
 						"position",
@@ -58,7 +68,7 @@
 					if ( uniforms.projectionMatrix ) uniforms.projectionMatrix.set(
 						mat4.Perspective(
 							innerWidth / innerHeight,
-							Math.PI / 3,
+							PI / 3,
 							.01,
 							20 
 						)/*
@@ -90,11 +100,7 @@
 				requestAnimationFrame( loop );
 				draw();
 			};
-			window.ADDS = 300;
-			window.MULTS = Math.PI;
-			window.LEN = 26;
-			window.CALLS = 300;
-			window.DIVS = 1;
+			
 			function draw ( ) {	
 
 				geometry.use();
@@ -106,19 +112,19 @@
 				if ( uniforms.modelMatrix ){
 					uniforms.modelMatrix.value.rotate( 
 						0.01,
-						Math.sin( time * 0.001 ),
-						Math.cos( time * 0.002 ),
-						Math.sin( time * 0.003 )
+						sin( time * 0.001 ),
+						cos( time * 0.002 ),
+						sin( time * 0.003 )
 					);
 					uniforms.modelMatrix.set();
 				}
-				let length = geometry.getLength;
+				var length = geometry.getLength;
 				//geometry.draw();
-				let t = time / 60;
-				for ( let i = 1; i < CALLS - Math.sin( time / 1000 ) * 200; i++ ) {
-					let start = ( Math.sin( ( t + 10 ) / ( i + ADDS * MULTS ) ) + 1 ) * length / 2 ;
-					let count = LEN + Math.cos( time / 1000 ) * 25;
-					geometry.draw( Math.max( start  % length, 0  ) , Math.min( count, length - start ) ); 
+				var t = time / 60;
+				for ( var i = 1; i < CALLS - sin( time / 1000 ) * 200; i++ ) {
+					var start = ( sin( ( t + 10 ) / ( i + ADDS * MULTS ) ) + 1 ) * length / 2 ;
+					var count = LEN + cos( time / 1000 ) * 25;
+					geometry.draw( max( start  % length, 0  ) , min( count, length - start ) ); 
 				}
 				
 				/*
