@@ -1,0 +1,379 @@
+<script>(function(){
+	"use strict";
+	const GL 			= WebGLRenderingContext.prototype;
+	const NS 			= Symbol.for("GLElements");
+	const GLOBAL 		= window[NS];
+
+
+	function GLResource(source,target){
+		if(!(this instanceof GLResource)) return new GLResource(source,target);
+		this.source = source;
+		this.target = target;
+	}
+	const _ARGS = [];
+	const PROTOTYPE = {
+		next:function(){
+			_ARGS.length = 0;
+			for(var i of arguments) _ARGS.push(i);
+
+			if(typeof this.target === "function") return this.target.apply(
+				this,
+				_ARGS
+			);
+			else if(this.target instanceof GLResource) return this.target.process.apply(
+				this.target,
+				_ARGS
+			);
+			else if(_ARGS.length > 1) return this.target = _ARGS;
+			else return this.target = _ARGS[0];
+		},
+		process:function(){
+			_ARGS.length = 0;
+			for(var i of arguments) _ARGS.push(i);
+
+			if(typeof this.source === "function") {
+				var returnValue = this.source.apply(
+					this,
+					_ARGS
+				);
+				if(returnValue === undefined) return;
+				else return this.next(returnValue);
+			}
+			else if(this.source instanceof GLResource) return this.next(
+				this.source.process.apply(this.source,_ARGS)
+			);
+			else {
+				if (this.source !== undefined) Array.isArray(this.source) ? 
+				_ARGS.unshift.apply(_ARGS,this.source) : _ARGS.unshift(this.source);
+
+				return this.next.apply(this,_ARGS);
+			}
+
+		},
+		setTarget:function(target){
+			if(this.target !== undefined) target.process(this.target);
+			this.target = target;
+			return this;
+		},
+		swapTarget:function(target){
+			this.target = target;
+			return this;
+		},
+		setSource:function(source){
+			if(arguments.length > 1) source = [].slice.call(arguments);
+			this.source = source;
+			return this;
+		},
+		createSource:function(source){
+			return new GLResource().setSource(source).setTarget(this);
+		},
+		createTarget:function(target){
+			return new GLResource().setSource(this).setTarget(target);
+		},
+		/*
+		toString:function(){
+			return "<"+this.source+" => "+this.target+">";
+		}
+		*/
+	};
+
+	const STATIC = {
+		/*
+		ObjToArrays:function(srcstring){
+			const RESULT = {};
+			srcstring.split("\n").forEach(function(row){
+				row = row.split(" ");
+				const TYPE = row.shift().toLowerCase();
+
+				if(!RESULT[TYPE]) RESULT[TYPE] = [];
+				const TARGET = RESULT[TYPE];
+				switch(TYPE){
+					case "v":
+					case "vt":
+					case "vn":
+						var VERTEX = row.map(function(e){
+							return parseFloat(e);
+						});
+						TARGET.push(VERTEX);
+						break;
+					case "f":
+						var INDEX = row.map(function(e){
+							return parseInt(e.split("/")[0],10);
+						});
+						TARGET.push(INDEX);
+						break;
+					default:
+						break;
+				}
+			})
+			return RESULT;
+		},
+		ObjToIndexedArrays:function(srcstring){
+			
+			const REFS = {v:[],vt:[],vn:[]};
+			const RESULT = {v:[],vt:[],vn:[]};
+			const ORDER = ["v","vt","vn"];
+			srcstring.split("\n").forEach(function(row){
+				row = row.split(" ");
+				const TYPE = row.shift().toLowerCase();
+				switch(TYPE){
+					case "v":
+					case "vt":
+					case "vn":
+						var VERTEX = row.map(function(e){
+							return parseFloat(e);
+						});
+						REFS[TYPE].push(VERTEX);
+						break;
+					case "f":
+						var INDEX = row.forEach(function(face){
+							face.split("/").forEach(function(index,i){
+								index = parseInt(index)-1;
+								var type = ORDER[i];
+								RESULT[type].push(REFS[type][index]);
+							});
+						});
+						break;
+					default:
+						break;
+				}
+			});
+			return RESULT;
+		},
+		*/
+		parseObj : function ( string ) {
+			const RESSOURCE = new GLResource ( function ( string ) {
+				const SCENE = {};
+				var target = SCENE;
+				string.split( "\n" ).forEach( function ( line ) {
+					line = line.split(" ");
+					const TYPE = line.shift().toLowerCase();
+					
+					if( !TYPE ) return;
+					
+					switch(TYPE){
+						case "o":
+							SCENE[line] = {};
+							target = SCENE[line];
+							break;
+						case "v":
+						case "vt":
+						case "vn":
+							var subtarget = getSubtarget();
+
+							var VERTEX = line.map(function(e){
+								return parseFloat(e);
+							});
+							subtarget.push(VERTEX);
+							break;
+						case "f":
+							var subtarget = getSubtarget();
+							
+							var INDEX = line.map(function(e){
+								var refs = e.split("/").map( function (e) {
+									return parseInt( e, 10 ) - 1;
+								});
+								return refs;
+							});
+							subtarget.push(INDEX);
+							break;
+						default:
+							break;
+					}
+					function getSubtarget(){
+						if( target === SCENE ){
+							SCENE.object = {};
+							target = SCENE.object;
+						}
+						if( !target[TYPE] ) target[TYPE] = [];
+						return target[TYPE];
+					}
+				});
+				console.log(SCENE);
+				return SCENE;
+			});
+			if(string) RESSOURCE.process(string);
+			return RESSOURCE;
+		},
+		base16:function(){
+			return new GLResource(function(){ 
+				return  new Uint16Array([].slice.call(arguments).map(function(e){ 
+					return parseInt(e,16);
+				}));
+			},target);
+		},
+		base8:function(){
+			return new GLResource(function(){ 
+				return  new Uint8Array([].slice.call(arguments).map(function(e){ 
+					return parseInt(e,8);
+				}));
+			},target);
+		},
+		int8:function(){
+			var r = new GLResource().setSource(function(){ 
+				return new Int8Array(arguments);
+			});
+			if(arguments.length > 0) r.process.apply(r,arguments);
+			return r;
+		},
+		uint8:function(){
+			var r = new GLResource().setSource(function(){ 
+				return new Uint8Array(arguments);
+			});
+			if(arguments.length > 0) r.process.apply(r,arguments);
+			return r;
+		},
+		uint8clamped:function(){
+			var r = new GLResource().setSource(function(){ 
+				return new Uint8ClampedArray(arguments);
+			});
+			if(arguments.length > 0) r.process.apply(r,arguments);
+			return r;
+		},
+		int16:function(){
+			var r = new GLResource().setSource(function(){ 
+				return new Int16Array(arguments);
+			});
+			if(arguments.length > 0) r.process.apply(r,arguments);
+			return r;
+		},
+		uint16:function(){
+			var r = new GLResource().setSource(function(){ 
+				return new Uint16Array(arguments);
+			});
+			if(arguments.length > 0) r.process.apply(r,arguments);
+			return r;
+		},
+		int32:function(){
+			var r = new GLResource().setSource(function(){ 
+				return new Int32Array(arguments);
+			});
+			if(arguments.length > 0) r.process.apply(r,arguments);
+			return r;
+		},
+		uint32:function(target){
+			var r = new GLResource().setSource(function(){ 
+				return new Uint32Array(arguments);
+			});
+			if(arguments.length > 0) r.process.apply(r,arguments);
+			return r;
+		},
+		float32:function(){
+			var r = new GLResource().setSource(function(){ 
+				return new Float32Array(arguments);
+			});
+			if(arguments.length > 0) r.process.apply(r,arguments);
+			return r;
+		},
+		float64:function(){
+			var r = new GLResource().setSource(function(){ 
+				return new Float64Array(arguments);
+			});
+			if(arguments.length > 0) r.process.apply(r,arguments);
+			return r;
+		},
+		css:function(property){
+			const PRIMITIVE = CSSPrimitiveValue;
+			const TARGET = document.querySelector(selector);
+
+			//this.createShadowRoot();
+			//this.shadowRoot.innerHTML = "<style>:host{display:block;visibility:hidden;transition:1ms;}</style>";
+			/*
+			var rgb = v.getRGBColorValue();
+			var p = rgb.red.primitiveValue;
+
+			col[0] = rgb.red.getFloatValue(PRIMITIVE.CSS_NUMBER);
+			col[1] = rgb.green.getFloatValue(PRIMITIVE.CSS_NUMBER);
+			col[2] = rgb.blue.getFloatValue(PRIMITIVE.CSS_NUMBER);
+			console.log(col);
+			*/
+			TARGET.handleEvent=function(e){
+				var c = getComputedStyle(this);
+				var v = c.getPropertyCSSValue(property);
+				
+			};
+			TARGET.addEventListener("transitionend",TARGET);
+			TARGET.style.color = "#555";
+		},
+		url:function(url,options){
+			if(options === undefined) options = {};
+
+			const XHR = new XMLHttpRequest;
+			const SOURCE = {
+				url			: url,
+				request		: XHR,
+				options		: options,
+				lastUpdated	: 0,
+
+				send 		: function () {
+					XHR.open("GET",SOURCE.url);
+					for(var prop in options){
+						if( prop in XHR) XHR[prop] = options[prop];
+					}
+					XHR.onreadystatechange = options.onreadystatechange || resolve;
+					XHR.send();
+				}
+			
+			}
+			const RESOURCE = new GLResource(SOURCE);
+			
+			SOURCE.send();
+			return RESOURCE;
+			
+			function resolve(){
+				//console.log(x.readyState);
+				switch(XHR.readyState){
+					case XHR.UNSENT:
+					break;
+					case XHR.OPENED:
+					break;
+					case XHR.HEADERS_RECEIVED:
+						SOURCE.lastModified = new Date(
+							XHR.getResponseHeader("Last-Modified")
+						).getTime();
+
+						
+						if(SOURCE.lastModified > SOURCE.lastUpdated)
+							SOURCE.lastUpdated = SOURCE.lastModified;
+						else {
+							XHR.abort();
+							//console.log("no change");
+							if(SOURCE.options.interval) setTimeout(
+								SOURCE.send,
+								SOURCE.options.interval
+							);
+						}
+					break;
+					case XHR.LOADING:
+					break;
+					case XHR.DONE:
+						switch(XHR.status){
+							case 200:
+								RESOURCE.next(XHR.response);
+								//console.log("data changed")
+								if(SOURCE.options.interval) setTimeout(
+									SOURCE.send,
+									SOURCE.options.interval
+								);
+								break;
+							default:
+								//console.error(XHR.status+":"+XHR.statusText);
+								if(SOURCE.options.interval) setTimeout(
+									SOURCE.send,
+									SOURCE.options.interval
+								);
+								break;
+						}
+					break;
+				}
+			}
+		},
+	};
+
+	new GLOBAL.Class(PROTOTYPE,GLResource)
+		.static(STATIC)
+	;
+})();
+/* 
+	
+*/</script>

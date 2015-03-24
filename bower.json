@@ -1,19 +1,14 @@
 {
-	"name": "gl-elements",
-	"version": "0.0.1",
-	"decription":"WebGL Web Components",
+	"name": "PolyGL",
+	"version": "0.1.0",
+	"decription":"A deep dive into WebGL that may or may not yield cool web components one day",
 	"authors":"Nikita Andrejevich Seredkin",
 	"license":"MIT",
 	"keywords": [
-		"gl-elements",
-		"WebGL",
-		"polymer",
-		"web-components"
+		"PolyGL",
+		"WebGL"
 	],
-	"main": "gl-elements.html",
-	"dependencies": {
-		"polymer": "Polymer/polymer#^0.4.0"
-	},
+	"main": "index.html",
 	"ignore": [
 		"**/.*",
 		"test",

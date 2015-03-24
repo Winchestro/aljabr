@@ -1,0 +1,216 @@
+<link rel="import" href="GLShader.html">
+<link rel="import" href="GLVertexbuffer.html">
+
+<script>(function STATIC(){
+	"use strict";
+	const GL 				= WebGLRenderingContext.prototype;
+	const NS 				= Symbol.for("GLElements");
+	const GLOBAL 			= window[NS];
+	const GLShader 			= GLOBAL.Class.GLShader;
+	const GLVertexbuffer 	= GLOBAL.Class.GLVertexbuffer;
+	const GLResource		= GLOBAL.Class.GLResource;
+
+	function GLProgram(context){
+		if(!(this instanceof GLProgram)) return new GLProgram(context);
+		this.context 	= context;
+		this.gl 		= context.gl;
+		this.buffers 	= new GLResource();
+		this.shaders   	= new GLResource(linkProgram)
+		.createSource(useShader)
+		.createSource(this)
+		;
+		this.create();
+		return this;
+	}
+
+	const FACTORIES = {
+		createShader:function (type) {
+			return new GLShader(this.gl,this,type);
+		},
+		createVertexbuffer:function (target,pointer) {
+			return new GLVertexbuffer(this.gl,this,target,pointer);
+		}
+	};
+	const PROTOTYPE = {
+		draw:function(currentProgram){
+			if(currentProgram !== this.object) this.switchTo();
+
+		},
+		switchTo:function(){
+			this.use();
+		},
+	};
+	function linkProgram ( program ) {
+		if(program.attachedShaders.length === 2){
+			program.link().use();
+			return program;
+		}
+	}
+	function useShader ( program, shader ) {
+		if(program.attachedShaders.indexOf(shader.object) === -1) {
+			program.attachShader(shader.object);
+		}
+		return program;
+	}
+	const ACCESSORS = {
+		uniformActiveInfo:{
+			get:function _cache(){
+				_cache.result === undefined ? _cache.result = [] : _cache.result.length = 0;
+				for(var num = this.ACTIVE_UNIFORMS-1; num>=0; num--) 
+				_cache.result[num] = this.getActiveUniform(num);
+				return _cache.result;
+			}
+		},
+		attributeActiveInfo:{
+			get:function _cache(){
+				_cache.result === undefined ? _cache.result=[] : _cache.result.length = 0;
+				for(var num = this.ACTIVE_ATTRIBUTES-1; num>=0; num--)
+				_cache.result[num] = this.getActiveAttrib(num);
+				return _cache.result;
+			}
+		},
+		infoLog:{
+			get:function(){
+				return this.gl.getProgramInfoLog(this.object);
+			}
+		},
+		attachedShaders:{
+			get:function(){
+				return this.gl.getAttachedShaders(this.object,GL.ATTACHED_SHADERS);
+			}
+		},
+		ACTIVE_ATTRIBUTES:{
+			get:function(){
+				return this.gl.getProgramParameter(this.object,GL.ACTIVE_ATTRIBUTES);
+			}
+		},
+		ACTIVE_UNIFORMS:{
+			get:function(){
+				return this.gl.getProgramParameter(this.object,GL.ACTIVE_UNIFORMS);
+			}
+		},
+		DELETE_STATUS:{
+			get:function(){
+				return this.gl.getProgramParameter(this.object,GL.DELETE_STATUS);
+			}
+		},
+		LINK_STATUS:{
+			get:function(){
+				return this.gl.getProgramParameter(this.object,GL.LINK_STATUS);
+			}
+		},
+		VALIDATE_STATUS:{
+			get:function(){
+				return this.gl.getProgramParameter(this.object,GL.VALIDATE_STATUS);
+			}
+		}
+	};
+	const RENDERING = {
+		clear:function(mask){
+			this.gl.clear(mask);
+			return this;
+		},
+		clearColor:function(red,green,blue,alpha){
+			this.gl.clearColor(red,green,blue,alpha);
+			return this;
+		},
+		clearDepth:function(depth){
+			this.gl.clearDepth(depth);
+			return this;
+		},
+		clearStencil:function(s){
+			this.gl.clearStencil(s);
+			return this;
+		},
+		drawArrays:function(mode,first,count){
+			this.gl.drawArrays(mode,first,count);
+			return this;
+		},
+		drawElements:function(mode,count,type,offset){
+			this.gl.drawElements(mode,count,type,offset);
+			return this;
+		},
+	};
+	const BINDINGS = {
+		create:function(){
+			this.object = this.gl.createProgram();
+			return this;
+		},
+		delete:function(){
+			this.gl.deleteProgram(this.object);
+			return this;
+		},
+		use:function(){
+			this.gl.useProgram(this.object);
+			return this;
+		},
+		link:function(){
+			this.gl.linkProgram(this.object);
+			return this; 
+		},
+		validate:function(){
+			this.gl.validateProgram(this.object);
+			return this;
+		},
+		attachShader:function(shader){
+			this.gl.attachShader(this.object,shader);
+			return this;
+		},
+		detachShader:function(shader){
+			this.gl.detachShader(this.object,shader);
+			return this;
+		},
+		getActiveAttrib:function(index){
+			return this.gl.getActiveAttrib(this.object,index);
+		},
+		getActiveUniform:function(index){
+			return this.gl.getActiveUniform(this.object,index);
+		},
+		getUniform:function(location){
+			return this.gl.getUniform(this.object,location);
+		},
+		getUniformLocation:function(name){
+			return this.gl.getUniformLocation(this.object,name);
+		},
+		getAttribLocation:function(name){
+			return this.gl.getAttribLocation(this.object,name);
+		},
+		bindAttribLocation:function(index,name){
+			this.gl.bindAttribLocation(this.object,index,name);
+			return this;
+		},
+	};
+
+	new GLOBAL.Class(PROTOTYPE,GLProgram)
+		.define(ACCESSORS)
+		.copy(FACTORIES)
+		.copy(BINDINGS)
+		.copy(RENDERING)
+	;
+})();
+/*
+relink:function(){
+			return this
+			.attachShader(this.getShader(this.currentFragmentShader).object)
+			.attachShader(this.getShader(this.currentVertexShader).object)
+			.link();
+		}
+updateActiveInfo:function(){
+			this.relink()
+		},
+		
+		getShader:function(key){
+			return this.shaders[key];
+		},
+		addShader:function(shader,key,global){
+			if(!key) key = shader.uuid;
+			if(global) GLProgram.prototype.shaders[key] = shader;
+			else this.shaders[key] = shader;
+			return this;
+		},
+		deleteShader:function(key,global){
+			if(global) delete GLProgram.prototype.shaders[key];
+			else delete this.shaders[key];
+			return this;
+		},
+*/</script>

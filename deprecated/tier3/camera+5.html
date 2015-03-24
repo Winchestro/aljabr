@@ -1,0 +1,183 @@
+<link rel="import" href="../tier1/GLElement.html">
+<link rel="import" href="../tier2/gl-vector.html">
+<link rel="import" href="../tier2/gl-mat4.html">
+
+<script>(function(){
+	"use strict";
+	const GL 		= WebGLRenderingContext.prototype;
+	const NS 		= Symbol.for("GLElements");
+	const GLOBAL 	= window[NS];
+
+	const PROTOTYPE = GLOBAL.Interface.GLElement;
+	const vec2		= GLOBAL.Class.vec2;
+	const vec3 		= GLOBAL.Class.vec3;
+	const quat4 	= GLOBAL.Class.quat4;
+	const mat4 		= GLOBAL.Class.mat4;
+
+	function FirstPersonCamera(){
+		this.view 		= mat4.Identity();
+		this.yawAxis	= vec3.copy(FirstPersonCamera.UP);
+		this.pitchAxis 	= new vec3(0,0,0);
+		this.cameraPos 	= new vec3(0,0,0);
+		this.cameraDir 	= new vec3(0,0,1);
+		this.forward 	= new vec3(0,0,0);
+		this.strafe 	= new vec3(0,0,0);
+		this.yaw 		= new quat4(0,0,0,1);
+		this.pitch 		= new quat4(0,0,0,1);
+		this.speed 		= .25;
+		this.value 		= new Float32Array(16);
+		this.lastFrame  = Date.now();
+	}
+	FirstPersonCamera.prototype = Object.create({},{
+		update:{
+			value:function(){
+				const $ = FirstPersonCamera;
+				const KEY = $.KEY_PRESSED;
+				const MOUSE = $.MOUSE_MOVEMENT;
+
+				this.forward.copy(this.cameraDir).norm();
+				this.strafe.copy(this.cameraDir).cross($.UP).norm();
+				this.pitchAxis.copy(this.strafe);
+
+				var deltaTime = Date.now()-this.lastFrame;
+				
+				var forwardScale = 0;
+				var strafeScale = 0;
+				forwardScale 	+= KEY.UP 		? 1 : 0;
+				forwardScale 	-= KEY.DOWN 	? 1 : 0;
+				strafeScale 	+= KEY.LEFT 	? 1 : 0;
+				strafeScale 	-= KEY.RIGHT 	? 1 : 0;
+
+				this.strafe.multScalar(this.speed*strafeScale*deltaTime);
+				this.forward.multScalar(this.speed*forwardScale*deltaTime);
+				
+				this.cameraPos.add(this.forward);
+				this.cameraPos.add(this.strafe);
+
+				
+				this.yaw.axisAngle(this.yawAxis,MOUSE.x);
+				this.pitch.axisAngle(this.pitchAxis,MOUSE.y);
+				
+				this.cameraDir.applyQuat4(this.yaw);
+				this.cameraDir.applyQuat4(this.pitch);
+
+				MOUSE.x=0;
+				MOUSE.y=0;
+				
+				
+				this.view.position = this.cameraPos;
+				this.view.lookAt(
+					this.cameraPos,vec3.add(
+						this.cameraPos,this.cameraDir
+					),
+					$.UP
+				);
+				this.view.inverse();
+				for(var i in this.value) this.value[i] = this.view[i];
+			}
+		},
+		loop:{
+			value:function(){
+				const $ = this;
+				this.looping = true;
+				loop();
+				return this;
+
+				function loop(){
+					if($.looping) requestAnimationFrame(loop);
+					$.update();
+					$.lastFrame = Date.now();
+				}
+			}
+		}
+	});
+	const STATIC = {
+		KEY_CODE:{
+			W : 87,
+			S : 83,
+			A : 65,
+			D : 68
+		},
+		KEY_PRESSED :{
+			UP:false,
+			DOWN:false,
+			LEFT:false,
+			RIGHT:false
+		},
+		UP:new vec3(0,1,0),
+		MOUSE_MOVEMENT:new vec2(0,0),
+		MOUSE_POS:new vec2(0,0)
+	}
+	for(var key in STATIC) Object.defineProperty(FirstPersonCamera,key,{value:STATIC[key]});
+
+	document.addEventListener("keydown",function(e){
+		const CODE = FirstPersonCamera.KEY_CODE;
+		const STATE = FirstPersonCamera.KEY_PRESSED;
+
+		switch(e.keyCode){
+			case CODE.W:
+				STATE.UP = true;
+			break;
+			case CODE.S:
+				STATE.DOWN = true;
+			break;
+			case CODE.A:
+				STATE.LEFT = true;
+			break;
+			case CODE.D:
+				STATE.RIGHT = true;
+			break;
+		}
+	});
+	document.addEventListener("keyup",function(e){
+		const CODE = FirstPersonCamera.KEY_CODE;
+		const STATE = FirstPersonCamera.KEY_PRESSED;
+
+		switch(e.keyCode){
+			case CODE.W:
+				STATE.UP = false;
+			break;
+			case CODE.S:
+				STATE.DOWN = false;
+			break;
+			case CODE.A:
+				STATE.LEFT = false;
+			break;
+			case CODE.D:
+				STATE.RIGHT = false;
+			break;
+		}
+	});
+	document.addEventListener("mousemove",function(e){
+		const MOVEMENT 	= FirstPersonCamera.MOUSE_MOVEMENT;
+		const POS 		= FirstPersonCamera.MOUSE_POS;
+		POS.x 			= e.clientX/innerWidth;
+		POS.y 			= 1.-e.clientY/innerHeight;
+		MOVEMENT.x 		= -e.webkitMovementX/innerWidth;
+		MOVEMENT.y 		= e.webkitMovementY/innerWidth;
+	});
+
+	const ACCESSORS = {
+		value:{
+			get:function(){
+				return this.camera.value;
+			},
+			set:function(v){
+				for(var i in this.camera.value) this.camera.value[i] = v[i];
+			}
+		}
+	}
+
+	const LIFECYCLE = {
+		created:function(){
+			this.camera = new FirstPersonCamera().loop();
+		}
+	};
+
+	new GLOBAL.Element(PROTOTYPE,"camera-first-person")
+		.copy(LIFECYCLE,"lifecycle")
+		.define(ACCESSORS,"accessors")
+	;
+})();
+/*
+*/</script>

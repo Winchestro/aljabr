@@ -1,0 +1,126 @@
+<link rel="import" href="GLRendertarget.html">
+<link rel="import" href="gl-texture.html">
+
+<script>(function STATIC(){
+	"use strict";
+	const GL 			= WebGLRenderingContext.prototype;
+	const NS 			= Symbol.for("GLElements");
+	const GLOBAL 		= window[NS];
+	const PROTOTYPE 	= GLOBAL.Interface.GLRendertarget;
+
+
+	new GLOBAL.Element("gl-framebuffer",PROTOTYPE);
+})();
+/*
+	const BINDINGS = {
+		bindFramebuffer:{
+			value:function(){
+				this.gl.bindFramebuffer(
+					GL.FRAMEBUFFER,
+					this.buffer
+				);
+				return this;
+			}
+		},
+		unbindFramebuffer:{
+			value:function(){
+				this.gl.bindFramebuffer(
+					GL.FRAMEBUFFER,
+					null
+				);
+				return this;
+			}
+		},
+		createFramebuffer:{
+			value:function(){
+				this.buffer = this.gl.createFramebuffer();
+				return this;
+			}
+		},
+		deleteFramebuffer:{
+			value:function(){
+				this.gl.deleteFramebuffer(this.buffer);
+				return this;
+			}
+		},
+		framebufferRenderbuffer:{
+			value:function(){
+				this.gl.framebufferRenderbuffer(
+					GL.FRAMEBUFFER,
+					this.attachment,
+					GL.RENDERBUFFER,
+					this.target
+				);
+				return this;
+			}
+		},
+		framebufferTexture2D:{
+			value:function(){
+				this.gl.framebufferTexture2D(
+					GL.FRAMEBUFFER,
+					this.attachment,
+					this.target.target,
+					this.target.texture,
+					0
+				);
+				return this;
+			}
+		},
+		checkFramebufferStatus:{
+			value:function(){
+				this.gl.checkFramebufferStatus(GL.FRAMEBUFFER);
+				return this;
+			}
+		},
+	};
+
+	const ACCESSORS = {
+		$TEXTURE:{
+			get:function(){
+				return Array.prototype.slice.call(this.children).filter(function(e){
+					return 	typeof e.setupTexture === "function";
+				})[0]
+			}
+		},
+		$RENDERBUFFER:{
+			get:function(){
+				return Array.prototype.slice.call(this.children).filter(function(e){
+					return typeof e.setupRenderbuffer === "function";
+				})[0]
+			}
+		},
+	};
+
+	const METHODS = {
+		setupTexture:function(gl){
+			if(!(gl instanceof WebGLRenderingContext))
+			return new TypeError("First Argument not WebGLRenderingContext");
+			const FRAMEBUFFER = this;
+			const TEXTURE = this.$TEXTURE;
+			TEXTURE.width = this.$width;
+			TEXTURE.height = this.$height;
+			FRAMEBUFFER.gl = gl;
+			TEXTURE.gl = gl;
+			FRAMEBUFFER.target = TEXTURE;
+			return FRAMEBUFFER.setupRendertarget(0,0,TEXTURE.width,TEXTURE.height)
+			.then(function(render){
+
+				TEXTURE.createTexture().bindTexture().texParameteri().texImage2D();
+				FRAMEBUFFER.createFramebuffer().bindFramebuffer().framebufferTexture2D()
+				
+				FRAMEBUFFER.render = framebufferOperation;
+				return framebufferOperation;
+				function framebufferOperation(){
+					FRAMEBUFFER.bindFramebuffer();
+					render();
+					FRAMEBUFFER.unbindFramebuffer();
+
+				}
+			});
+		},
+	};
+	const ATTRIBUTES = {
+		attachment:GL.COLOR_ATTACHMENT0
+	};
+*/</script>
+</polymer-element>
