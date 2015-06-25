@@ -1,0 +1,1354 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"tex",
+				"texture0"
+			],
+			[
+				"v_",
+				"v_color"
+			],
+			[
+				"get",
+				"webkitGetDatabaseNames"
+			],
+			[
+				"res",
+				"result"
+			],
+			[
+				"push",
+				"pushCommand"
+			],
+			[
+				"apply",
+				"applyStructure"
+			],
+			[
+				"shif",
+				"shiftCommand"
+			],
+			[
+				"pro",
+				"property"
+			],
+			[
+				"dele",
+				"deleteDatabase"
+			],
+			[
+				"DB",
+				"DBDeleteRequest"
+			],
+			[
+				"DB_",
+				"DB_NAME"
+			],
+			[
+				"upg",
+				"upgradeHandler"
+			],
+			[
+				"DBOP",
+				"DBOpenError"
+			],
+			[
+				"spec",
+				"specMap"
+			],
+			[
+				"norm",
+				"normalmap"
+			],
+			[
+				"normal",
+				"normalMap"
+			],
+			[
+				"text",
+				"texture2D"
+			],
+			[
+				"nex",
+				"nextRow"
+			],
+			[
+				"next",
+				"nextCol"
+			],
+			[
+				"gl",
+				"gl_FragColor"
+			],
+			[
+				"gra",
+				"gradient3D"
+			],
+			[
+				"gradie",
+				"gradient2D"
+			],
+			[
+				"xT",
+				"xT0"
+			],
+			[
+				"xt",
+				"xT0"
+			],
+			[
+				"hash",
+				"hashTexture"
+			],
+			[
+				"createEx",
+				"createExpandedObjectEntry"
+			],
+			[
+				"getOwnPr",
+				"getOwnPropertyNames"
+			],
+			[
+				"create",
+				"createEntry"
+			],
+			[
+				"tra",
+				"traversePrototypeChainToDesciptor"
+			],
+			[
+				"getO",
+				"getOwnPropertyDescriptor"
+			],
+			[
+				"Prop",
+				"Properties"
+			],
+			[
+				"mar",
+				"margin-left"
+			],
+			[
+				"proper",
+				"property"
+			],
+			[
+				"class",
+				"className"
+			],
+			[
+				"type",
+				"typeElement"
+			],
+			[
+				"shad",
+				"shadowRoot"
+			],
+			[
+				"Obj",
+				"ObjectViewStyle"
+			],
+			[
+				"propert",
+				"property"
+			],
+			[
+				"materi",
+				"materialView"
+			],
+			[
+				"gl_",
+				"gl_PointCoord"
+			],
+			[
+				"sp",
+				"specular"
+			],
+			[
+				"nor",
+				"normal"
+			],
+			[
+				"inner",
+				"innerHeight"
+			],
+			[
+				"dra",
+				"drawArrays"
+			],
+			[
+				"gl_F",
+				"gl_FragColor"
+			],
+			[
+				"byte",
+				"byteLength"
+			],
+			[
+				"leng",
+				"length"
+			],
+			[
+				"len",
+				"lengthOrData"
+			],
+			[
+				"spo",
+				"spotlightFade"
+			],
+			[
+				"light",
+				"lightVec"
+			],
+			[
+				"model",
+				"modelMatrix"
+			],
+			[
+				"view",
+				"viewMatrix"
+			],
+			[
+				"po",
+				"positions"
+			],
+			[
+				"Uint",
+				"Uint16Array"
+			],
+			[
+				"Geo",
+				"GeometryOptions"
+			],
+			[
+				"st",
+				"structure"
+			],
+			[
+				"lon",
+				"longitude"
+			],
+			[
+				"movemen",
+				"movementY"
+			],
+			[
+				"move",
+				"movementX"
+			],
+			[
+				"add",
+				"addEventListener"
+			],
+			[
+				"gl_Fr",
+				"gl_FragCoord"
+			],
+			[
+				"lat",
+				"latitude"
+			],
+			[
+				"no",
+				"normals"
+			],
+			[
+				"color",
+				"colorIterator"
+			],
+			[
+				"Vertex",
+				"VertexAttributeGroup"
+			],
+			[
+				"Verte",
+				"VertexAttribute"
+			],
+			[
+				"Attr",
+				"AttributeLocation"
+			],
+			[
+				"Pro",
+				"Program"
+			],
+			[
+				"Getter",
+				"GetterSetters"
+			],
+			[
+				"UlM",
+				"ULMesh"
+			],
+			[
+				"oppo",
+				"opposite"
+			],
+			[
+				"vertex",
+				"vertexPtrs"
+			],
+			[
+				"hEdgeA",
+				"hEdgeA"
+			],
+			[
+				"Attribute",
+				"AttributeMap"
+			],
+			[
+				"Proper",
+				"Properties"
+			],
+			[
+				"getAttribute",
+				"getAttributeLocations"
+			],
+			[
+				"acc",
+				"cacheAccessor"
+			],
+			[
+				"cache",
+				"cacheAccessor"
+			],
+			[
+				"unif",
+				"uniforms"
+			],
+			[
+				"geo",
+				"geometryPtr"
+			],
+			[
+				"oppos",
+				"oppositeHalfedgeC"
+			],
+			[
+				"oppose",
+				"oppositeHalfedgeA"
+			],
+			[
+				"opp",
+				"opposite"
+			],
+			[
+				"half",
+				"halfedge"
+			],
+			[
+				"hal",
+				"halfedgeA"
+			],
+			[
+				"vP",
+				"vPtrA"
+			],
+			[
+				"pos",
+				"posElements"
+			],
+			[
+				"test",
+				"testElement"
+			],
+			[
+				"eleme",
+				"elementToTextureTest"
+			],
+			[
+				"frag",
+				"fragUV"
+			],
+			[
+				"TEX",
+				"TEXTURE_2D"
+			],
+			[
+				"TEXUT",
+				"TEXTURE_CUBE_MAP_POSITIVE_X"
+			],
+			[
+				"UNPACK",
+				"UNPACK_PREMULTIPLY_ALPHA_WEBGL"
+			],
+			[
+				"UN",
+				"UNPACK_ALIGNMENT"
+			],
+			[
+				"TEXT",
+				"TEXTURE_WRAP_S"
+			],
+			[
+				"TEXTU",
+				"TEXTURE_MAG_FILTER"
+			],
+			[
+				"TEXTURE",
+				"TEXTURE_MIN_FILTER"
+			],
+			[
+				"UNSI",
+				"UNSIGNED_BYTE"
+			],
+			[
+				"UNSIGN",
+				"UNSIGNED_SHORT_4_4_4_4"
+			],
+			[
+				"LUM",
+				"LUMINANCE_ALPHA"
+			],
+			[
+				"Texture",
+				"texture2D"
+			],
+			[
+				"for",
+				"foreignObject"
+			],
+			[
+				"str",
+				"structure"
+			],
+			[
+				"vert",
+				"vertices"
+			],
+			[
+				"uv",
+				"uvElements"
+			],
+			[
+				"norma",
+				"normalElements"
+			],
+			[
+				"verte",
+				"vertexElements"
+			],
+			[
+				"op",
+				"options"
+			],
+			[
+				"poin",
+				"pointIndex"
+			],
+			[
+				"draw",
+				"drawType"
+			],
+			[
+				"Da",
+				"DATA_TYPES"
+			],
+			[
+				"TRIAN",
+				"TRIANGLE_FAN"
+			],
+			[
+				"TRIA",
+				"TRIANGLE_STRIP"
+			],
+			[
+				"LINE",
+				"LINE_LOOP"
+			],
+			[
+				"Element",
+				"ElementAttribute"
+			],
+			[
+				"LIN",
+				"LINES"
+			],
+			[
+				"TRIANGLE",
+				"TRIANGLE_STRIP"
+			],
+			[
+				"TR",
+				"TRIANGLES"
+			],
+			[
+				"LINE_",
+				"LINE_STRIP"
+			],
+			[
+				"Line",
+				"LineInt8"
+			],
+			[
+				"Elemen",
+				"ElementBuffer"
+			],
+			[
+				"VertexAtt",
+				"VertexAttribute"
+			],
+			[
+				"UNS",
+				"UNSIGNED_BYTE"
+			],
+			[
+				"TRI",
+				"TRIANGLE_STRIP"
+			],
+			[
+				"length",
+				"lengthOrData"
+			],
+			[
+				"buffer",
+				"bufferView"
+			],
+			[
+				"sub",
+				"subData"
+			],
+			[
+				"attr",
+				"attribute"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "index.html",
+			"settings":
+			{
+				"buffer_size": 9148,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "page/worker_test.html",
+			"settings":
+			{
+				"buffer_size": 2932,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "page/testworker.js",
+			"settings":
+			{
+				"buffer_size": 117,
+				"line_ending": "Windows",
+				"name": "onmessage = function ( job ) {"
+			}
+		},
+		{
+			"file": "src/header.js",
+			"settings":
+			{
+				"buffer_size": 3069,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "bin/core.html",
+			"settings":
+			{
+				"buffer_size": 215,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/webgl/GLTexture.js",
+			"settings":
+			{
+				"buffer_size": 7288,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/glsl/phong.vert",
+			"settings":
+			{
+				"buffer_size": 849,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/glsl/phong.frag",
+			"settings":
+			{
+				"buffer_size": 2804,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/glsl/test.frag",
+			"settings":
+			{
+				"buffer_size": 9242,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/glsl/test.vert",
+			"settings":
+			{
+				"buffer_size": 160,
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "Packages/User/traceur.sublime-build",
+	"command_palette":
+	{
+		"height": 219.0,
+		"selected_items":
+		[
+			[
+				"packins",
+				"Package Control: Install Package"
+			],
+			[
+				"pa di",
+				"Package Control: Disable Package"
+			],
+			[
+				"pack en",
+				"Package Control: Enable Package"
+			],
+			[
+				"packin",
+				"Package Control: Install Package"
+			],
+			[
+				"PACK REM",
+				"Package Control: Remove Package"
+			],
+			[
+				"PACKA REM",
+				"Package Control: Remove Package"
+			],
+			[
+				"PACKINS",
+				"Package Control: Install Package"
+			],
+			[
+				"git",
+				"Git: Gui"
+			],
+			[
+				"Package Con",
+				"Package Control: Install Package"
+			],
+			[
+				"Packa",
+				"Package Control: Install Package"
+			],
+			[
+				"Pack",
+				"Package Control: Disable Package"
+			],
+			[
+				"Package C",
+				"Package Control: Remove Package"
+			],
+			[
+				"Package",
+				"Package Control: Install Package"
+			],
+			[
+				"PACK",
+				"Package Control: Remove Package"
+			],
+			[
+				"Package Control: In",
+				"Package Control: Install Package"
+			],
+			[
+				"pack",
+				"Package Control: Remove Package"
+			],
+			[
+				"hex viewer ",
+				"Hex Viewer: Toggle Hex View"
+			],
+			[
+				"hex",
+				"Hex Viewer: Show Hex Inspector"
+			],
+			[
+				"Hex vi",
+				"Hex Viewer: Show Hex Inspector"
+			],
+			[
+				"Hex",
+				"Hex Viewer: Toggle Hex View"
+			],
+			[
+				"hex viewer",
+				"Hex Viewer: Show Hex Inspector"
+			],
+			[
+				"Toggle",
+				"Hex Viewer: Toggle Hex View"
+			],
+			[
+				"Hex View: ",
+				"Hex Viewer: Set Bits Per Group"
+			],
+			[
+				"Hex Viewer",
+				"Hex Viewer: Show Hex Edit Panel"
+			],
+			[
+				"Hex Viewer: Sh",
+				"Hex Viewer: Show Hex Edit Panel"
+			],
+			[
+				"Hex Vi",
+				"Hex Viewer: Toggle Hex View"
+			],
+			[
+				"set f",
+				"Preferences: Settings - Default"
+			],
+			[
+				"HexViewer",
+				"Preferences: Hex Viewer Settings – Default"
+			],
+			[
+				"Package Control: IN",
+				"Package Control: Install Package"
+			],
+			[
+				"Mark",
+				"Markdown Preview: Preview in Browser"
+			],
+			[
+				"Package Control :I",
+				"Package Control: Install Package"
+			],
+			[
+				"Pak",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: INst",
+				"Package Control: Install Package"
+			],
+			[
+				"Package Control: ",
+				"Package Control: Install Package"
+			],
+			[
+				"Snippet: ",
+				"Snippet: <?php … ?>"
+			]
+		],
+		"width": 520.0
+	},
+	"console":
+	{
+		"height": 192.0
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/D/web/polymer/dev/gl-vertexbuffer/gl-vertexbuffer.html",
+		"/D/web/polymer/dev/gl-elements/src/webgl/GLProgram.js",
+		"/D/web/polymer/dev/gl-elements/src/utilities/ULMaterial.js",
+		"/D/web/polymer/dev/gl-elements/src/gui/UIView.js",
+		"/D/web/polymer/dev/gl-elements/src/utilities/ULScene.js",
+		"/D/web/polymer/dev/gl-elements/src/utilities/ULMesh.js",
+		"/D/web/polymer/dev/gl-elements/src/utilities/ULGeometry.js",
+		"/D/web/polymer/dev/gl-elements/src/utilities/ULLight.js",
+		"/D/web/polymer/dev/gl-elements/test.vert",
+		"/D/web/polymer/dev/gl-elements/test.frag",
+		"/D/web/polymer/dev/gl-elements/src/utilities/ULCamera.js",
+		"/D/web/polymer/dev/gl-elements/src/math/MLVector.js",
+		"/D/web/polymer/dev/gl-elements/src/utilities/ULUniforms.js",
+		"/D/web/polymer/dev/gl-elements/src/webgl/GLDraw.js",
+		"/D/web/polymer/dev/gl-elements/src/webgl/shader/phong.frag",
+		"/D/web/polymer/dev/gl-elements/src/webgl/shader/phong.vert",
+		"/D/web/polymer/dev/gl-elements/README.md",
+		"/D/web/polymer/dev/gl-elements/src/math/MLMatrix.js",
+		"/D/web/polymer/dev/gl-elements/src/webgl/GLAttributeLocation.js",
+		"/D/web/polymer/dev/gl-elements/src/utilities/ULGeometryAttributes.js",
+		"/D/web/polymer/dev/gl-elements/src/webgl/GLUniformLocation.js",
+		"/D/web/polymer/dev/gl-elements/src/webgl/GLVertexArrayObject.js",
+		"/D/web/polymer/dev/gl-elements/deprecated/oldExperiments.html",
+		"/D/web/polymer/dev/gl-elements/src/utilities/ULInterleavedArray.js",
+		"/D/web/polymer/dev/gl-elements/src/webgl/GLVertexbuffer.js",
+		"/D/web/polymer/dev/gl-elements/src/webgl/GLTexture.js",
+		"/D/web/polymer/dev/gl-elements/src/webgl/GLRenderbuffer.js",
+		"/D/web/polymer/dev/gl-elements/src/webgl/GLFramebuffer.js",
+		"/D/web/polymer/dev/gl-elements/src/webgl/GLActiveInfo.js",
+		"/D/web/polymer/dev/gl-elements/src/utilities/ULPropertyDescriptors.js",
+		"/D/web/polymer/dev/gl-elements/src/utilities/ULResource.js",
+		"/D/web/polymer/dev/gl-elements/src/GLVertexbuffer.js",
+		"/D/web/polymer/dev/gl-elements/src/GLUniformLocation.js",
+		"/D/web/polymer/dev/gl-elements/src/GLProgram.js",
+		"/D/web/polymer/dev/gl-elements/src/GLTexture.js",
+		"/D/web/polymer/dev/gl-elements/src/GLDraw.js",
+		"/D/web/polymer/dev/gl-elements/cube.obj",
+		"/D/web/polymer/dev/gl-elements/src/GLContext.js",
+		"/D/web/polymer/dev/gl-elements/src/utilities/ULPointers.js",
+		"/D/web/polymer/dev/gl-elements/src/GLShader.js",
+		"/D/web/polymer/dev/gl-elements/src/GLRenderbuffer.js",
+		"/D/web/polymer/dev/gl-elements/src/GLFramebuffer.js",
+		"/D/web/polymer/dev/gl-elements/src/utilities/ULHeap.js",
+		"/D/web/polymer/dev/gl-elements/bin/traceur-runtime.js",
+		"/D/web/polymer/dev/gl-elements/src/utilities/ULAttributes.js",
+		"/D/web/polymer/dev/gl-elements/src/utilities/ULInterleavedArrays.js",
+		"/D/web/polymer/dev/gl-elements/src/GLPolygonOffset.js",
+		"/D/web/polymer/dev/gl-elements/src/GLAlpha.js",
+		"/D/web/polymer/dev/gl-elements/src/GLDepthTest.js",
+		"/D/web/polymer/dev/gl-elements/src/core.js",
+		"/D/web/polymer/dev/gl-elements/src/GLActiveInfo.js",
+		"/D/web/polymer/dev/gl-elements/src/GLVertexArrayObject.js",
+		"/D/web/polymer/dev/gl-elements/src/GLAttributeLocation.js",
+		"/D/web/polymer/dev/gl-elements/src/math/MLMat4.js",
+		"/D/web/polymer/dev/gl-elements/index.html",
+		"/D/web/polymer/dev/gl-elements/lib/test.c",
+		"/D/web/polymer/dev/gl-elements/deprecated/tier1/GLResource.html",
+		"/D/web/polymer/dev/gl-elements/lib/a.out.js",
+		"/D/web/polymer/dev/gl-elements/src/utilities/ULTypedArrays.js",
+		"/D/web/polymer/dev/gl-elements/bin/engine.js",
+		"/D/web/polymer/dev/gl-elements/lib/core.html",
+		"/D/web/polymer/dev/gl-elements/lib/core.js"
+	],
+	"find":
+	{
+		"height": 38.0
+	},
+	"find_in_files":
+	{
+		"height": 0.0,
+		"where_history":
+		[
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": true,
+		"find_history":
+		[
+			"( count = this.data.length, offset = 0 )",
+			"this.cullFace",
+			"this.polygonOffset",
+			".polygonOffset",
+			".set",
+			"positions",
+			"normals",
+			"Face3",
+			"descriptor[^M]",
+			"descriptor[M]",
+			"DESCRIPTORMask",
+			"descriptor",
+			"DEFAULT_PROGRAM",
+			"preious",
+			"skeleton",
+			"Example",
+			"getTarget",
+			"material",
+			"\\{\\n*\\t*gl.drawElements",
+			"\\{\\n*\\t*gl.draw",
+			"\\{\\n*\\t*gl",
+			"{\\n*\\t*gl",
+			"{gl",
+			"{\\ngl",
+			"{\\n\\t\\t\\tgl",
+			"{ \\n\\t\\t\\tgl",
+			"{\\n\\t\\tgl",
+			"{\\n\\tgl",
+			"{\\ngl",
+			"{gl",
+			"{ gl",
+			"first, count",
+			"};",
+			"TYPEDEF",
+			"DepthTest",
+			"PolygonOffset",
+			"SampleCoverage",
+			"multisample.set",
+			"Multisample",
+			"polygonOffset",
+			"PolygonOffset",
+			"setMode",
+			" set ",
+			"set ",
+			"set",
+			"ScissorTEst",
+			"prototy ",
+			"copyMatrix",
+			"Seperate",
+			"isDefault",
+			"copy",
+			"Properties",
+			"setP",
+			"Property",
+			"setP",
+			"Class",
+			"createClass",
+			"getDescriptors",
+			"Class",
+			"nonEnum",
+			"Enum",
+			"noEnum",
+			"enumerable",
+			"Class",
+			"Descriptors",
+			"Class",
+			"class",
+			"super",
+			"getUniformInfos",
+			"writeable",
+			"Extensions",
+			"\\",
+			"Extensions",
+			"apply",
+			"usageMask",
+			"STENCIL_BITS",
+			"DEPTH_BITS",
+			"Color",
+			"color",
+			"colorClear",
+			"ALPHA_",
+			"ATTRIBUTES",
+			"\\",
+			"Object.definePropert",
+			"srcALpha",
+			"size",
+			"PROTOTYPE",
+			"\\",
+			"ext",
+			"GLResource",
+			"length",
+			"Len[^g]",
+			"len[^g]",
+			"mult[^i]",
+			"mult",
+			"mult ",
+			"Flag",
+			"mult",
+			"cull",
+			"face",
+			"renderMesh",
+			"autoUpdate",
+			"complete",
+			"UI_SELECTION.clone()",
+			"material",
+			"setColor",
+			"getColor",
+			"get",
+			"Midpoint",
+			"command+",
+			"command",
+			"command+shift+r",
+			"ctrl+shift+r",
+			"getColor",
+			"getColor\ngetColor",
+			"getColor",
+			"this.getColor",
+			"terrainType",
+			"vertexColors",
+			"LineBasicMaterial",
+			"cells =",
+			"cells=",
+			"rSite",
+			"downlope",
+			"createVertex",
+			"Vertex",
+			"compute",
+			"array"
+		],
+		"highlight": false,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"fd8dEE",
+			"fd8d"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 3,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "index.html",
+					"settings":
+					{
+						"buffer_size": 9148,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4043,
+								4043
+							]
+						],
+						"settings":
+						{
+							"color_scheme": "Packages/JavaScriptNext - ES6 Syntax/Monokai Phoenix.tmTheme",
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"translate_tabs_to_spaces": false,
+							"word_wrap": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 60.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "page/worker_test.html",
+					"settings":
+					{
+						"buffer_size": 2932,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								805,
+								805
+							]
+						],
+						"settings":
+						{
+							"color_scheme": "Packages/JavaScriptNext - ES6 Syntax/Monokai Phoenix.tmTheme",
+							"syntax": "Packages/HTML/HTML.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "page/testworker.js",
+					"settings":
+					{
+						"buffer_size": 117,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								87,
+								87
+							]
+						],
+						"settings":
+						{
+							"auto_name": "onmessage = function ( job ) {",
+							"color_scheme": "Packages/JavaScriptNext - ES6 Syntax/Monokai Phoenix.tmTheme",
+							"syntax": "Packages/JavaScriptNext - ES6 Syntax/JavaScriptNext.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "src/header.js",
+					"settings":
+					{
+						"buffer_size": 3069,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								343,
+								343
+							]
+						],
+						"settings":
+						{
+							"color_scheme": "Packages/JavaScriptNext - ES6 Syntax/Monokai Phoenix.tmTheme",
+							"syntax": "Packages/JavaScriptNext - ES6 Syntax/JavaScriptNext.tmLanguage",
+							"tab_size": 6,
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "bin/core.html",
+					"settings":
+					{
+						"buffer_size": 215,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								100,
+								100
+							]
+						],
+						"settings":
+						{
+							"color_scheme": "Packages/JavaScriptNext - ES6 Syntax/Monokai Phoenix.tmTheme",
+							"syntax": "Packages/HTML/HTML.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "src/webgl/GLTexture.js",
+					"settings":
+					{
+						"buffer_size": 7288,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3054,
+								3054
+							]
+						],
+						"settings":
+						{
+							"color_scheme": "Packages/JavaScriptNext - ES6 Syntax/Monokai Phoenix.tmTheme",
+							"syntax": "Packages/JavaScriptNext - ES6 Syntax/JavaScriptNext.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 960.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "src/glsl/phong.vert",
+					"settings":
+					{
+						"buffer_size": 849,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								745,
+								745
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/OpenGL Shading Language (GLSL)/GLSL.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 120.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "src/glsl/phong.frag",
+					"settings":
+					{
+						"buffer_size": 2804,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2601,
+								2601
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/OpenGL Shading Language (GLSL)/GLSL.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 1860.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 8,
+					"file": "src/glsl/test.frag",
+					"settings":
+					{
+						"buffer_size": 9242,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								411,
+								411
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/OpenGL Shading Language (GLSL)/GLSL.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 840.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 9,
+					"file": "src/glsl/test.vert",
+					"settings":
+					{
+						"buffer_size": 160,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								69,
+								69
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/OpenGL Shading Language (GLSL)/GLSL.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 34.0
+	},
+	"input":
+	{
+		"height": 39.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": false,
+	"output.exec":
+	{
+		"height": 172.0
+	},
+	"output.hex_viewer_inspector":
+	{
+		"height": 130.0
+	},
+	"output.markdown":
+	{
+		"height": 130.0
+	},
+	"replace":
+	{
+		"height": 62.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+			[
+				"",
+				"hexstrat/app/webglrenderer.html"
+			]
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 500.0,
+		"selected_items":
+		[
+			[
+				"",
+				"/D/web/polymer/dev/gl-elements/GLElements.sublime-project"
+			]
+		],
+		"width": 380.0
+	},
+	"show_minimap": true,
+	"show_open_files": true,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 186.0,
+	"status_bar_visible": true
+}
