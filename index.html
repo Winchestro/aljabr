@@ -1,179 +1,23 @@
 <!doctype html>
 <html>
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-		<meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-		<title>Aljabr Test</title>
-		<script src="../lib/traceur.js"></script>
-		<!--iframe src="bin/core.html"></iframe-->
-		<style>
-			body {
-				display	: inline-block;
-			}
-			canvas {
-				width : 100%;
-				height : 100%;
-				position: fixed;
-				top : 0;
-				left : 0;
-				z-index : -1;
-				background : #888;
-			}
-			iframe {
-				display : none;
-			}
-		</style>
-	</head>
-	<body>
-
-		<script type="module">
-			import { gl, GL, canvas, extensions, capabilities, bindings, viewport, textureUnit } from "./src/webgl/Context.js";
-			import { Property, Properties, Getters, Setters, GetterSetters, E, C, W } from "./src/utilities/PropertyDescriptors.js";
-
-			import Mesh from "./src/mesh/Mesh.js";
-			import Material from "./src/mesh/Material.js";
-			import Graph from "./src/graph/Graph.js";
-			import Program from "./src/webgl/Program.js";
-			import { mat2, mat3, mat4, vec2, vec3, vec4, quat4 } from "./src/math/math.js";
-			
-			import Draw from "./src/webgl/Draw.js";
-			import createCube8Graph from "./src/primitives/Cube8/graph.js";
-
-			const startTime = Date.now();
-
-			Properties( window, {
-				gl, GL, canvas, extensions, bindings, viewport, textureUnit,
-				Property, Properties, Getters, Setters, GetterSetters, E, C, W,
-				Mesh, Material, Graph, Program, 
-				mat2, mat3, mat4, vec2, vec3, vec4, quat4,
-				Draw,
-				createCube8Graph,
-
-				DRAW_MESH : true,
-				dragging : false,
-				resolution : null,
-				uLight : null,
-
-				setupProgram ( program ) {
-					material.setProgram( program );
-					window.program = program;
-					window.u = program.getUniforms;
-					
-
-					if ( u.resolution ) u.resolution.setValues(
-						innerWidth,
-						innerHeight
-					);
-					if ( u.scene ) u.scene.usedLights.setValues( 1 );
-
-					if ( u.light ) {
-						let light = u.light[ 0 ];
-						light.position.setValues( 1.5, 1.5, 1.5 );
-						light.attenuation.setValues( 1, 0, 0.0001 ); //UniformFloatVec3
-						light.color.setValues( 1, 1, 1 ); //: UniformFloatVec3 
-						light.direction.setValues( 0, 0, 0 ); // UniformFloatVec3
-						light.exponent.setValues( 2 ); //: UniformFloat
-						light.innerCutoff.setValues( 0.1 ); //: UniformFloat
-						light.outerCutoff.setValues( 5.9 ); //: UniformFloat
-					}
-					if ( u.mesh ) {
-						u.mesh.transform.makeTranslation( 0, 0, -4 );
-						u.mesh.scale.setValues( 1, 1, 1 );
-					}
-					if ( u.camera ) {
-						u.camera.projection.makePerspective( 
-							innerWidth / innerHeight,
-							Math.PI / 3,
-							.01,
-							20
-						);
-						u.camera.transform.makeTranslation( 0, 0, 0 );
-					}
-					if ( u.projectionMatrix ) u.projectionMatrix.makePerspective(
-						
-						/*
-						mat4.Orthographic(
-							-innerWidth / 200,
-							innerWidth / 200,
-							-innerHeight / 200,
-							innerHeight / 200
-							,
-							.01,
-							100
-						)*/
-					);
-				},
-				loop ( ) {
-					requestAnimationFrame( loop );
-					draw();
-				},
-				draw ( ) {
-					Draw.clear( gl.COLOR_BUFFER_BIT  | gl.DEPTH_BUFFER_BIT );
-					mesh.draw( );
-				},
-			}, E | C | W );
-			
-
-			
-			var time;
-
-			void function main ( ) {
-
-				canvas.width = innerWidth;
-				canvas.height = innerHeight;
-				gl.viewport( 0, 0, innerWidth, innerHeight );
-				document.body.appendChild( canvas );
-
-				//window.mesh = new Mesh.Sphere( 32, 32 );
-				window.mesh = createCube8Graph();
-				window.material = mesh.material;
-				window.uniforms = material.program.getUniforms;
-				
-				//material.depth.enableWrite().enable();
-				material.cullFace.enable();
-				material.alpha.enable().setFunc( GL.SRC_ALPHA, GL.DST_ALPHA );
-
-				Program.DynamicSource( "./src/glsl/phong", setupProgram );
-
-				addEventListener( "mousedown", function( ) {
-					dragging = true;
-				} );
-				addEventListener( "mouseup", function( ) {
-					dragging = false;
-				} ); 
-
-				addEventListener( "mousemove", function( e ) {
-					if ( dragging && u.mesh ) {
-						material.program.use();
-						//console.log( e );
-						let movementX = e.movementX || e.mozMovementX;
-						let movementY = e.movementY || e.mozMovementY;
-						if ( movementX ) {
-							u.mesh.transform.rotate( movementX / 100, 0,1,0 );
-						}
-						if ( movementY ) {
-							u.mesh.transform.rotate( movementY / 100, 1,0,0 );
-						}
-
-
-					} else {
-						if ( uLight ) uLight[0].position.set(
-							
-
-							(.5 - e.x  / innerWidth ) * -4,
-							(.5 - e.y  / innerHeight ) * 4, 
-							1
-						);
-					}
-				} );
-
-				loop();
-			}()
-			
-			
-			
-			
-		</script>
-		<script> new traceur.WebPageTranscoder(document.location.href).run(); </script>
-	</body>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+        <title>Aljabr Test</title>
+        <script data-main="index.js" src="../lib/require.js"></script>
+        <!--iframe src="bin/core.html"></iframe-->
+        <style>
+            canvas {
+                width : 100%;
+                height : 100%;
+                position: fixed;
+                top : 0;
+                left : 0;
+                z-index : -1;
+                background : #888;
+            }
+        </style>
+    </head>
+    <body>
+    </body>
 </html>

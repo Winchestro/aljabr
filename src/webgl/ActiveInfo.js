@@ -1,10 +1,14 @@
-import { Property, Properties, Getters, Setters, GetterSetters, E, C, W } from "../utilities/PropertyDescriptors.js";
-import { gl, GL } from "../webgl/Context.js";
+define( [
+    "../utilities/PropertyDescriptors",
+    "../webgl/Context"
+], function module (
+    def,
+    gl
+) {
+    "use strict";
 
-Object.defineProperties( WebGLActiveInfo.prototype, { 
-	typeFlag : {
-		get : function ( ) {
-			return gl.flags[ this.type ];
-		}
-	}
-} );
+    def.Getters( WebGLActiveInfo.prototype, {
+        typeString ( ) { return gl.strings[ this.type ]; }
+    });
+
+});

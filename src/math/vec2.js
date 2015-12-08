@@ -1,140 +1,172 @@
-import { Properties, E, C, W } from "../utilities/PropertyDescriptors.js";
+define( [
+    "../utilities/PropertyDescriptors"
+], function module (
+    def
+) {
+    "use strict";
+    const _x_ = 0;
+    const _y_ = 1;
 
-export default class vec2 {
+    class vec2 {
 
-	constructor ( x, y ) {
-		this[ 0 ] = x || 0;
-		this[ 1 ] = y || 0;
-	}
-	*[Symbol.iterator] ( ) {
-		let index = 0;
-		while ( index < this.length ) yield this[ index++ ];
-	}
+        constructor ( x, y ) {
+            if ( x === undefined ) x = 0;
+            if ( y === undefined ) y = x;
 
-	static set ( outV2, inV2 ) {
-		return vec2.prototype.set.call( outV2, inV2 );
-	}
-	static setValues ( outV2, x, y ) {
-		return vec2.prototype.setValues.call( outV2, x, y );
-	}
-	
+            this[_x_] = x;
+            this[_y_] = y;
+        }
+        *[Symbol.iterator] ( ) {
+            let index = 0;
+            while ( index < this.length ) yield this[ index++ ];
+        }
 
-	static add ( outV2, inV2 ) {
-		return vec2.prototype.add.call( outV2, inV2 );
-	}
-	static sub ( outV2, inV2 ) {
-		return vec2.prototype.sub.call( outV2, inV2 );
-	}
-	static multiply ( outV2, inV2 ) {
-		return vec2.prototype.multiply.call( outV2, inV2 );
-	}
-	static divide ( outV2, inV2 ) {
-		return vec2.prototype.divide.call( outV2, inV2 );
-	}
+        
+        dot ( vA ) {
+            return this[_x_] * vA[_x_]
+                 + this[_y_] * vA[_y_]; 
+        }
+        static dot ( inV2, vA ) {
+            return vec2.prototype.dot.call( inV2, vA );
+        }
 
-	static dot ( vA, vB ) { 
-		return vA[ 0 ] * vB[ 0 ] + vA[ 1 ] * vB[ 1 ]; 
-	}
-	static addScalar ( outV2, inS ) {
-		return vec2.prototype.addScalar.call( outV2, inS );
-	}
-	static multiplyScalar ( outV2, inS ) {
-		return vec2.prototype.multiplyScalar.call( outV2, inS );
-	}
+        set ( vA ) {
+            this[_x_] = vA[_x_];
+            this[_y_] = vA[_y_];
+            return this;    
+        }
+        static set ( outV2, vA ) {
+            return vec2.prototype.set.call( outV2, vA );
+        } 
 
-	static lerp ( outV2, inV, inS ) {
-		return vec2.prototype.lerp.call( outV2, inV, inS );
-	}
-	static normalize ( outV2 ) {
-		return vec2.prototype.normalize.call( outV2 );
-	}
+        setValues ( x, y ) {
+            this[_x_] = x;
+            this[_y_] = y;
+            return this;
+        }
+        static setValues ( outV2, x, y ) {
+            return vec2.prototype.setValues.call( outV2, x, y );
+        }
+        
+        add ( vA, vB ) {
+            if ( vB === undefined ) vB = this;
 
-	static getLength ( inV2 ) {
-		return vec2.prototype.getLength.call( inV2 );
-	}
-	static getLengthSq ( inV2 ) {
-		return vec2.prototype.getLengthSq.call( inV2 );
-	}
-	static getLengthManhattan ( inV2 ) {
-		return vec2.prototype.getLengthManhattan.call( inV2 );
-	}
-}
-Properties( vec2.prototype, {
-	length : 2,
+            this[_x_] = vA[_x_] + vB[_x_];
+            this[_y_] = vA[_y_] + vB[_y_];
+            return this;
+        }
+        static add ( outV2, vA, vB ) {
+            return vec2.prototype.add.call( outV2, vA, vB );
+        }
 
-	set ( vA ) {
-		this[ 0 ] = vA[ 0 ];
-		this[ 1 ] = vA[ 1 ];
-		return this;	
-	},
-	setValues ( x, y ) {
-		this[ 0 ] = x;
-		this[ 1 ] = y;
-		return this;
-	},
-	
+        sub ( vA, vB ) {
+            if ( vB === undefined ) vB = this;
 
-	add ( vA, vB = this ) {
-		this[ 0 ] = vA[ 0 ] + vB[ 0 ];
-		this[ 1 ] = vA[ 1 ] + vB[ 1 ];
-		return this;
-	},
-	sub ( vA, vB = this ) {
-		this[ 0 ] = vB[ 0 ] - vA[ 0 ];
-		this[ 1 ] = vB[ 1 ] - vA[ 1 ];
-		return this;
-	},
-	multiply ( vA, vB = this ) {
-		let v = this;
-		
-		
-		v[ 0 ] = vA[ 0 ] * vB[ 0 ];
-		v[ 1 ] = vA[ 1 ] * vB[ 1 ];
-			
-		return this;
-	},
-	divide ( vA, vB = this ) {
-		let v = this;
-		
-		
-		v[ 0 ] = vA[ 0 ] / vB[ 0 ];
-		v[ 1 ] = vA[ 1 ] / vB[ 1 ];
-			
-		return this;
-	},
+            this[_x_] = vB[_x_] - vA[_x_];
+            this[_y_] = vB[_y_] - vA[_y_];
+            return this;
+        }
+        static sub ( outV2, vA, vB ) {
+            return vec2.prototype.sub.call( outV2, vA, vB );
+        }
 
-	dot ( vA ) {
-		return vec2.dot( this, vA );
-	},
-	addScalar ( s ) {
-		this[ 0 ] += s;
-		this[ 1 ] += s;
-		return this;
-	},
-	multiplyScalar ( s ) {
-		this[ 0 ] *= s;
-		this[ 1 ] *= s;
-		return this;
-	},
+        multiply ( vA, vB ) {
+            if ( vB === undefined ) vB = this;
+                
+            this[_x_] = vA[_x_] * vB[_x_];
+            this[_y_] = vA[_y_] * vB[_y_];
+                
+            return this;
+        }
+        static multiply ( outV2, vA, vB ) {
+            return vec2.prototype.multiply.call( outV2, vA, vB );
+        }
 
-	lerp ( inV2, alpha ) {
-		this[ 0 ] += ( inV2[ 0 ] - this[ 0 ] ) * alpha;
-		this[ 1 ] += ( inV2[ 1 ] - this[ 1 ] ) * alpha;
-		return this;
-	},
-	normalize ( ) {
-		let length = vec2.getLength( this );
-		if ( length === 0 ) return this;
-		else return vec2.multiplyScalar( this, 1 / length );
-	},
+        divide ( vA, vB ) {
+            if ( vB === undefined ) vB = this;
 
-	getLength ( ) {
-		return Math.sqrt( this[ 0 ] * this[ 0 ] + this[ 1 ] * this[ 1 ] );	
-	},
-	getLengthSq ( ) {
-		return this[ 0 ] * this[ 0 ] + this[ 1 ] * this[ 1 ];	
-	},
-	getLengthManhattan ( ) {
-		return Math.abs( this[ 0 ] ) + Math.abs( this[ 1 ] );
-	}
+            this[_x_] = vB[_x_] / vA[_x_];
+            this[_y_] = vB[_y_] / vA[_y_];
+                
+            return this;
+        }
+        static divide ( outV2, vA, vB ) {
+            return vec2.prototype.divide.call( outV2, vA, vB );
+        }
+
+        addScalar ( s ) {
+            this[_x_] += s;
+            this[_y_] += s;
+            return this;
+        }
+        static addScalar ( outV2, s ) {
+            return vec2.prototype.addScalar.call( outV2, s );
+        }
+
+        multiplyScalar ( s ) {
+            this[_x_] *= s;
+            this[_y_] *= s;
+            return this;
+        }
+        static multiplyScalar ( outV2, s ) {
+            return vec2.prototype.multiplyScalar.call( outV2, s );
+        }
+
+        lerp ( s, vA, vB ) {
+            if ( vB === undefined ) vB = this;
+
+            this[_x_] = vA[_x_] + ( vB[_x_] - vA[_x_] ) * s;
+            this[_y_] = vA[_y_] + ( vB[_y_] - vA[_y_] ) * s;
+            return this;
+        }
+        static lerp ( outV2, s, vA, vB ) {
+            return vec2.prototype.lerp.call( outV2, s, vA, vB );
+        }
+
+        normalize ( ) {
+            let length = vec2.prototype.getLength.call( this );
+            if ( length === 0 ) return this;
+            else return vec2.prototype.multiplyScalar.call( this, 1 / length );
+        }
+        static normalize ( outV2 ) {
+            return vec2.prototype.normalize.call( outV2 );
+        } 
+
+        getLength ( ) {
+            return Math.sqrt(
+                  this[_x_] * this[_x_]
+                + this[_y_] * this[_y_]
+            );  
+        }
+        static getLength ( inV2 ) {
+            return vec2.prototype.getLength.call( inV2 );
+        }
+
+        getLengthSq ( ) {
+            return this[_x_] * this[_x_]
+                 + this[_y_] * this[_y_];   
+        }
+        static getLengthSq ( inV2 ) {
+            return vec2.prototype.getLengthSq.call( inV2 );
+        }
+
+        getLengthManhattan ( ) {
+            return Math.abs( this[_x_] )
+                 + Math.abs( this[_y_] );
+        }
+        static getLengthManhattan ( inV2 ) {
+            return vec2.prototype.getLengthManhattan.call( inV2 );
+        }
+    }
+
+    def.Properties( vec2.prototype, {
+        length : 2,
+        splice : [].splice,
+        toString : function ( ) {
+            return "["+this[0]+","+this[1]+"]"
+        }
+    });
+    
+    return vec2;
+
 });
