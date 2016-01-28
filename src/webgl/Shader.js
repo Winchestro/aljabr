@@ -34,7 +34,7 @@ define( [
         setShaderSource ( code ) {
             gl.shaderSource( this, code );
             this.compile();
-            //if ( debugMode ) { console.clear(); }
+            //if ( debugMode ) console.clear();
             if ( !this.getCompileStatus ) {
                 debugMode = this;
                 console.error( this.getInfoLog );

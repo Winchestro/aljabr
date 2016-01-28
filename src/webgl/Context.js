@@ -42,6 +42,7 @@ define( [
             return this;
         }
     });
+    
     def.Getters( WebGLRenderingContext.prototype, {
         getShadingLanguageVersion   ( ) { return gl.getParameter( GL.SHADING_LANGUAGE_VERSION );    },
         getVersion                  ( ) { return gl.getParameter( GL.VERSION );                     },

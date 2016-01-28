@@ -2,13 +2,13 @@ define ( [
     "../utilities/PropertyDescriptors",
     "../webgl/Context",
     "../webgl/Extensions",
-    "../webgl/VertexBuffer",
+    "../webgl/BufferObject",
     "../material/Material"
 ], function module (
     def,
     gl,
     extensions,
-    VertexBuffer,
+    BufferObject,
     Material
 ) {
     "use strict";
@@ -31,12 +31,13 @@ define ( [
                 offset : 0,
                 count : 0,
                 dataType : 0,
+                visible : true,
                 drawType,
                 material
             }, def.WRITABLE );
 
             def.Properties( this, {
-                vertexBuffer : VertexBuffer.Index(),
+                vertexBuffer : new BufferObject.Index,
                 view : null
             }, def.CONFIGURABLE );
             
@@ -97,6 +98,7 @@ define ( [
             return this;
         }
         draw ( scene, camera, lights, mesh ) {
+            if ( !this.visible ) return this;
             var uniforms;
 
             this.vertexBuffer.bind();

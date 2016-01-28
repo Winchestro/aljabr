@@ -36,7 +36,7 @@ define ( [
             }, def.CONFIGURABLE );
         }
         createItem ( toVertex, opposite, next, prev, face ) {
-            if ( this.pool.length ) {
+            if ( this.pool.length !== 0 ) {
                 let halfedge = this.pool.pop();
                     halfedge.toVertex = toVertex;
                     halfedge.oppositeHalfedge = opposite;

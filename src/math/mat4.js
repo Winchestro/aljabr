@@ -199,7 +199,7 @@ define( [
                             + a[_2_0_] * m[_2_0_]
                             + a[_3_0_] * m[_3_0_];
             
-            if( Math.abs( determinant ) < Number.EPSILON ) return mat4.makeIdentity( this );
+            if( Math.abs( determinant ) < EPSILON ) return mat4.makeIdentity( this );
             else return mat4.multiplyScalar( this, 1 / determinant );
         }
 

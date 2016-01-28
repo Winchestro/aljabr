@@ -3,37 +3,44 @@ define ( [
     "../webgl/Context",
     "../mesh/FaceList",
     "../mesh/EdgeList",
-    "../mesh/VertexList"
+    "../mesh/VertexList",
+    "../mesh/DisplayList"
 ], function module (
     def,
     gl,
     FaceList,
     EdgeList,
-    VertexList
+    VertexList,
+    DisplayList
 ){
     "use strict";
 
 
-    class Mesh {
+    class Mesh extends DisplayList {
         constructor ( uniforms, vertices, edges, faces, children ) {
             if ( edges === undefined ) edges = new EdgeList;
             if ( faces === undefined ) faces = new FaceList;
             if ( children === undefined ) children = [];
+
+            super( children );
+
             if ( uniforms ) def.Properties( this, uniforms, def.ENUMERABLE | def.CONFIGURABLE | def.WRITABLE );
 
 
             def.Properties( this, {
                 vertices,
                 faces,
-                edges,
-                children
+                edges
             }, def.CONFIGURABLE );
 
-            
+            def.Property( this, "visible", true, def.WRITABLE );
             
         }
 
+        
+
         draw ( scene, camera, lights, partentMesh ) {
+            if ( !this.visible ) return;
             if ( partentMesh ) partentMesh.vertices.unbind();
             this.vertices.bind();
             

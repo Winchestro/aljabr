@@ -7,7 +7,6 @@ struct Mesh {
     mat4 transform;
     vec3 scale;
 };
-
 struct Camera {
     mat4 transform;
     mat4 projection;

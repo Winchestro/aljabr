@@ -63,7 +63,7 @@ define ( function module ( ) {
 
 
         for( let p in setters ) {
-            DESCRIPTOR_SETTER.set = getters[ p ];
+            DESCRIPTOR_SETTER.set = setters[ p ];
             Object.defineProperty( target, p, DESCRIPTOR_SETTER );
         }
 
@@ -73,7 +73,7 @@ define ( function module ( ) {
         DESCRIPTOR_GETTER_SETTER.enumerable     = ( descriptorMask & E ) ? true : false;
         DESCRIPTOR_GETTER_SETTER.configurable   = ( descriptorMask & C ) ? true : false;
 
-        for( let p in setters ) {
+        for( let p in getters ) {
             DESCRIPTOR_GETTER_SETTER.get = getters[ p ];
             DESCRIPTOR_GETTER_SETTER.set = setters[ p ];
             Object.defineProperty( target, p, DESCRIPTOR_GETTER_SETTER );

@@ -44,6 +44,7 @@ define ( [
     "use strict";
 
     class Material {
+
         constructor ( uniforms ) {
             def.Properties( this, uniforms, def.ENUMERABLE | def.CONFIGURABLE | def.WRITABLE );
             
@@ -74,7 +75,8 @@ define ( [
             this.textures.use();
 
 
-            if ( this.alpha.enabled ) {                 this.alpha.enable();
+            if ( this.alpha && this.alpha.enabled ) {
+                Alpha.enable();
 
                 if ( this.alpha.colorSet )              this.alpha.setColor();
                 else                                    this.alpha.unsetColor();
@@ -85,10 +87,11 @@ define ( [
                 if ( this.alpha.equationSet )           this.alpha.setEquation();
                 else                                    this.alpha.unsetEquation();
 
-            } else                                      this.alpha.disable();
+            } else Alpha.disable();
             
 
-            if ( this.cullFace.enabled ) {              this.cullFace.enable();
+            if ( this.cullFace && this.cullFace.enabled ) {
+                CullFace.enable();
 
                 if ( this.cullFace.modeSet )            this.cullFace.setMode();
                 else                                    this.cullFace.unsetMode();
@@ -96,10 +99,10 @@ define ( [
                 if ( this.cullFace.frontSet )           this.cullFace.setFront();
                 else                                    this.cullFace.unsetFront();
 
-            } else                                      this.cullFace.disable();
+            } else CullFace.disable();
 
 
-            if ( this.depth.enabled ) {                 this.depth.enable();
+            if ( this.depth && this.depth.enabled ) {   DepthTest.enable();
 
                 if ( this.depth.writeEnabled )          this.depth.enableWrite();
                 else                                    this.depth.disableWrite();
@@ -110,22 +113,25 @@ define ( [
                 if ( this.depth.rangeSet )              this.depth.setRange();
                 else                                    this.depth.unsetRange();
 
-            } else                                      this.depth.disable();
+            } else                                      DepthTest.disable();
 
 
-            if ( this.dither.enabled ) {                this.dither.enable();
-            } else                                      this.dither.disable();
+            if ( this.dither && this.dither.enabled ) {
+                Dither.enable();
+            } else Dither.disable();
 
 
-            if ( this.offset.enabled  ) {               this.offset.enable();
+            if ( this.offset && this.offset.enabled  ) {
+                PolygonOffset.enable();
 
                 if ( this.offset.fillSet )              this.offset.setFill();
                 else                                    this.offset.unsetFill();
 
-            } else                                      this.offset.disable();
+            } else PolygonOffset.disable();
 
 
-            if ( this.multisample.enabled ) {           this.multisample.enable();
+            if ( this.multisample && this.multisample.enabled ) {
+                Multisample.enable();
 
                 if ( this.multisample.alphaEnabled )    this.multisample.enableAlpha();
                 else                                    this.multisample.disableAlpha();
@@ -133,18 +139,20 @@ define ( [
                 if ( this.multisample.coverageSet )     this.multisample.setCoverage();
                 else                                    this.multisample.unsetCoverage();
 
-            } else                                      this.multisample.disable();
+            } else Multisample.disable();
 
 
-            if ( this.scissor.enabled ) {               this.scissor.enable();
+            if ( this.scissor && this.scissor.enabled ) {
+                ScissorTest.enable();
 
                 if ( this.scissor.dimensionsSet )       this.scissor.setDimensions();
                 else                                    this.scissor.unsetDimensions();
 
-            } else                                      this.scissor.disable();
+            } else ScissorTest.disable();
 
 
-            if ( this.stencil.enabled ) {               this.stencil.enable();
+            if ( this.stencil && this.stencil.enabled ) {
+                StencilTest.enable();
                 if ( 
                     this.stencil.frontOpSet && 
                     this.stencil.backOpSet 
@@ -172,12 +180,29 @@ define ( [
                     if ( this.stencil.frontMaskSet )    this.stencil.setFrontMask();
                     if ( this.stencil.backMaskSet )     this.stencil.setBackMask();
                 }
-            } else                                      this.stencil.disable();
+            } else StencilTest.disable();
             
 
             return this;
         }
     }
+
+    class Phong extends Material {
+        constructor ( uniforms ) {
+            if ( uniforms === undefined ) uniforms                        = {};
+            if ( uniforms.ambient === undefined ) uniforms.ambient        = new vec4( 0.0, 0.0, 0.0, 1.0 );
+            if ( uniforms.diffuse === undefined ) uniforms.diffuse        = new vec4( 0.5, 0.5, 0.5, 1.0 );
+            if ( uniforms.specular === undefined ) uniforms.specular      = new vec3( 1.0, 1.0, 1.0 );
+            if ( uniforms.shininess === undefined ) uniforms.shininess    = 1.0;
+            
+            super( uniforms );
+        }
+    }
+
+    def.Properties( Material, {
+        Phong
+    }, def.CONFIGURABLE );
+    
 
     return Material;
 });

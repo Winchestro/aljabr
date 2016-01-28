@@ -12,7 +12,11 @@ var diagram;
 var cells;
 var tris;
 
+var directionalLight;
+var pointLight;
+
 var material;
+var waterMaterial;
 var edgeMaterial;
 var textMaterial;
 var scene;
@@ -22,6 +26,7 @@ var lights;
 var glyphAtlas;
 var text;
 var quad;
+var gui;
 
 var library = {
     utilities : {
@@ -55,10 +60,9 @@ var library = {
         UniformList : "",
         UniformStruct : "",
         VertexArrayObject : "",
-        VertexBuffer : "",
+        BufferObject : "",
         Viewport : ""
-    },
-    
+    },   
     material : {
         Alpha : "",
         CullFace : "",
@@ -95,7 +99,6 @@ var library = {
         quat4 : "",
         lerp : ""
     },
-    
     primitives : {
         createCube : "",
         createGrid : "",
@@ -105,7 +108,7 @@ var library = {
         createBipyramid : "",
         createIcosahedron : ""
     },
-
+    
     "../../lib/Javascript-Voronoi" : {
         "rhill-voronoi-core" : "Voronoi"
     },
@@ -115,7 +118,12 @@ var library = {
     },*/
     "../../lib/proc-noise-node/lib" : {
         "proc-noise" : "Perlin"
-    }
+    },
+
+    /*
+    gui : {
+        gui : "GUI"
+    }*/
 };
 
 void function setup ( ) {
@@ -137,40 +145,59 @@ function main ( $$dependencies ) {
     // export as globals for debugging
     for ( let library in args ) def.Property( window, args[ library ], arguments[ library ] );
 
+    //gui = new GUI;
 
+    //gui.appendChild( gl.canvas );
 
-
-    document.body.appendChild( gl.canvas );
     
+    document.body.appendChild( gl.canvas );
     gl.setPixelRatio();
     
-
     scene = new Scene;
-    scene.lights.push( new Light({
-        position        : new vec3( 0 ),
+    
+    
+    
+    directionalLight = new Light({
+        position        : new vec4( 1,1,1,0 ),
         attenuation     : new vec3( 2, 1, 0.025 ),
         color           : new vec3( 1 ),
         direction       : new vec3( 0 ),
         exponent        : 2,
         innerCutoff     : 0.1,
         outerCutoff     : 5.9
-    }));
+    });
 
+    pointLight = new Light({
+        position        : new vec4( 1,1,1,1 ),
+        attenuation     : new vec3( 2, 1, 0.025 ),
+        color           : new vec3( 1 ),
+        direction       : new vec3( 0 ),
+        exponent        : 2,
+        innerCutoff     : 0.1,
+        outerCutoff     : 5.9
+    });
+
+    scene.lights.push( directionalLight );
+    //scene.lights.push( pointLight );
+    
     scene.camera.transform
-    .translate( 0, 0, -10 )
-    .rotate( -Math.PI / 4, 1,0,0 )
+        .translate( 0, 0, -10 )
+        .rotate( -Math.PI / 4, 1, 0, 0 )
     ;
 
-    material = new Material({
-        shininess   : 1.0,
-        ambient     : new vec4( .75,.75,.75, 1.0 ),
-        diffuse     : new vec4( .5, .5, .5, 1 ),
-        specular    : new vec3( 1.0 )
-    });
+    material = new Material.Phong( undefined, undefined, Material.DEPTH | Material.CULLFACE | Material.OFFSET );
+    waterMaterial = new Material.Phong( undefined, undefined, Material.DEPTH | Material.ALPHA | Material.CULLFACE | Material.OFFSET );
+
     material.depth.enable().enableWrite();
-    //material.alpha.enable().setFunc( gl.SRC_COLOR , gl.ONE_MINUS_DST_COLOR, gl.SRC_ALPHA, gl.DST_ALPHA )
+    //material.alpha.enable().setFunc( gl.SRC_COLOR , gl.ONE_MINUS_DST_COLOR, gl.SRC_ALPHA, gl.DST_ALPHA );
     material.cullFace.enable();
     material.offset.enable().setFill( 1, 0 );
+
+    waterMaterial.depth.enable();
+    waterMaterial.alpha.enable().setFunc( Alpha.FN_SRC_COLOR , Alpha.FN_ONE_MINUS_DST_COLOR, Alpha.FN_SRC_ALPHA, Alpha.FN_DST_ALPHA );
+    waterMaterial.cullFace.enable();
+    waterMaterial.offset.enable().setFill( 1, 0 );
+
 
     edgeMaterial = new Material({
         ambient     : new vec4( 1, 1, 1, 1 )
@@ -204,8 +231,9 @@ function main ( $$dependencies ) {
     textMaterial = glyphAtlas.material;
     //console.profile( "create grid mesh" );
     let bbox = { xl: -100, xr: 100, yt: -100, yb: 100 };
-
-    diagram = createSmooth( 5000, bbox, 4 );
+    const NOISE_SCALE = 0.04;
+    const NOISE_EXPONENT = 2;
+    diagram = createSmooth( 25000, bbox, 4 );
     
     function createSmooth ( numSites, bbox, steps ) {
         var sites = [];
@@ -218,7 +246,7 @@ function main ( $$dependencies ) {
             do {
                 x = Math.random() * width - width * .5;
                 y = Math.random() * height - height * .5;
-            } while ( scaledNoise( x, y, 0.04 ) < Math.random() );
+            } while ( scaledNoise( x, y, NOISE_SCALE, NOISE_EXPONENT ) < Math.random() );
             sites.push({
                 x : x,
                 y : y
@@ -277,7 +305,7 @@ function main ( $$dependencies ) {
         let targetVertex = cells.vertices[ i ];
       
         targetVertex.position.setValues( sourceVertex.x, sourceVertex.y, 0 );
-        targetVertex.color.setValues( 1,1,1, 1 );
+        targetVertex.color.setValues( .3,.5,.8, .6 );
         targetVertex.normal.setValues( 0,0,1 );
         targetVertex.uv.setValues( .5 * ( 1 + sourceVertex.x ),  .5 * ( 1 + sourceVertex.y ) );
         //createIndexLabel( cells, i, "c_"+i/*faceIndices.join(" / ")*/, 2 );
@@ -290,11 +318,9 @@ function main ( $$dependencies ) {
 
         
         for ( let halfedge of cell.halfedges ) {
-            let toVertex = halfedge.getStartpoint();
-//            toVertex.out = halfedge;
-            faceIndices.unshift( toVertex.id );
-
+            faceIndices.unshift( halfedge.getStartpoint().id );
         }
+
         let face = cells.createFace.apply( cells, faceIndices );
 
         let sourceVertex = diagram.cells[ i ].site;
@@ -302,16 +328,22 @@ function main ( $$dependencies ) {
 
         face.site = targetVertex;
         
-        let z = scaledNoise( sourceVertex.x, sourceVertex.y, .04 );
-        
+        let z = scaledNoise( sourceVertex.x, sourceVertex.y, NOISE_SCALE, NOISE_EXPONENT );
+        /*
         let g;
         ( z > 0 ) ? g = ( z + .5 ) * 0.75 : g = 0;
         let b;
         ( z < 0 ) ? b = 1 : b = 0;
+        */
+        let g = Math.max( z, -.25 ) + .75 - Math.min( z, 0 );
+        let w = Math.max( z +.25, .5 ); 
+
+
+        //let b = Math.min( z, 0 ) + .5;
         //console.log( z );
 
-        targetVertex.position.setValues( sourceVertex.x, sourceVertex.y, ( z  > 0 ) ? z * 10 : 0 );
-        targetVertex.color.setValues( 0, g, b, 1 );
+        targetVertex.position.setValues( sourceVertex.x, sourceVertex.y, /*( z  > 0 ) ? z * 10 : 0*/ z * 10 );
+        targetVertex.color.setValues( w, g, w, 1 );
         //targetVertex.normal.setValues( 0, 0, 1 );
         targetVertex.uv.setValues( .5 * ( 1 + sourceVertex.x ), .5 * ( 1 + sourceVertex.y ) );
         //createIndexLabel( tris, i, "t_"+i/*faceIndices.join(" / ")*/, 2 );
@@ -325,13 +357,13 @@ function main ( $$dependencies ) {
 
     for ( let i = 0; i < cells.vertices.length; i++ ) {
         let vertex = cells.vertices[ i ];
-        //vertex.rotateOutgoingHalfedgeRight();
+        
         for ( let face of vertex.faces() ) {
             faceIndices.push( face.site.index );
         }
 
         //console.log( faceIndices.length, i );
-        
+        //createIndexLabel( cells, i, faceIndices.join(" / "), 5 );
         if ( faceIndices.length === 3 ) {
             
             let face = tris.createFace.apply( tris, faceIndices );
@@ -349,7 +381,7 @@ function main ( $$dependencies ) {
 
         }
 
-        //createIndexLabel( cells, i, faceIndices.join(" / "), 3 );
+        
         faceIndices.length = 0;
     }
 
@@ -374,21 +406,41 @@ function main ( $$dependencies ) {
     cells.vertices.update();
     tris.vertices.update();
 
-    //cells.children.unshift( cells.vertices.createElement( material ) );
-    cells.children.unshift( cells.edges.createElement( edgeMaterial ));
-    //cells.children.unshift( cells.faces.createElement( material ) );
-    scene.children.push( tris );
+    
+    cells
+        .addChild( "points", cells.vertices.createElement( material ), 0 )
+        .addChild( "normals", cells.createNormalMesh( edgeMaterial, 5 ), 0 )
+        .addChild( "lines", cells.edges.createElement( edgeMaterial ), 0 )
+        .addChild( "triangles", cells.faces.createElement( waterMaterial ), 0 )
+    ;
+    cells.points.visible = false;
+    cells.lines.visible = false;
+    cells.normals.visible = false;
+
+    scene.addChild( "delaunay", tris );
+    scene.addChild( "voronoi", cells );
+    //scene.children.push( tris );
     //scene.children.push( cells );
 
-    //tris.children.unshift( tris.vertices.createElement( material ));
     
-    tris.children.unshift( tris.edges.createElement( edgeMaterial ));
-    tris.children.unshift( tris.createNormalMesh( edgeMaterial ) );
-    tris.children.unshift( tris.faces.createElement( material ) );
-        
+    
+    
+    
+    tris
+        .addChild( "points", tris.vertices.createElement( material ), 0 )
+        .addChild( "lines", tris.edges.createElement( edgeMaterial ), 0 )
+        .addChild( "normals", tris.createNormalMesh( edgeMaterial, 5 ), 0 )
+        .addChild( "triangles", tris.faces.createElement( material ), 0 )
+    ;
 
-    function scaledNoise( x, y, scale ) {
-        return ( perlin.noise( x * scale, y * scale ) - .5 ) * 2;
+    tris.points.visible = false;
+    tris.normals.visible = false;
+    tris.lines.visible = false;
+
+
+    function scaledNoise( x, y, scale, exponent ) {
+        let n = ( perlin.noise( x * scale, y * scale ) - .5 ) * 2;
+        return  n;
     }
 
     function createIndexLabel ( parent, index, label, offset ) {
@@ -410,15 +462,20 @@ function main ( $$dependencies ) {
         return color.setValues( 0, x, y, 1 );
     }
     grid = createGrid( {
-        scale       : new vec3( 1 ),
+        scale       : new vec3( 11 ),
         transform   : new mat4().makeTranslation( 0, 0, 0 )
-    }, 0, 0, 100 );
+    }, 21, 21, 100 );
 
     //console.profileEnd( "create grid mesh" );
 
-    grid.children.push( grid.faces.createElement( material ) );
-    grid.children.push( grid.edges.createElement( edgeMaterial ) );
-    //scene.children.push( grid );
+    grid
+        .addChild( "triangles", grid.faces.createElement( material ) )
+        .addChild( "lines", grid.edges.createElement( edgeMaterial ) )
+    ;
+    grid.triangles.visible = false;
+    grid.visible = false;
+
+    scene.addChild( "grid", grid );
     /*
     cube = createCube({
         scale       : new vec3( 2 ),
@@ -568,22 +625,74 @@ function main ( $$dependencies ) {
     Program.HttpSource( "./src/glsl/text", setupText );
     
     
-
+    //gui.inspect( tris );
+    //gui.inspect( cells );
+    //gui.inspect( scene );
 
     addEventListener( "resize", handleScale );
     addEventListener( "mousemove", handleMouseMove );
-    
     var dragging = false;
 
-    addEventListener( "mousedown", function ( e ) {
+    var touchAstart = new vec2;
+    var touchBstart = new vec2;
+    var touchApos = new vec2;
+    var touchBpos = new vec2;
+    var touchTransformOrigin = new vec2;
+    
+    gl.canvas.addEventListener( "touchstart", function ( event ) {
+        if ( event.touches.length === 1 ) {
+            dragging = true;
+            event.target.focus( event.target );
+            if ( event.target === gl.canvas ) {
+                handleMouseMove( event.touches[ 0 ] );
+                event.preventDefault();
+            }
+        } else {
+            touchAstart.setValues( event.touches[ 0 ].clientX, event.touches[ 0 ].clientY );
+            touchBstart.setValues( event.touches[ 1 ].clientX, event.touches[ 1 ].clientY );
+            dragging = false;
+
+        }
+    });
+    gl.canvas.addEventListener( "touchmove", function ( event ) {
+        if ( event.target === gl.canvas ) {
+            switch ( event.touches.length ) {
+                case 1 : {
+                    handleMouseMove( event.touches[ 0 ] );
+                } break;
+                case 2 : {
+                    touchApos.setValues( event.touches[ 0 ].clientX, event.touches[ 0 ].clientY );
+                    touchBpos.setValues( event.touches[ 1 ].clientX, event.touches[ 1 ].clientY );
+                    let distanceA = Math.sqrt( Math.pow( touchAstart[ 0 ] - touchBstart[ 0 ], 2 ), Math.pow( touchAstart[ 1 ] - touchBstart[ 1 ], 2 ) );
+                    let distanceB = Math.sqrt( Math.pow( touchApos[ 0 ] - touchBpos[ 0 ], 2 ), Math.pow( touchApos[ 1 ] - touchBpos[ 1 ], 2 ) );
+                    let delta = distanceA - distanceB;
+                    //scene.camera.transform[ 12 ] = touchTransformOrigin[ 0 ] + ( touchApos[ 0 ] + touchBpos[ 0 ] ) * .5;
+                    //scene.camera.transform[ 13 ] = touchTransformOrigin[ 1 ] + ( touchApos[ 1 ] + touchBpos[ 1 ] ) * .5;
+                    scene.camera.transform[ 14 ] =  -delta;
+                    //console.log( distanceA, distanceB, delta );
+                }
+            }
+        }
+    });
+
+    gl.canvas.addEventListener( "touchend", function ( event ) {
+        if ( event.touches.length === 0 ) dragging = false;
+        else if ( event.touches.length ===  2 ) {
+            touchTransformOrigin.setValues( ( touchApos[ 0 ] + touchBpos[ 0 ] ) * .5, ( touchApos[ 1 ] + touchBpos[ 1 ] ) * .5 );
+        }
+    });
+
+    
+
+    gl.canvas.addEventListener( "mousedown", function ( e ) {
         dragging = true;
     });
 
-    addEventListener( "mouseup", function ( ) {
+    gl.canvas.addEventListener( "mouseup", function ( ) {
         dragging = false;
     });
 
-    addEventListener( "wheel", function ( e ) {
+    gl.canvas.addEventListener( "wheel", function ( e ) {
         let delta = e.wheelDeltaY / Math.abs( e.wheelDeltaY );
 
         scene.camera.transform.translate( 0,0, -delta * 5 );
@@ -619,10 +728,17 @@ function main ( $$dependencies ) {
         scene.draw();
     }
 
-    
+    var pointer = new vec2;
+    var pointerMovement = new vec2;
+    var pointerPrevious = new vec2;
+
     function handleMouseMove ( e ) {
-        mouse[ 0 ] = ( e.clientX / innerWidth * 2 ) - 1;
-        mouse[ 1 ] = (-e.clientY / innerHeight * 2 ) - 1;
+        pointer.setValues( e.clientX, e.clientY );
+        pointerMovement.sub( pointer, pointerPrevious );
+
+        //console.log( e, e.clientX, e.clientY );
+        mouse[ 0 ] = ( pointer[ 0 ] / innerWidth * 2 ) - 1;
+        mouse[ 1 ] = ( pointer[ 1 ] / innerHeight * 2 ) - 1;
         mouse[ 2 ] = -1;
 
         //console.log( mouse );
@@ -633,15 +749,21 @@ function main ( $$dependencies ) {
             //let movementX = e.movementX;
             //let movementY = downY - e.clientY;
             
-            scene.camera.transform.rotateZ( e.movementX / 100 );
+            scene.camera.transform.rotateZ( pointerMovement[ 0 ] / 100 );
             
         } else {
+            directionalLight.position[ 0 ] = Math.sin( mouse[ 0 ] / 2 * Math.PI );
+            directionalLight.position[ 1 ] = -Math.sin( mouse[ 1 ] / 2 * Math.PI );
+            /*
             scene.lights[0].position.setValues(
                 (.5 - e.x  / innerWidth ) * -20,
                 (.5 - e.y  / innerHeight ) * 20, 
-                7
+                7,
+                0
             );
+*/
         }
+        pointerPrevious.setValues( e.clientX, e.clientY );
     }
     function handleScale( ) {
         gl.canvas.width = innerWidth;
@@ -656,6 +778,7 @@ function main ( $$dependencies ) {
     let textReady = false;
 
     
+
     function setupVertexColors ( program ) {
         edgeMaterial.setProgram( program );
         program.bind
@@ -669,7 +792,7 @@ function main ( $$dependencies ) {
 
     function setupPhong ( program ) {
         material.setProgram( program );
-        
+        waterMaterial.setProgram( program );
         phongReady = true;
 
         if ( vertexColorsReady && textReady ) {

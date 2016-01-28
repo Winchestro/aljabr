@@ -3,6 +3,7 @@ define ( [
     "../utilities/allocateUint",
     "../webgl/Context",
     "../webgl/AttributeLocation",
+    "../webgl/BufferObject",
     "../mesh/Vertex",
     "../mesh/Element"
 ], function module (
@@ -10,6 +11,7 @@ define ( [
     allocateUint,
     gl,
     AttributeLocation,
+    BufferObject,
     Vertex,
     Element
 ) {
@@ -42,7 +44,7 @@ define ( [
             let byteOffset = 0;
             let index = 0;
             let arrayBuffer = new ArrayBuffer( stride * maxLength );
-            let vertexBuffer = new VertexBuffer( gl.ARRAY_BUFFER )
+            let vertexBuffer = new BufferObject.Vertex()
                 .bind()
                 .allocate( stride * maxLength, usage );
 

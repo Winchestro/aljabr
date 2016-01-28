@@ -13,19 +13,35 @@ define( [
 		[ gl.ELEMENT_ARRAY_BUFFER ] : null
 	};
 
-	class VertexBuffer {
-		constructor ( target ){
+
+	class BufferObject {
+		constructor ( target ) {
 			var vertexBuffer = gl.createBuffer();
-			if( target !== undefined ) def.Property( vertexBuffer, "target", target );
+			def.Property( vertexBuffer, "target", target );
 			return vertexBuffer;
 		}
-		static Vertex ( ) {
-			return new VertexBuffer( gl.ARRAY_BUFFER );
-		}
-		static Index (  ) {
-			return new VertexBuffer( gl.ELEMENT_ARRAY_BUFFER );
+	}
+
+	class Index {
+		constructor ( ) {
+			var vbo = gl.createBuffer();
+			def.Property( vbo, "target", gl.ELEMENT_ARRAY_BUFFER );
+			return vbo;
 		}
 	}
+
+	class Vertex {
+		constructor ( ) {
+			var vbo = gl.createBuffer();
+			def.Property( vbo, "target", gl.ARRAY_BUFFER );
+			return vbo;
+		}
+	}
+
+	def.Properties( BufferObject, {
+		Index,
+		Vertex
+	}, def.CONFIGURABLE );
 
 	def.Properties( WebGLBuffer.prototype, {
 		setTarget ( target ) {
@@ -138,5 +154,5 @@ define( [
 		this.buffer.target.update( this );
 		return this;
 	}
-	return VertexBuffer;
+	return BufferObject;
 });

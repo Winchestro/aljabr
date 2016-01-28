@@ -1,16 +1,18 @@
 define( [
     "../utilities/PropertyDescriptors",
+    "../mesh/DisplayList",
     "../scene/Camera",
     "../scene/Light"
 ], function module (
     def,
+    DisplayList,
     Camera,
     Light
 ) {
     "use strict";
     const START_TIME = Date.now();
 
-    class Scene {
+    class Scene extends DisplayList {
         constructor ( camera, lights, stacks, children, uniforms ) {
             if ( camera === undefined ) camera = new Camera.Perspective;
             if ( lights === undefined ) lights = [];
@@ -19,7 +21,8 @@ define( [
                 transform : [],
                 scale : []
             };
-
+            super( children );
+            
             def.Properties( this, {
                 camera,
                 lights,
