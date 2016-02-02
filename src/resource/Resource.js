@@ -140,8 +140,6 @@ define( [
             const STATIC = Resource.htmlTexture;
             let serializer  = STATIC.serializer ? STATIC.serializer : STATIC.serializer = new XMLSerializer;
             
-            //let img       = STATIC.img        ? STATIC.img        : STATIC.img        = new Image;
-
             let img = new Image;
             let resource = new Resource( img );
 
@@ -174,7 +172,7 @@ define( [
                 lastUpdated : 0,
 
                 send        : function ( ) {
-                    XHR.open( SOURCE.method, SOURCE.url );
+                    XHR.open( SOURCE.method, SOURCE.url, true );
                     for( var prop in options ) {
                         if( prop in XHR ) XHR[ prop ] = options[ prop ];
                     }

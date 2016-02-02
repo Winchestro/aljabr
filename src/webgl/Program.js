@@ -3,7 +3,6 @@ define( [
     "../webgl/Context",
     "../webgl/AttributeLocation",
     "../webgl/Shader",
-    "../utilities/Resource",
     "../webgl/UniformList",
     "../webgl/AttributeList"
 ], function module (
@@ -11,7 +10,6 @@ define( [
     gl,
     AttributeLocation,
     Shader,
-    Resource,
     UniformList,
     AttributeList
 ) {
@@ -21,40 +19,6 @@ define( [
     class Program {
         constructor ( ) {
             return gl.createProgram();
-        }
-        static HttpSource ( url, callback, refreshInterval ) {
-            let fsLoaded = false;
-            let vsLoaded = false;
-            let vs = Shader.Vertex();
-            let fs = Shader.Fragment();
-            let program = gl.createProgram().attachShader( fs ).attachShader( vs );
-
-            let sourceVS = Resource.http( url + ".vert", { interval : refreshInterval } );
-            let sourceFS = Resource.http( url + ".frag", { interval : refreshInterval } );
-            let compileFS = new Resource( function compileFS ( fsCode ) {
-                fsLoaded = true;
-                fs.setShaderSource( fsCode );
-                if ( vsLoaded ) return program;
-            } );
-            let compileVS = new Resource( function compileVS ( vsCode ) {
-                vsLoaded = true;
-                vs.setShaderSource( vsCode );
-                if ( fsLoaded ) return program;
-            } );
-            let linkProgram = new Resource( function linkProgram ( program ) {
-                return program.link().use();
-            } ); 
-            
-            sourceVS.setTarget( compileVS );
-            compileVS.setTarget( linkProgram );
-
-            sourceFS.setTarget( compileFS );
-            compileFS.setTarget( linkProgram );
-            
-            
-            linkProgram.setTarget( callback );
-
-            return linkProgram;
         }
     }
 

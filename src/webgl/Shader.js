@@ -14,13 +14,24 @@ define( [
             if ( code ) shader.setShaderSource( code );
             return shader;
         }
-        static Fragment ( code ) {
+    }
+
+    class Fragment {
+        constructor ( code ) {
             return new Shader( gl.FRAGMENT_SHADER, code );
         }
-        static Vertex ( code ) {
+    }
+
+    class Vertex {
+        constructor ( code ) {
             return new Shader( gl.VERTEX_SHADER, code );
         }
     }
+
+    def.Properties( Shader, {
+        Fragment,
+        Vertex
+    }, def.CONFIGURABLE );
 
     def.Properties( WebGLShader.prototype, {
         delete ( ) {
@@ -34,14 +45,12 @@ define( [
         setShaderSource ( code ) {
             gl.shaderSource( this, code );
             this.compile();
-            //if ( debugMode ) console.clear();
+            
             if ( !this.getCompileStatus ) {
-                debugMode = this;
+                console.clear();
                 console.error( this.getInfoLog );
             }
-            else if ( debugMode === this ) { 
-                debugMode = false; 
-            }
+            
             return this;
         },
     });

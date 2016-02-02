@@ -4,19 +4,20 @@ define ( [
     "../webgl/Texture",
     "../mesh/Mesh",
     "../material/Material",
+    "../material/GlyphFont"
 ], function module (
     def,
     gl,
     Texture,
     Mesh,
-    Material
+    Material,
+    GlyphFont
 ){  
     "use strict";
 
     const NS_SVG = "http://www.w3.org/2000/svg";
     const NS_XHTML = "http://www.w3.org/1999/xhtml";
-    const SERIALIZER = new XMLSerializer;
-
+    const SERIALIZER = new XMLSerializer;    
 
     class GlyphAtlas {
         constructor ( font, characterList ) {
@@ -77,12 +78,9 @@ define ( [
             //document.body.appendChild( img );
             svg.remove();
 
-            let material = new Material({
-                color : new vec3( 1, 1, 1 )
-            });
+            let material = new Material.GlyphFont;
             
-            material.depth.enable().enableWrite();
-            material.alpha.enable().setFunc( gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ZERO, gl.ONE );
+            
             
 
             img.src = "data:image/svg+xml," + SERIALIZER.serializeToString( svg );

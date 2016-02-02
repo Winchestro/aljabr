@@ -3,13 +3,15 @@ define ( [
     "../utilities/allocateUint",
     "../webgl/Context",
     "../kernel/PoolAllocator",
-    "../mesh/Face"
+    "../mesh/Face",
+    "../mesh/Element"
 ], function module (
     def,
     allocateUint,
     gl,
     PoolAllocator,
-    Face
+    Face,
+    Element
 ){
     "use strict";
 

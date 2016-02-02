@@ -10,6 +10,7 @@ define( [
     "use strict";
 
     const GLOBAL_TEXTURE_BINDINGS = [];
+    const TEXTURES = new Map;
 
     class TextureUnit extends Array {
         constructor ( ) {
@@ -38,6 +39,9 @@ define( [
                 }
                 
             }
+        }
+        load ( url, interval ) {
+            
         }
         /*
         pixelStorei ( pname, param ) {

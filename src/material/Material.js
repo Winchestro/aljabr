@@ -1,15 +1,5 @@
 define ( [
     "../utilities/PropertyDescriptors",
-    "../webgl/Context",
-    "../webgl/Program",
-    "../webgl/Shader",
-    "../math/vec4",
-    "../math/vec3",
-    "../math/vec2",
-    "../math/mat4",
-    "../math/mat3",
-    "../math/mat2",
-    "../math/quat4",
     "../material/TextureUnit",
     "../material/Alpha",
     "../material/CullFace",
@@ -21,16 +11,6 @@ define ( [
     "../material/StencilTest"
 ], function module (
     def,
-    gl,
-    Program,
-    Shader,
-    vec4,
-    vec3,
-    vec2,
-    mat4,
-    mat3,
-    mat2,
-    quat4,
     TextureUnit,
     Alpha,
     CullFace,
@@ -61,13 +41,11 @@ define ( [
             }, def.CONFIGURABLE );
         }
         setProgram ( program ) {
-            program.use();
-            //let uniforms = program.getActiveUniforms.material;
-            //if ( uniforms ) uniforms.set( this );
+
             def.Property( this, "program", program, def.CONFIGURABLE );
         }
         use ( ) {
-
+            
             this.program.use();
             var uniforms = this.program.getActiveUniforms.material;
             if ( uniforms ) uniforms.set( this );
@@ -186,23 +164,6 @@ define ( [
             return this;
         }
     }
-
-    class Phong extends Material {
-        constructor ( uniforms ) {
-            if ( uniforms === undefined ) uniforms                        = {};
-            if ( uniforms.ambient === undefined ) uniforms.ambient        = new vec4( 0.0, 0.0, 0.0, 1.0 );
-            if ( uniforms.diffuse === undefined ) uniforms.diffuse        = new vec4( 0.5, 0.5, 0.5, 1.0 );
-            if ( uniforms.specular === undefined ) uniforms.specular      = new vec3( 1.0, 1.0, 1.0 );
-            if ( uniforms.shininess === undefined ) uniforms.shininess    = 1.0;
-            
-            super( uniforms );
-        }
-    }
-
-    def.Properties( Material, {
-        Phong
-    }, def.CONFIGURABLE );
-    
 
     return Material;
 });

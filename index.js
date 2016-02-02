@@ -32,8 +32,11 @@ var library = {
     utilities : {
         allocateUint : "",
         PropertyDescriptors : "def",
-        Resource : "",
         GlyphAtlas : "",
+    },
+    resource : {
+        Resource : "",
+        HttpSourceProgram : ""
     },
     scene : {
         Camera : "",
@@ -64,6 +67,8 @@ var library = {
         Viewport : ""
     },   
     material : {
+        VertexColors : "",
+        Phong : "",
         Alpha : "",
         CullFace : "",
         DepthTest : "",
@@ -185,24 +190,20 @@ function main ( $$dependencies ) {
         .rotate( -Math.PI / 4, 1, 0, 0 )
     ;
 
-    material = new Material.Phong( undefined, undefined, Material.DEPTH | Material.CULLFACE | Material.OFFSET );
-    waterMaterial = new Material.Phong( undefined, undefined, Material.DEPTH | Material.ALPHA | Material.CULLFACE | Material.OFFSET );
+    material = new Material.Phong;
+    waterMaterial = new Material.Phong;
 
-    material.depth.enable().enableWrite();
     //material.alpha.enable().setFunc( gl.SRC_COLOR , gl.ONE_MINUS_DST_COLOR, gl.SRC_ALPHA, gl.DST_ALPHA );
-    material.cullFace.enable();
+    
     material.offset.enable().setFill( 1, 0 );
 
-    waterMaterial.depth.enable();
+    waterMaterial.depth.disableWrite();
     waterMaterial.alpha.enable().setFunc( Alpha.FN_SRC_COLOR , Alpha.FN_ONE_MINUS_DST_COLOR, Alpha.FN_SRC_ALPHA, Alpha.FN_DST_ALPHA );
-    waterMaterial.cullFace.enable();
     waterMaterial.offset.enable().setFill( 1, 0 );
 
 
-    edgeMaterial = new Material({
-        ambient     : new vec4( 1, 1, 1, 1 )
-    });
-    edgeMaterial.depth.enable().enableWrite();
+    edgeMaterial = new Material.VertexColors;
+    
     /*
     let cubeImg = new Image;
     let cubeTex = new Texture;
@@ -227,13 +228,13 @@ function main ( $$dependencies ) {
     
     
     glyphAtlas = new GlyphAtlas("24px Helvetica");
-    
     textMaterial = glyphAtlas.material;
+
     //console.profile( "create grid mesh" );
     let bbox = { xl: -100, xr: 100, yt: -100, yb: 100 };
     const NOISE_SCALE = 0.04;
     const NOISE_EXPONENT = 2;
-    diagram = createSmooth( 25000, bbox, 4 );
+    diagram = createSmooth( 1000, bbox, 4 );
     
     function createSmooth ( numSites, bbox, steps ) {
         var sites = [];
@@ -616,14 +617,10 @@ function main ( $$dependencies ) {
     //uniforms = material.program.getActiveUniforms;
 
     
-    
     //edgeMaterial.alpha.enable().setFunc( gl.SRC_ALPHA, gl.DST_ALPHA );
 
     gl.clearColor( .1,.1,.1, 1 );
-    Program.HttpSource( "./src/glsl/phong", setupPhong );
-    Program.HttpSource( "./src/glsl/vertexColors", setupVertexColors );
-    Program.HttpSource( "./src/glsl/text", setupText );
-    
+    //new HttpSourceProgram( "./src/glsl/phong", setupPhong );
     
     //gui.inspect( tris );
     //gui.inspect( cells );
@@ -773,43 +770,12 @@ function main ( $$dependencies ) {
         scene.camera.aspect = innerWidth / innerHeight;
         scene.camera.updateProjection();
     }
-    let phongReady = false;
-    let vertexColorsReady = false;
-    let textReady = false;
 
     
 
-    function setupVertexColors ( program ) {
-        edgeMaterial.setProgram( program );
-        program.bind
-        vertexColorsReady = true;
+    handleScale();
+    loop();
+  
 
-        if ( phongReady && textReady ) {
-            handleScale();
-            loop();
-        }
-    }
-
-    function setupPhong ( program ) {
-        material.setProgram( program );
-        waterMaterial.setProgram( program );
-        phongReady = true;
-
-        if ( vertexColorsReady && textReady ) {
-            handleScale();
-            loop();
-        }
-    }
-
-    function setupText ( program ) {
-        textMaterial.setProgram( program );
-
-        textReady = true;
-
-        if ( phongReady && vertexColorsReady ) {
-            handleScale();
-            loop();
-        }
-    }
     
 }

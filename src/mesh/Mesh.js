@@ -4,14 +4,16 @@ define ( [
     "../mesh/FaceList",
     "../mesh/EdgeList",
     "../mesh/VertexList",
-    "../mesh/DisplayList"
+    "../mesh/DisplayList",
+    "../mesh/Element"
 ], function module (
     def,
     gl,
     FaceList,
     EdgeList,
     VertexList,
-    DisplayList
+    DisplayList,
+    Element
 ){
     "use strict";
 
