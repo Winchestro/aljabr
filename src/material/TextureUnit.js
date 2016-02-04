@@ -11,6 +11,7 @@ define( [
 
     const GLOBAL_TEXTURE_BINDINGS = [];
     const TEXTURES = new Map;
+    const PENDING_TEXTURES = [];
 
     class TextureUnit extends Array {
         constructor ( ) {
@@ -40,9 +41,7 @@ define( [
                 
             }
         }
-        load ( url, interval ) {
-            
-        }
+        
         /*
         pixelStorei ( pname, param ) {
             //pname PACK_ALIGNMENT | UNPACK_ALIGNMENT param 1 | 2 | 4 | 8

@@ -7,6 +7,8 @@ define( [
 ) {
     "use strict";
 
+    let BOUND_TEXTURE = null;
+
     class Texture {
         constructor ( target ) {
             var texture = gl.createTexture();
@@ -58,14 +60,33 @@ define( [
             return this;
         },
         bind  ( ) {
-            gl.bindTexture( this.target, this );
+            if ( BOUND_TEXTURE !== this ) {
+                gl.bindTexture( this.target, this );
+                BOUND_TEXTURE = this;
+            }
             return this;
         },
         unbind ( ) {
-            gl.bindTexture( this.target, null );
+            if ( BOUND_TEXTURE === this ) {
+                gl.bindTexture( this.target, null );
+                BOUND_TEXTURE = null;
+            }
             return this;
         },
-        
+        load( url ) {
+            let img;
+
+            if ( this.img ) img = this.img;
+            else {
+                
+                img = new Image;
+                img.addEventListener( "load", this );
+                def.Property( this, "img", img, def.CONFIGURABLE );
+            }
+
+            img.src = url;
+            return this;
+        },
         generateMipmap ( ) {
             gl.generateMipmap( this.target );
             return this;
@@ -234,6 +255,14 @@ define( [
             );
             return this;
         },
+
+        handleEvent ( event ) {
+            switch ( event.type ) {
+                case "load" : {
+                    this.bind().image2D( event.path[ 0 ] ).unbind();
+                } break;
+            }
+        }
     });
     def.Properties( Texture, {
         TARGET_TEXTURE_2D                   : gl.TEXTURE_2D,
