@@ -19,6 +19,7 @@ define( [
             if ( children === undefined ) children = [];
             if ( stacks === undefined ) stacks = {
                 transform : [],
+                translate : [],
                 scale : []
             };
             super( children );

@@ -1,14 +1,14 @@
 define ( [
     "../utilities/PropertyDescriptors",
-    "../material/TextureUnit",
-    "../material/Alpha",
-    "../material/CullFace",
-    "../material/DepthTest",
-    "../material/Dither",
-    "../material/Multisample",
-    "../material/PolygonOffset",
-    "../material/ScissorTest",
-    "../material/StencilTest"
+    "../webgl/TextureUnit",
+    "../webgl/Alpha",
+    "../webgl/CullFace",
+    "../webgl/DepthTest",
+    "../webgl/Dither",
+    "../webgl/Multisample",
+    "../webgl/PolygonOffset",
+    "../webgl/ScissorTest",
+    "../webgl/StencilTest"
 ], function module (
     def,
     TextureUnit,
@@ -110,7 +110,9 @@ define ( [
 
         use ( ) {
             
-            this.program.use();
+            if ( this.program.getLinkStatus ) this.program.use();
+            else return false;
+
             var uniforms = this.program.getActiveUniforms.material;
             if ( uniforms ) uniforms.set( this );
 

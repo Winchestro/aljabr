@@ -18,6 +18,7 @@ define( [
 
     class Program {
         constructor ( ) {
+
             return gl.createProgram();
         }
     }
@@ -59,6 +60,7 @@ define( [
         validate ( ) {
             gl.validateProgram( this );
             if ( !this.getValidateStatus ) console.error( this.getInfoLog );
+            else this.clearCache();
             return this;
         },
         attachShader ( shader ){
