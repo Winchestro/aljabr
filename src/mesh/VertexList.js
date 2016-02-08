@@ -34,61 +34,51 @@ define ( [
 
         The mesh stores connectivity information, 
     */
-    class VertexList {
-        constructor ( structure, maxLength, usage ) {
-            if ( usage === undefined ) usage = gl.STATIC_DRAW;
 
-            let stride = 0;
-            for ( let view in structure ) stride += structure[ view ].byteLength;
-
+    class VertexStructure {
+        constructor ( structure ) {
+            let stride = VertexStructure.computeStride( structure );
             let byteOffset = 0;
             let index = 0;
-            let arrayBuffer = new ArrayBuffer( stride * maxLength );
-            let vertexBuffer = new BufferObject.Vertex()
-                .bind()
-                .allocate( stride * maxLength, usage );
-
-            def.Property( this, "length", 0, def.WRITABLE );
-
-            for ( let index = 0; index < maxLength; index++ ) {
-                let vertex = new Vertex( index );
-                this.push( vertex );
-                //this[ index ] = vertex;
-                //def.Property( this, index, vertex, def.CONFIGURABLE );
-            }
-            
-            let vertexStructure = {};
-
             for ( let attributeName in structure ) {
                 let attribute = structure[ attributeName ];
 
                 let length = attribute.length;
-                let offset = byteOffset;
-
                 let location = new AttributeLocation( index, length, byteOffset, stride );
 
-                //location.enable();
+                def.Property( this, attributeName, location, def.CONFIGURABLE | def.ENUMERABLE );
 
                 byteOffset += structure[ attributeName ].byteLength;
-
-                def.Property( vertexStructure, attributeName, location, def.CONFIGURABLE | def.ENUMERABLE );
-                
-                for ( let index = 0; index < maxLength; index++ ) {
-                    this[ index ][ attributeName ] = new Float32Array(
-                        arrayBuffer,
-                        index * stride + offset,
-                        length
-                    );
-                    /*def.Property( this[ index ], attributeName, new Float32Array(
-                        arrayBuffer,
-                        index * stride + offset,
-                        length
-                    ), def.ENUMERABLE );*/
-                }
-
-
                 index++;
-                
+            }
+
+            def.Property( this, "stride", stride, def.CONFIGURABLE );
+
+        } 
+        static computeStride ( structure ) {
+            let stride = 0;
+            for ( let view in structure ) stride += structure[ view ].byteLength;
+
+            return stride;
+        }
+
+    }
+
+    class VertexList {
+        constructor ( structure, maxLength, usage ) {
+            if ( usage === undefined ) usage = gl.STATIC_DRAW;
+
+            let vertexStructure = new VertexStructure( structure );
+            let stride = vertexStructure.stride;
+
+            let arrayBuffer = new ArrayBuffer( stride * maxLength );
+            let vertexBuffer = new BufferObject.Vertex().bind().allocate( stride * maxLength, usage );
+
+            def.Property( this, "length", 0, def.WRITABLE );
+
+            for ( let index = 0; index < maxLength; index++ ) {
+                let vertex = new Vertex( index, arrayBuffer, vertexStructure );
+                this.push( vertex );
             }
 
             def.Property( arrayBuffer, "target", vertexBuffer, def.CONFIGURABLE );
@@ -98,6 +88,46 @@ define ( [
                 BYTES_PER_ELEMENT   : stride,
             }, def.CONFIGURABLE );
         }
+
+
+
+        allocate ( length, usage ) {
+            let oldLength = this.length;
+            let newLength = oldLength + length;
+
+            let newByteLength = this.BYTES_PER_ELEMENT * newLength;
+            
+            let oldBuffer = this.buffer;
+            let newBuffer = new ArrayBuffer( newByteLength );
+            let vbo = this.buffer.target;
+
+            if ( usage === undefined ) usage = this.buffer.target.usage;
+
+            def.Property( newBuffer, "target", vbo, def.CONFIGURABLE );
+
+            vbo.bind().allocate( newByteLength, usage );
+
+            for ( let index = 0; index < oldLength; index++ ) {
+                this[ index ].createViews( index, newBuffer, this.structure );
+            }
+
+            for ( let index = oldLength; index < newLength; index++ ) {
+                this.push( new Vertex( index, newBuffer, this.structure ) );
+            }
+
+
+            let sourceView = new Float32Array( oldBuffer );
+            let targetView = new Float32Array( newBuffer );
+
+            targetView.set( sourceView );
+
+            vbo.update( sourceView );
+
+            def.Property( this, "buffer", newBuffer, def.CONFIGURABLE );
+
+            return this;
+        }
+
         *[ Symbol.iterator ] ( ) {
             let i = -1;
             let max = this.length - 1;

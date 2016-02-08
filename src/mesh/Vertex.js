@@ -7,10 +7,24 @@ define( [
     const EDGE = { halfedgeA : null, halfedgeB : null };
 
     class Vertex {
-        constructor ( index ) {
-            def.Property( this, "index", index );
-            def.Property( this, "outgoingHalfedge", null, def.WRITABLE );
+        constructor ( index, buffer, structure ) {
+            if ( buffer !== undefined && structure !== undefined ) this.createViews( index, buffer, structure );
+            
+            this.index = index;
+            this.outgoingHalfedge = null;
         }
+        createViews( index, buffer, structure ) {
+            for ( let attributeName in structure ) {
+                let location = structure[ attributeName ];
+
+                this[ attributeName ] = new Float32Array(
+                    buffer,
+                    index * location.stride + location.offset,
+                    location.size
+                );
+            }
+        }
+
         rotateOutgoingHalfedgeRight ( ) {
             let currentHalfedge = this.outgoingHalfedge;
             let startHalfedge = currentHalfedge;
