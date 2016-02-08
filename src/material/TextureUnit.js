@@ -10,8 +10,6 @@ define( [
     "use strict";
 
     const GLOBAL_TEXTURE_BINDINGS = [];
-    const TEXTURES = new Map;
-    const PENDING_TEXTURES = [];
 
     class TextureUnit extends Array {
         constructor ( ) {

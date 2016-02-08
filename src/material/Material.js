@@ -23,27 +23,91 @@ define ( [
 ){
     "use strict";
 
+    const TEXTURES_BIT      = 0b000000001;
+    const OFFSET_BIT        = 0b000000010;
+    const ALPHA_BIT         = 0b000000100;
+    const DEPTH_BIT         = 0b000001000;
+    const STENCIL_BIT       = 0b000010000;
+    const CULLFACE_BIT      = 0b000100000;
+    const SCISSOR_BIT       = 0b001000000;
+    const DITHER_BIT        = 0b010000000;
+    const MULTISAMPLE_BIT   = 0b100000000;
+
     class Material {
 
-        constructor ( uniforms ) {
+        constructor ( uniforms, textures, offset, alpha, depth, stencil, cullFace, scissor, dither, multisample ) {
             def.Properties( this, uniforms, def.ENUMERABLE | def.CONFIGURABLE | def.WRITABLE );
             
+            if ( textures       === undefined ) textures = new TextureUnit;
+            if ( offset         === undefined ) offset = new PolygonOffset;
+            if ( alpha          === undefined ) alpha = new Alpha;
+            if ( depth          === undefined ) depth = new DepthTest;
+            if ( stencil        === undefined ) stencil = new StencilTest;
+            if ( cullFace       === undefined ) cullFace = new CullFace;
+            if ( scissor        === undefined ) scissor = new ScissorTest;
+            if ( dither         === undefined ) dither = new Dither;
+            if ( multisample    === undefined ) multisample = new Multisample;
+
+
             def.Properties( this, {
-                textures    : new TextureUnit,
-                offset      : new PolygonOffset,
-                alpha       : new Alpha,
-                depth       : new DepthTest,
-                stencil     : new StencilTest,
-                cullFace    : new CullFace,
-                scissor     : new ScissorTest,
-                dither      : new Dither,
-                multisample : new Multisample
+                textures,
+                offset,
+                alpha,
+                depth,
+                stencil,
+                cullFace,
+                scissor,
+                dither,
+                multisample 
             }, def.CONFIGURABLE );
         }
         setProgram ( program ) {
-
             def.Property( this, "program", program, def.CONFIGURABLE );
         }
+        setTextures ( textures ) {
+            def.Property( this, "textures", textures, def.CONFIGURABLE );
+        }
+        setOffset ( offset ) {
+            def.Property( this, "offset", offset, def.CONFIGURABLE );
+        }
+        setAlpha ( alpha ) {
+            def.Property( this, "alpha", alpha, def.CONFIGURABLE );
+        }
+        setDepth ( depth ) {
+            def.Property( this, "depth", depth, def.CONFIGURABLE );
+        }
+        setStencil ( stencil ) {
+            def.Property( this, "stencil", stencil, def.CONFIGURABLE );
+        }
+        setCullFace ( cullFace ) {
+            def.Property( this, "cullFace", cullFace, def.CONFIGURABLE );
+        }
+        setScissor ( scissor ) {
+            def.Property( this, "scissor", scissor, def.CONFIGURABLE );
+        }
+        setDither ( dither ) {
+            def.Property( this, "dither", dither, def.CONFIGURABLE );
+        }
+        setMultisample ( multisample ) {
+            def.Property( this, "multisample", multisample, def.CONFIGURABLE );
+        }
+
+        createSubmaterial ( mask ) {
+            let material = Object.create( this );
+
+            if ( mask & TEXTURES_BIT )      material.setTextures( new TextureUnit );
+            if ( mask & OFFSET_BIT )        material.setOffset( new PolygonOffset );
+            if ( mask & ALPHA_BIT )         material.setAlpha( new Alpha );
+            if ( mask & DEPTH_BIT )         material.setDepth( new DepthTest );
+            if ( mask & STENCIL_BIT )       material.setStencil( new StencilTest );
+            if ( mask & CULLFACE_BIT )      material.setCullFace( new CullFace );
+            if ( mask & SCISSOR_BIT )       material.setScissor( new ScissorTest );
+            if ( mask & DITHER_BIT )        material.setDither( new Dither );
+            if ( mask & MULTISAMPLE_BIT )   material.setMultisample( new Multisample );
+
+            return material;
+        }
+
         use ( ) {
             
             this.program.use();

@@ -9,25 +9,7 @@ define( [
         constructor ( halfedge, length ) {
             this.halfedge = halfedge;
             this.length = length;
-            /*
-            def.Properties( this, {
-                halfedge,
-                length
-            }, def.CONFIGURABLE );
-            */
         }
-        /*
-        setHalfedge( halfedge ) {
-            //def.Property( this, "halfedge", halfedge, def.CONFIGURABLE );
-            this.halfedge = halfedge;
-            return this;
-        }
-        setLength( length ) {
-            //def.Property( this, "length", length, def.CONFIGURABLE );
-            this.length = length;
-            return this;
-        }
-        */
 
         *[ Symbol.iterator ] (  ) {
             let currentHalfedge = this.halfedge;

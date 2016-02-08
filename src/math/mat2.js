@@ -1,4 +1,8 @@
-define ( function module ( ) {
+define ( [
+    "../utilities/PropertyDescriptors"
+], function module (
+    def
+) {
     "use strict";
 
     const _0_0_ = 0; const _1_0_ = 2;
@@ -96,9 +100,21 @@ define ( function module ( ) {
             this[_1_0_] = 0; this[_1_1_] = 1;   
             return this;
         }
+
+        static makeMercator ( outM2 ) {
+            return mat2.prototype.makeMercator.call( outM2 );
+        }
+        makeMercator ( ) {
+
+        }
+
+
     }
 
-    mat2.prototype.length = 4;
+
+    def.Properties( mat2.prototype, {
+        length : 4
+    });
 
     const CACHE_MAT2 = new mat2;
 
