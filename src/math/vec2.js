@@ -7,20 +7,17 @@ define( [
     const _x_ = 0;
     const _y_ = 1;
 
-    class vec2 {
+    class vec2 extends Float32Array {
 
         constructor ( x, y ) {
+            super( 2 );
+
             if ( x === undefined ) x = 0;
             if ( y === undefined ) y = x;
 
             this[_x_] = x;
             this[_y_] = y;
         }
-        *[Symbol.iterator] ( ) {
-            let index = 0;
-            while ( index < this.length ) yield this[ index++ ];
-        }
-
         
         dot ( vA ) {
             return this[_x_] * vA[_x_]
@@ -159,13 +156,6 @@ define( [
         }
     }
 
-    def.Properties( vec2.prototype, {
-        length : 2,
-        splice : [].splice,
-        toString : function ( ) {
-            return "["+this[0]+","+this[1]+"]"
-        }
-    });
     
     return vec2;
 

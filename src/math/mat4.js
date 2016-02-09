@@ -11,11 +11,11 @@ define( [
 ) {
     "use strict";
 
-    const _0_0_ = 0; const _1_0_ = 4; const _2_0_ =  8; const _3_0_ = 12;
-    const _0_1_ = 1; const _1_1_ = 5; const _2_1_ =  9; const _3_1_ = 13;
-    const _0_2_ = 2; const _1_2_ = 6; const _2_2_ = 10; const _3_2_ = 14;
-    const _0_3_ = 3; const _1_3_ = 7; const _2_3_ = 11; const _3_3_ = 15;
-
+    const _0_0_ =  0; const _0_1_ =  1; const _0_2_ =  2; const _0_3_ = 3; 
+    const _1_0_ =  4; const _1_1_ =  5; const _1_2_ =  6; const _1_3_ = 7;
+    const _2_0_ =  8; const _2_1_ =  9; const _2_2_ = 10; const _2_3_ = 11;
+    const _3_0_ = 12; const _3_1_ = 13; const _3_2_ = 14; const _3_3_ = 15;
+                      
     const _x_ = 0;
     const _y_ = 1;
     const _z_ = 2;
@@ -28,9 +28,10 @@ define( [
     const abs = Math.abs;
     const EPSILON = Number.EPSILON;
 
-    class mat4 {
+    class mat4 extends Float32Array {
         constructor ( ) {
-            mat4.prototype.makeIdentity.call( this );
+            super( 16 );
+            this.makeIdentity();
         }
 
         set ( inM4 ) {
@@ -898,12 +899,8 @@ define( [
         static makeRotationQuat4 ( outM4, quat ) {
             return mat4.prototype.makeRotationQuat4.call( outM4, quat );
         }
-    }
 
-    def.Properties( mat4.prototype, {
-        length : 16,
-        splice : [].splice
-    });
+    }
     
 
     const CACHE_MAT3 = new mat3;

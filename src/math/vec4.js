@@ -5,13 +5,19 @@ define( [
 ) {
     "use strict";
 
+    const _0_0_ =  0; const _0_1_ =  1; const _0_2_ =  2; const _0_3_ = 3; 
+    const _1_0_ =  4; const _1_1_ =  5; const _1_2_ =  6; const _1_3_ = 7;
+    const _2_0_ =  8; const _2_1_ =  9; const _2_2_ = 10; const _2_3_ = 11;
+    const _3_0_ = 12; const _3_1_ = 13; const _3_2_ = 14; const _3_3_ = 15;
+
     const _x_ = 0;
     const _y_ = 1;
     const _z_ = 2;
     const _w_ = 3;
 
-    class vec4 {
+    class vec4 extends Float32Array {
         constructor ( x, y, z, w ) {
+            super( 4 );
             if ( x === undefined ) x = 0;
             if ( y === undefined ) y = x;
             if ( z === undefined ) z = x;
@@ -21,10 +27,6 @@ define( [
             this[_y_] = y;
             this[_z_] = z;
             this[_w_] = w;
-        }
-        *[Symbol.iterator] ( ) {
-            let index = 0;
-            while ( index < this.length ) yield this[ index++ ];
         }
 
         set ( inV4 ) {
@@ -138,6 +140,25 @@ define( [
             return vec4.prototype.multiplyScalar.call( outV4, s, vA );
         }
 
+        multiplyMat4 ( inM4, inV4 ) {
+            if ( inV4 === undefined ) inV4 = this;
+
+            let x = this[_x_];
+            let y = this[_y_];
+            let z = this[_z_];
+            let w = this[_w_];
+
+            this[_x_] = x * inM4[_0_0_] + y * inM4[_1_0_] + z * inM4[_2_0_] + w * inM4[_3_0_];
+            this[_y_] = x * inM4[_0_1_] + y * inM4[_1_1_] + z * inM4[_2_1_] + w * inM4[_3_1_];
+            this[_z_] = x * inM4[_0_2_] + y * inM4[_1_2_] + z * inM4[_2_2_] + w * inM4[_3_2_];
+            this[_w_] = x * inM4[_0_3_] + y * inM4[_1_3_] + z * inM4[_2_3_] + w * inM4[_3_3_];
+
+            return this;
+        }
+        static multiplyMat4 ( outV4, inM4, inV4 ) {
+            return vec4.prototype.multiplyMat4.call( outV4, inM4, inV4 );
+        }
+
         lerp ( sAlpha, vA, vB ) {
             if ( vB === undefined ) vB = this;
 
@@ -196,14 +217,6 @@ define( [
             return vec4.prototype.getLengthManhattan.call( inV4 );
         }
     }
-
-    def.Properties( vec4.prototype, {
-        length : 4,
-        splice : [].splice,
-        toString : function ( ) {
-            return "["+this[0]+","+this[1]+","+this[2]+","+this[3]+"]"
-        }
-    });
     
     return vec4;
 });

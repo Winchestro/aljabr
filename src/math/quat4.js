@@ -5,8 +5,10 @@ define ( [
 ) {
     "use strict";
 
-    class quat4 {
+    class quat4 extends Float32Array {
         constructor ( x, y, z, w ) {
+            super( 4 );
+
             if ( x === undefined ) x = 0;
             if ( y === undefined ) y = 0;
             if ( z === undefined ) z = 0;
@@ -16,10 +18,6 @@ define ( [
             this[ 1 ] = y;
             this[ 2 ] = z;
             this[ 3 ] = w;
-        }
-        *[Symbol.iterator] ( ) {
-            let index = 0;
-            while ( index < this.length ) yield this[ index++ ];
         }
 
         set ( inV4 ) {
@@ -97,9 +95,6 @@ define ( [
             return this;
         }
     }
-    
-    quat4.prototype.length = 4;
-    quat4.prototype.splice = [].splice;
 
     const CACHE_QUAT4 = new quat4;
     return quat4;

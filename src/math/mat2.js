@@ -8,10 +8,10 @@ define ( [
     const _0_0_ = 0; const _1_0_ = 2;
     const _0_1_ = 1; const _1_1_ = 3;
 
-    class mat2 {
+    class mat2 extends Float32Array {
         constructor ( ) {
-            if ( arguments.length === 4 ) this.copy( arguments );
-            else this.makeIdentity();
+            super( 4 );
+            this.makeIdentity();
         }
         
         static set ( outM2, inM2 ) {
@@ -110,12 +110,7 @@ define ( [
 
 
     }
-
-
-    def.Properties( mat2.prototype, {
-        length : 4
-    });
-
+    
     const CACHE_MAT2 = new mat2;
 
     return mat2;

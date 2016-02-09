@@ -11,13 +11,15 @@ define( [
     const _z_ = 2;
     const _w_ = 3;
     
-    const _0_0_ = 0; const _1_0_ = 4; const _2_0_ =  8; const _3_0_ = 12;
-    const _0_1_ = 1; const _1_1_ = 5; const _2_1_ =  9; const _3_1_ = 13;
-    const _0_2_ = 2; const _1_2_ = 6; const _2_2_ = 10; const _3_2_ = 14;
-    const _0_3_ = 3; const _1_3_ = 7; const _2_3_ = 11; const _3_3_ = 15;
+    const _0_0_ =  0; const _0_1_ =  1; const _0_2_ =  2; const _0_3_ = 3; 
+    const _1_0_ =  4; const _1_1_ =  5; const _1_2_ =  6; const _1_3_ = 7;
+    const _2_0_ =  8; const _2_1_ =  9; const _2_2_ = 10; const _2_3_ = 11;
+    const _3_0_ = 12; const _3_1_ = 13; const _3_2_ = 14; const _3_3_ = 15;
 
-    class vec3 {
+    class vec3 extends Float32Array {
         constructor ( x, y, z ) {
+            super( 3 );
+
             if ( x === undefined ) x = 0;
             if ( y === undefined ) y = x;
             if ( z === undefined ) z = x;
@@ -25,10 +27,6 @@ define( [
             this[_x_] = x;
             this[_y_] = y;
             this[_z_] = z;
-        }
-        *[Symbol.iterator] ( ) {
-            let index = 0;
-            while ( index < this.length ) yield this[ index++ ];
         }
 
         set ( inV3 ) {
@@ -146,6 +144,23 @@ define( [
             return vec3.prototype.multiplyScalar.call( outV3, inS, inV3 );
         }
 
+        multiplyMat3 ( inM3, inV3 ) {
+            if ( inV3 === undefined ) inV3 = this;
+
+            let x = this[_x_];
+            let y = this[_y_];
+            let z = this[_z_];
+
+            this[_x_] = x * inM3[ 0 ] + y * inM3[ 3 ] + z * inM3[ 6 ];
+            this[_y_] = x * inM3[ 1 ] + y * inM3[ 4 ] + z * inM3[ 7 ];
+            this[_z_] = x * inM3[ 2 ] + y * inM3[ 5 ] + z * inM3[ 9 ];
+
+            return this;
+        }
+        static multiplyMat3 ( outV3, inM3, inV3 ) {
+            return vec3.prototype.multiplyMat3.call( outV3, inM3, inV3 );
+        }
+
         divideScalar ( inS, inV3 ) {
             if ( inV3 === undefined ) inV3 = this;
 
@@ -180,7 +195,7 @@ define( [
             return vec3.prototype.normalize.call( outV3 );
         } 
 
-        applyQuat4 ( inQ4, inV3 ) {
+        multiplyQuat4 ( inQ4, inV3 ) {
             if ( inV3 === undefined ) inV3 = CACHE_VEC3.set( this );
 
             let q = inQ4;
@@ -197,7 +212,7 @@ define( [
             
             return this;
         }
-        static applyQuat4 ( outV3, inQ4, inV3 ) {
+        static multiplyQuat4 ( outV3, inQ4, inV3 ) {
             return vec3.prototype.applyQuat4.call( outV3, inQ4, inV3 );
         }
 
@@ -206,33 +221,10 @@ define( [
             let y = this[_y_];
             let z = this[_z_];
 
-            let d = 1 / (
-                m[_0_3_] * x
-              + m[_1_3_] * y
-              + m[_2_3_] * z
-              + m[_3_3_]
-            );
-
-            this[_x_] = (
-                m[_0_0_] * x
-              + m[_1_0_] * y
-              + m[_2_0_] * z
-              + m[_3_0_]
-            ) * d;
-
-            this[_y_] = (
-                m[_0_1_] * x
-              + m[_1_1_] * y
-              + m[_2_1_] * z
-              + m[_3_1_]
-            ) * d;
-
-            this[_z_] = (
-                m[_0_2_] * x
-              + m[_1_2_] * y
-              + m[_2_2_] * z
-              + m[_3_2_]
-            ) * d;
+            let d = 1 / ( m[_0_3_] * x + m[_1_3_] * y + m[_2_3_] * z + m[_3_3_] );
+            this[_x_] = ( m[_0_0_] * x + m[_1_0_] * y + m[_2_0_] * z + m[_3_0_] ) * d;
+            this[_y_] = ( m[_0_1_] * x + m[_1_1_] * y + m[_2_1_] * z + m[_3_1_] ) * d;
+            this[_z_] = ( m[_0_2_] * x + m[_1_2_] * y + m[_2_2_] * z + m[_3_2_] ) * d;
 
             return this;
         }
@@ -278,13 +270,6 @@ define( [
 
     const CACHE_VEC3 = new vec3
 
-    def.Properties( vec3.prototype, {
-        length : 3,
-        splice : [].splice,
-        toString : function ( ) {
-            return "["+this[0]+","+this[1]+","+this[2]+"]"
-        }
-    });
     
     def.Properties( vec3, {
         UP      : new vec3(  0,  1,  0 ),

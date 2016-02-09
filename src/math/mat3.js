@@ -6,10 +6,10 @@ define ( function module ( ) {
     const _0_2_ = 2; const _1_2_ = 5; const _2_2_ = 8;
 
 
-    class mat3 {
+    class mat3 extends Float32Array {
         constructor ( ) {
-            if ( arguments.length === 9 ) this.set( arguments );
-            else this.makeIdentity();
+            super( 9 );
+            this.makeIdentity();
         }
 
         static set ( outM3, inM3 ) {
@@ -251,8 +251,6 @@ define ( function module ( ) {
             return this;
         }
     }
-
-    mat3.prototype.length = 9;
 
     const CACHE_MAT3 = new mat3;
 
