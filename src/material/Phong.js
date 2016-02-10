@@ -1,10 +1,12 @@
 define ( [
+    "require",
     "../utilities/PropertyDescriptors",
     "../resource/HttpSourceProgram",
     "../material/Material",
     "../math/vec4",
     "../math/vec3",
 ], function module (
+    require,
     def,
     HttpSourceProgram,
     Material,
@@ -13,7 +15,7 @@ define ( [
 ) {
     "use strict";
 
-    const RESOURCE = new HttpSourceProgram( "src/glsl/phong" );
+    const RESOURCE = new HttpSourceProgram( require.toUrl( "../glsl/phong" ) );
 
     class Phong extends Material {
         constructor ( uniforms ) {

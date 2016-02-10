@@ -1,9 +1,11 @@
 define ( [
+    "require",
     "../utilities/PropertyDescriptors",
     "../resource/HttpSourceProgram",
     "../material/Material",
     "../math/vec3",
 ], function module (
+    require,
     def,
     HttpSourceProgram,
     Material,
@@ -11,7 +13,7 @@ define ( [
 ) {
     "use strict";
 
-    const RESOURCE = new HttpSourceProgram( "src/glsl/text" );
+    const RESOURCE = new HttpSourceProgram( require.toUrl( "../glsl/text" ) );
 
     class GlyphFont extends Material {
         constructor ( uniforms ) {

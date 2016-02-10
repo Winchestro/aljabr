@@ -13,9 +13,11 @@ define( [
 ){
     "use strict";
 
-    const CACHE_A = new mat4;
-    const CACHE_B = new mat4;
+    const CACHE_VEC4 = new vec4;
+    const CACHE_INV_TRANSFORM_MAT4 = new mat4;
+    const CACHE_INV_PROJECTION_MAT4 = new mat4;
 
+    /*
     let test = document.createElement( "div" );
     let s = test.style;
     s.width = "5px";
@@ -28,7 +30,7 @@ define( [
     document.body.style.overflow = "hidden";
 
     document.body.appendChild( test );
-
+    */
     class Camera {
         constructor ( projection, transform, uniforms ) {
             if ( projection === undefined ) projection = new mat4;
@@ -42,79 +44,58 @@ define( [
             def.Properties( this, uniforms, def.ENUMERABLE | def.CONFIGURABLE | def.WRITABLE );
         }
         project ( outV3 ) {
-            let inp = new vec4;
-            inp[ 0 ] = outV3[ 0 ];
-            inp[ 1 ] = outV3[ 1 ];
-            inp[ 2 ] = outV3[ 2 ];
-            inp[ 3 ] = 1;
+            CACHE_VEC4[ 0 ] = outV3[ 0 ];
+            CACHE_VEC4[ 1 ] = outV3[ 1 ];
+            CACHE_VEC4[ 2 ] = outV3[ 2 ];
+            CACHE_VEC4[ 3 ] = 1;
 
+            CACHE_VEC4.multiplyMat4( this.transform ).multiplyMat4( this.projection );
+
+            let inverseW = 1 / CACHE_VEC4[ 3 ];
             
-
-            CACHE_A.set( this.transform ).invert().multiply( this.projection );
-            console.log( inp, CACHE_A );
-            inp.multiplyMat4( CACHE_A );
-            console.log( inp, CACHE_A );
+            CACHE_VEC4[ 0 ] *= inverseW;
+            CACHE_VEC4[ 1 ] *= inverseW;
+            CACHE_VEC4[ 2 ] *= inverseW;
             
-            vec3.set( outV3, inp );
-
-            console.log( outV3 );
-            outV3[ 0 ] = ( outV3[ 0 ] + 1 ) / 2;
-            outV3[ 1 ] = ( outV3[ 1 ] + 1 ) / 2;
-            outV3[ 2 ] = ( outV3[ 2 ] + 1 ) / 2;
-            console.log( outV3 );
-            outV3[ 0 ] = outV3[ 0 ] * gl.canvas.clientWidth + gl.canvas.clientLeft;
-            outV3[ 1 ] = outV3[ 1 ] * gl.canvas.clientHeight + gl.canvas.clientTop;
-            console.log( outV3 );
-
-            s.left = outV3[ 0 ]|0 + "px";
-            s.top = outV3[ 1 ]|0 + "px";
+            outV3[ 0 ] = CACHE_VEC4[ 0 ];
+            outV3[ 1 ] = CACHE_VEC4[ 1 ];
 
             return outV3;
         }
+
+        projectToScreenCoordinates ( outV3 ) {
+            return toScreenCoordinates( this.project( outV3 ) );
+        }
+
         unproject ( outV3 ) {
+            CACHE_VEC4[ 0 ] = outV3[ 0 ];
+            CACHE_VEC4[ 1 ] = outV3[ 1 ];
+            CACHE_VEC4[ 2 ] = outV3[ 2 ];
+            CACHE_VEC4[ 3 ] = 1;
 
-            let inp = [ outV3[ 0 ], outV3[ 1 ], outV3[ 2 ], 1.0 ];
+            CACHE_INV_TRANSFORM_MAT4.set( this.transform ).invert();
+            CACHE_INV_PROJECTION_MAT4.set( this.projection ).invert();
 
-            inp[ 0 ] = ( inp[ 0 ] - gl.canvas.clientLeft ) / gl.canvas.clientWidth;
-            inp[ 1 ] = ( inp[ 0 ] - gl.canvas.clientTop ) / gl.canvas.clientHeight;
-
-            inp[ 0 ] = inp[ 0 ] * 2 - 1;
-            inp[ 1 ] = inp[ 1 ] * 2 - 1;
-            inp[ 2 ] = inp[ 2 ] * 2 - 1;
-
-            CACHE_A.set( this.transform ).multiply( this.projection ).invert();
-
-            vec4.multiplyMat4( inp, CACHE_A );
-
-            inp[ 0 ] /= inp[ 3 ];
-            inp[ 1 ] /= inp[ 3 ];
-            inp[ 2 ] /= inp[ 3 ];
+            CACHE_VEC4.multiplyMat4( CACHE_INV_PROJECTION_MAT4 ).multiplyMat4( CACHE_INV_TRANSFORM_MAT4 );
             
+            let inverseW = 1 / CACHE_VEC4[ 3 ];
 
-            
-            /*
-            //console.log(CACHE_MAT4);
-            vec3.applyProjection( outV3, CACHE_B );
+            outV3[ 0 ] = CACHE_VEC4[ 0 ] * inverseW;
+            outV3[ 1 ] = CACHE_VEC4[ 1 ] * inverseW;
+            outV3[ 2 ] = CACHE_VEC4[ 2 ] * inverseW;
 
-            s.left = ( ( outV3[ 0 ] + 1 ) / 2 * gl.canvas.width )|0 + "px";
-            s.top = ( ( outV3[ 1 ] + 1 ) / 2 * gl.canvas.height )|0 + "px";
-
-            console.log( s.left, s.top );
-            return outV3;
-            */
-
-            vec3.set( outV3, inp );
-
-            console.log( outV3 );
             return outV3;
         }
 
+        unprojectFromScreenCoordinates( outV3 ) {
+            return this.unproject( toNormalizedDeviceCoordinates( outV3 ) );
+        }
     } 
 
     class Perspective extends Camera {
         constructor( near, far, fov, aspect ) {
-            if ( near === undefined ) near = 0.1;
-            if ( far === undefined ) far = 1000.0;
+            if ( near === undefined ) near = 0.00001;
+            if ( far === undefined ) far = 5;
             if ( fov === undefined ) fov = Math.PI / 3;
             if ( aspect === undefined ) aspect = gl.canvas.width / gl.canvas.height;
 
@@ -153,6 +134,20 @@ define( [
 
         }
 
+    }
+
+    function toScreenCoordinates ( outV2 ) {
+        outV2[ 0 ] = ( outV2[ 0 ] + 1 ) / 2 * gl.canvas.clientWidth;
+        outV2[ 1 ] = ( -outV2[ 1 ] + 1 ) / 2 * gl.canvas.clientHeight;
+
+        return outV2;
+    }
+
+    function toNormalizedDeviceCoordinates ( outV2 ) {
+        outV2[ 0 ] = outV2[ 0 ] / gl.canvas.clientWidth * 2 - 1;
+        outV2[ 1 ] = -( outV2[ 1 ] / gl.canvas.clientHeight * 2 - 1 );
+
+        return outV2;
     }
 
     def.Properties( Camera, {

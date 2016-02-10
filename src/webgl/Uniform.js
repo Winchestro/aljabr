@@ -331,10 +331,10 @@ define( [
 
     function mixin ( target, source ) {
         for ( let method of Object.getOwnPropertyNames( source.prototype ) )
-        if ( target.prototype[ method ] === undefined ) def.Property( target.prototype, method, new Function(`
+        if ( target.prototype[ method ] === undefined ) def.Property( target.prototype, method, eval(`(function ( ) {
             ${ source.name }.prototype.${ method }.apply( this.value, arguments );
             return this;
-        `), def.CONFIGURABLE );
+        })`), def.CONFIGURABLE );
     }
 
     return Uniform;
