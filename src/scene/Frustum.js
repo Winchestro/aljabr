@@ -32,7 +32,7 @@ define ( [
 
 		}
 
-		update ( camera ) {
+		update ( camera, xOffset, yOffset, zOffset ) {
 			let width = gl.canvas.clientWidth;
 			let height = gl.canvas.clientHeight;
 			let far = camera.far;
@@ -41,10 +41,10 @@ define ( [
 			let aspect = camera.aspect;
 			
 			let depth = far - near;
-			
-			let xOffset = 5;
-			let yOffset = 5;
-			let zOffset = 5;
+
+			if ( xOffset === undefined ) xOffset = 5;
+			if ( yOffset === undefined ) yOffset = 5;
+			if ( zOffset === undefined ) zOffset = depth / 10;
 
 			camera.updateProjection( near + zOffset, far - zOffset, fov, aspect );
 			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( xOffset, yOffset, 1 ) );
@@ -82,8 +82,8 @@ define ( [
 
 			let colorBuffer = new BufferObject.Vertex().bind().allocate( 4 * 4 * this.BYTES_PER_ELEMENT ).update( new Float32Array([
 				1, 1, 1, 1,
-				0, 0, .25, 1,
-				0, .25, 0, 1,
+				.5, 1, .5, 1,
+				.5, .5, 1, 1,
 				1, 1, 1, 1,
 			]));
 
@@ -101,7 +101,7 @@ define ( [
 
 			let material = new VertexColors;
 
-			material.alpha.enable().setFunc( Alpha.FN_SRC_COLOR , Alpha.FN_ONE_MINUS_DST_COLOR, Alpha.FN_SRC_ALPHA, Alpha.FN_DST_ALPHA );
+			material.alpha.enable().setFunc( gl.SRC_COLOR , gl.ONE_MINUS_DST_COLOR, gl.SRC_ALPHA, gl.DST_ALPHA );
     
 
 			def.Properties( this, {
