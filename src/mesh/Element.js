@@ -99,6 +99,7 @@ define ( [
         }
         draw ( scene, camera, lights, mesh ) {
             if ( !this.visible ) return this;
+            if ( !this.material.program.getLinkStatus ) return this;
             var uniforms;
 
             this.vertexBuffer.bind();
@@ -124,14 +125,14 @@ define ( [
                 for ( var element in scene.stacks ) {
                     var stack = scene.stacks[ element ];
                     var uniform = uniforms[ element ];
-
-                    uniform.set( stack[ 0 ] );
-                    for ( var i = 1; i < stack.length; i++ ) {
-                        uniform.multiply( stack[ i ] );    
-                    }
+                    if ( uniform ) {
+                        uniform.set( stack[ 0 ] );
+                        for ( var i = 1; i < stack.length; i++ ) {
+                            uniform.multiply( stack[ i ] );    
+                        }
+                        uniform.set();
+                    }    
                     
-                    
-                    uniform.set();
                 }
 
                     /*

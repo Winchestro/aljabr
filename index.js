@@ -40,6 +40,7 @@ var library = {
     },
     scene : {
         Camera : "",
+        Frustum : "",
         Light : "",
         Scene : ""
     },
@@ -64,20 +65,20 @@ var library = {
         UniformStruct : "",
         VertexArrayObject : "",
         BufferObject : "",
-        Viewport : ""
-    },   
-    material : {
-        VertexColors : "",
-        Phong : "",
+        Viewport : "",
         Alpha : "",
         CullFace : "",
         DepthTest : "",
-        Material : "",
         Multisample : "",
         PolygonOffset : "",
         ScissorTest : "",
         StencilTest : "",
         TextureUnit : ""
+    },   
+    material : {
+        VertexColors : "",
+        Phong : "",
+        Material : "",
     },
     kernel : {
         InterleavedArray : "",
@@ -158,7 +159,7 @@ function main ( $$dependencies ) {
     document.body.appendChild( gl.canvas );
     gl.setPixelRatio();
     
-    scene = new Scene;
+    scene = new Scene( new Camera.Perspective( 0.1, 1000 ) );
     
     
     
@@ -189,7 +190,7 @@ function main ( $$dependencies ) {
         .translate( 0, 0, -10 )
         .rotate( -Math.PI / 4, 1, 0, 0 )
     ;
-
+    scene.addChild( "frustum", new Frustum( scene.camera ) );
     material = new Material.Phong;
     waterMaterial = new Material.Phong;
 

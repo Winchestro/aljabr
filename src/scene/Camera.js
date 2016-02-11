@@ -94,8 +94,8 @@ define( [
 
     class Perspective extends Camera {
         constructor( near, far, fov, aspect ) {
-            if ( near === undefined ) near = 0.00001;
-            if ( far === undefined ) far = 5;
+            if ( near === undefined ) near = 0.1;
+            if ( far === undefined ) far = 1000;
             if ( fov === undefined ) fov = Math.PI / 3;
             if ( aspect === undefined ) aspect = gl.canvas.width / gl.canvas.height;
 
@@ -111,8 +111,20 @@ define( [
                 aspect
             }, def.WRITABLE );
         }
-        updateProjection ( ) {
-            this.projection.makePerspective( this.aspect, this.fov, this.near, this.far );
+        updateProjection ( near, far, fov, aspect ) {
+            if ( near === undefined ) near = this.near;
+            else this.near = near;
+
+            if ( far === undefined ) far = this.far;
+            else this.far = far;
+
+            if ( fov === undefined ) fov = this.fov;
+            else this.fov = fov;
+
+            if ( aspect === undefined ) aspect = this.aspect;
+            else this.aspect = aspect;
+
+            this.projection.makePerspective( aspect, fov, near, far );
             return this;
         }
         
