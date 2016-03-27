@@ -1,6 +1,6 @@
 define ( [
     "../utilities/PropertyDescriptors",
-    "../utilities/allocateUint",
+    "../kernel/allocateUint",
     "../webgl/Context",
     "../kernel/PoolAllocator",
     "../mesh/Face",

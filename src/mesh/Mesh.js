@@ -4,7 +4,7 @@ define ( [
     "../mesh/FaceList",
     "../mesh/EdgeList",
     "../mesh/VertexList",
-    "../mesh/DisplayList",
+    "../mesh/Renderable",
     "../mesh/Element"
 ], function module (
     def,
@@ -12,13 +12,13 @@ define ( [
     FaceList,
     EdgeList,
     VertexList,
-    DisplayList,
+    Renderable,
     Element
 ){
     "use strict";
 
 
-    class Mesh extends DisplayList {
+    class Mesh extends Renderable {
         constructor ( uniforms, vertices, edges, faces, children ) {
             if ( edges === undefined ) edges = new EdgeList;
             if ( faces === undefined ) faces = new FaceList;
@@ -39,24 +39,20 @@ define ( [
             
         }
 
-        
+        update ( ) {
+            for ( let drawable of this.children ) drawable.update();
+        }
 
-        draw ( scene, camera, lights, partentMesh ) {
+        draw ( camera, scene, lights, partentMesh ) {
             if ( !this.visible ) return;
             if ( partentMesh ) partentMesh.vertices.unbind();
             this.vertices.bind();
             
-            
-            if ( this.ondraw ) this.ondraw();
-
             for ( var element in scene.stacks ) {
                 if ( this[ element ] ) scene.stacks[ element ].push( this[ element ] );
             }
 
-            for ( var i = 0; i < this.children.length; i++) {
-                this.children[ i ].draw( scene, camera, lights, this );
-            }
-            
+            for ( let drawable of this.children ) drawable.draw( camera, scene, lights, this );
 
             for ( var element in scene.stacks ) {
                 if ( this[ element ] ) scene.stacks[ element ].pop();
@@ -65,7 +61,6 @@ define ( [
             this.vertices.unbind();
             if ( partentMesh ) partentMesh.vertices.bind();
         }
-        
         createNormalMesh ( material, normalLength ) {
             if ( normalLength === undefined ) normalLength = 1;
             
@@ -117,8 +112,6 @@ define ( [
             //def.Properties( mesh, this, def.ENUMERABLE | def.CONFIGURABLE | def.WRITABLE );
             return mesh;
         }
-
-
         createFace ( ) {
 
             let vertices = this.vertices.dereference( arguments );
@@ -133,8 +126,6 @@ define ( [
         mergeVertices ( ) {
             let vertices = this.vertices.dereference( arguments );
 
-
-            
             for ( let vertexA of vertices ) {
                 for ( let vertexB of vertices ) {
                     if ( vertexA.outgoingHalfedge !== vertexB.outgoingHalfedge ) {
@@ -170,14 +161,6 @@ define ( [
 
             return this;
         }
-        
-        alignHalfedges ( ) {
-            for ( let vertex of this.vertices ) {
-                vertex.rotateOutgoingHalfedgeRight();
-            }
-        }   
-        
-        
     }
 
     def.Properties( Mesh.prototype, {

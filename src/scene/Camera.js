@@ -3,46 +3,53 @@ define( [
     "../webgl/Context",
     "../math/mat4",
     "../math/vec3",
-    "../math/vec4"
+    "../math/vec4",
+    "../scene/Frustum"
 ], function module (
     def,
     gl,
     mat4,
     vec3,
-    vec4
+    vec4,
+    Frustum
 ){
     "use strict";
 
     const CACHE_VEC4 = new vec4;
     const CACHE_INV_TRANSFORM_MAT4 = new mat4;
     const CACHE_INV_PROJECTION_MAT4 = new mat4;
-
     /*
-    let test = document.createElement( "div" );
-    let s = test.style;
-    s.width = "5px";
-    s.height = "5px";
-    s.position = "absolute";
-    s.left ="0px";
-    s.top = "0px";
-    s.background = "red";
-    s.zIndex = "5";
-    document.body.style.overflow = "hidden";
+        camera
 
-    document.body.appendChild( test );
+        camera as the root of rendering
+
+
+
+
+
     */
     class Camera {
-        constructor ( projection, transform, uniforms ) {
+        constructor ( projection, transform, scene, target, uniforms ) {
             if ( projection === undefined ) projection = new mat4;
             if ( transform === undefined ) transform = new mat4;
+            if ( scene === undefined ) scene = new Scene;
+            if ( target === undefined ) target = null;
 
             def.Properties( this, {
+                frame : 0,
                 projection,
                 transform
-            }, def.ENUMERABLE | def.CONFIGURABLE | def.WRITABLE );
+            }, def.WRITABLE | def.ENUMERABLE | def.CONFIGURABLE );
+
+            def.Properties( this, {
+                scene,
+                target,
+                drawCalls : 0
+            }, def.WRITABLE | def.CONFIGURABLE );
 
             def.Properties( this, uniforms, def.ENUMERABLE | def.CONFIGURABLE | def.WRITABLE );
         }
+
         project ( outV3 ) {
             CACHE_VEC4[ 0 ] = outV3[ 0 ];
             CACHE_VEC4[ 1 ] = outV3[ 1 ];
@@ -62,11 +69,9 @@ define( [
 
             return outV3;
         }
-
         projectToScreenCoordinates ( outV3 ) {
             return toScreenCoordinates( this.project( outV3 ) );
         }
-
         unproject ( outV3 ) {
             CACHE_VEC4[ 0 ] = outV3[ 0 ];
             CACHE_VEC4[ 1 ] = outV3[ 1 ];
@@ -86,9 +91,21 @@ define( [
 
             return outV3;
         }
-
         unprojectFromScreenCoordinates( outV3 ) {
             return this.unproject( toNormalizedDeviceCoordinates( outV3 ) );
+        }
+
+        update ( ) {
+            this.scene.update();
+        }
+
+        draw ( ) {
+            gl.bindFramebuffer( gl.FRAMEBUFFER, this.target );
+            gl.clear( gl.COLOR_BUFFER_BIT  | gl.DEPTH_BUFFER_BIT );
+            this.drawCalls = 0;
+            this.frame++;
+            
+            this.scene.draw( this );
         }
     } 
 
@@ -110,6 +127,9 @@ define( [
                 fov,
                 aspect
             }, def.WRITABLE );
+        }
+        update ( ) {
+
         }
         updateProjection ( near, far, fov, aspect ) {
             if ( near === undefined ) near = this.near;
@@ -143,7 +163,6 @@ define( [
                 new mat4().makeOrthographic( left, right, top, bottom, near, far ),
                 new mat4
             );
-
         }
 
     }

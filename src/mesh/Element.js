@@ -90,14 +90,19 @@ define ( [
 
             return this;
         }
-        update ( view ) {
-            if ( view !== undefined ) this.view.set( view );
+        updateBuffer ( view ) {
+            if ( view !== undefined && view !== this.view ) this.view.set( view );
             this.vertexBuffer.update( this.view );
             this.count = this.view.length;
 
             return this;
         }
-        draw ( scene, camera, lights, mesh ) {
+
+        update ( ) {
+
+        }
+
+        draw ( camera, scene, lights, mesh ) {
             if ( !this.visible ) return this;
             if ( !this.material.program.getLinkStatus ) return this;
             var uniforms;
@@ -105,7 +110,7 @@ define ( [
             this.vertexBuffer.bind();
             this.material.use();
             //console.log( arguments );
-            scene.drawCalls++;
+            
             uniforms = this.material.program.getActiveUniforms.scene;
             if ( uniforms ) uniforms.set( scene );
        
@@ -165,8 +170,9 @@ define ( [
                     */
                 
             }
-            var uniforms = this.material.program.getActiveUniforms.element;
+            uniforms = this.material.program.getActiveUniforms.element;
             if ( uniforms ) uniforms.set( this );
+            camera.drawCalls++;
             gl.drawElements( this.drawType, this.count, this.dataType, this.offset );
             
             return this;

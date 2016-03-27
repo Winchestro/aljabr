@@ -8,11 +8,11 @@ struct Mesh {
     vec3 scale;
 };
 struct Camera {
+    int frame;
     mat4 transform;
     mat4 projection;
 };
 struct Scene {
-    int frame;
     int usedLights;
     float deltaTime;
 };

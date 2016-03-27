@@ -30,7 +30,6 @@ var gui;
 
 var library = {
     utilities : {
-        allocateUint : "",
         PropertyDescriptors : "def",
         GlyphAtlas : "",
     },
@@ -83,7 +82,16 @@ var library = {
     kernel : {
         InterleavedArray : "",
         PoolAllocator : "",
-        VBOArrayBuffer : ""
+        ArrayBuffer : "",
+        Float32Array : "",
+        Float64Array : "",
+        Int8Array : "",
+        Int16Array : "",
+        Int32Array : "",
+        Uint8Array : "",
+        Uint16Array : "",
+        Uint32Array : "",
+        allocateUint : ""
     },
     mesh : {
         Mesh : "",
@@ -159,9 +167,9 @@ function main ( $$dependencies ) {
     document.body.appendChild( gl.canvas );
     gl.setPixelRatio();
     
-    scene = new Scene( new Camera.Perspective( 0.1, 1000 ) );
-    
-    
+    camera = new Camera.Perspective( 0.1, 1000 );
+    scene = camera.scene;
+
     
     directionalLight = new Light({
         position        : new vec4( 1,1,1,0 ),
@@ -183,14 +191,14 @@ function main ( $$dependencies ) {
         outerCutoff     : 5.9
     });
 
-    scene.lights.push( directionalLight );
+    camera.scene.lights.push( directionalLight );
     //scene.lights.push( pointLight );
     
-    scene.camera.transform
+    camera.transform
         .translate( 0, 0, -10 )
         .rotate( -Math.PI / 4, 1, 0, 0 )
     ;
-    scene.addChild( "frustum", new Frustum( scene.camera ) );
+    camera.scene.addChild( "frustum", new Frustum.Mesh( camera, 5 ) );
     material = new Material.Phong;
     waterMaterial = new Material.Phong;
 
@@ -419,8 +427,8 @@ function main ( $$dependencies ) {
     cells.lines.visible = false;
     cells.normals.visible = false;
 
-    scene.addChild( "delaunay", tris );
-    scene.addChild( "voronoi", cells );
+    camera.scene.addChild( "delaunay", tris );
+    camera.scene.addChild( "voronoi", cells );
     //scene.children.push( tris );
     //scene.children.push( cells );
 
@@ -477,7 +485,7 @@ function main ( $$dependencies ) {
     grid.triangles.visible = false;
     grid.visible = false;
 
-    scene.addChild( "grid", grid );
+    camera.scene.addChild( "grid", grid );
     /*
     cube = createCube({
         scale       : new vec3( 2 ),
@@ -666,7 +674,7 @@ function main ( $$dependencies ) {
                     let delta = distanceA - distanceB;
                     //scene.camera.transform[ 12 ] = touchTransformOrigin[ 0 ] + ( touchApos[ 0 ] + touchBpos[ 0 ] ) * .5;
                     //scene.camera.transform[ 13 ] = touchTransformOrigin[ 1 ] + ( touchApos[ 1 ] + touchBpos[ 1 ] ) * .5;
-                    scene.camera.transform[ 14 ] =  -delta;
+                    camera.transform[ 14 ] =  -delta;
                     //console.log( distanceA, distanceB, delta );
                 }
             }
@@ -693,7 +701,7 @@ function main ( $$dependencies ) {
     gl.canvas.addEventListener( "wheel", function ( e ) {
         let delta = e.wheelDeltaY / Math.abs( e.wheelDeltaY );
 
-        scene.camera.transform.translate( 0,0, -delta * 5 );
+        camera.transform.translate( 0,0, -delta * 5 );
     });
 
     let pressedKeys = new Set;
@@ -713,17 +721,20 @@ function main ( $$dependencies ) {
     
     function loop ( ) {
         requestAnimationFrame( loop );
-        if ( pressedKeys.has( KEY_W ) ) scene.camera.transform[ 13 ]--;
-        if ( pressedKeys.has( KEY_S ) ) scene.camera.transform[ 13 ]++;
-        if ( pressedKeys.has( KEY_A ) ) scene.camera.transform[ 12 ]++; 
-        if ( pressedKeys.has( KEY_D ) ) scene.camera.transform[ 12 ]--;
-       
+        update();
         redraw();
+    }
+    function update ( ) {
+        if ( pressedKeys.has( KEY_W ) ) camera.transform[ 13 ]--;
+        if ( pressedKeys.has( KEY_S ) ) camera.transform[ 13 ]++;
+        if ( pressedKeys.has( KEY_A ) ) camera.transform[ 12 ]++; 
+        if ( pressedKeys.has( KEY_D ) ) camera.transform[ 12 ]--;
+        camera.update();
     }
     function redraw ( ) {
         //log.clear();
-        gl.clear( gl.COLOR_BUFFER_BIT  | gl.DEPTH_BUFFER_BIT );
-        scene.draw();
+        
+        camera.draw();
     }
 
     var pointer = new vec2;
@@ -747,7 +758,7 @@ function main ( $$dependencies ) {
             //let movementX = e.movementX;
             //let movementY = downY - e.clientY;
             
-            scene.camera.transform.rotateZ( pointerMovement[ 0 ] / 100 );
+            camera.transform.rotateZ( pointerMovement[ 0 ] / 100 );
             
         } else {
             directionalLight.position[ 0 ] = Math.sin( mouse[ 0 ] / 2 * Math.PI );
@@ -768,8 +779,8 @@ function main ( $$dependencies ) {
         gl.canvas.height = innerHeight;
         gl.viewport( 0, 0, innerWidth, innerHeight );
 
-        scene.camera.aspect = innerWidth / innerHeight;
-        scene.camera.updateProjection();
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjection();
     }
 
     

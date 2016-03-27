@@ -23,17 +23,21 @@ define( [
 	}
 
 	class Index {
-		constructor ( ) {
+		constructor ( view, usage ) {
 			var vbo = gl.createBuffer();
 			def.Property( vbo, "target", gl.ELEMENT_ARRAY_BUFFER );
+
+			if( view !== undefined ) vbo.bind().allocate( view, usage );
 			return vbo;
 		}
 	}
 
 	class Vertex {
-		constructor ( ) {
+		constructor ( view, usage ) {
 			var vbo = gl.createBuffer();
 			def.Property( vbo, "target", gl.ARRAY_BUFFER );
+
+			if( view !== undefined ) vbo.bind().allocate( view, usage );
 			return vbo;
 		}
 	}
@@ -67,13 +71,13 @@ define( [
 			gl.bindBuffer( target, null );
 			return this;
 		},
-		allocate ( byteLength, usage ) {
+		allocate ( lengthOrView, usage ) {
 			if ( usage === undefined ) usage = gl.STATIC_DRAW;
 			
 			this.bind();
 			gl.bufferData(
 				this.target,
-				byteLength,
+				lengthOrView,
 				usage
 			);
 			return this;
@@ -120,7 +124,7 @@ define( [
 		getUsage 		(){	this.bind(); return gl.getBufferParameter( this.target, gl.BUFFER_USAGE );},
 		getSize 		(){	this.bind(); return gl.getBufferParameter( this.target, gl.BUFFER_SIZE );},
 	});
-
+	/*
 	let prototypes = [
 		Float32Array.prototype,
 		Float64Array.prototype,
@@ -132,21 +136,14 @@ define( [
 		Int32Array.prototype
 	];
 
+
 	for ( let prototype of prototypes ) def.Properties( prototype, {
 		update : update,
-		set : set,
-		setValues : setValues, 
-		__set : prototype.set
+		setValues : setValues,
 	});
 	
-	
-
-	function set ( n ) {
-		this.constructor.prototype.__set.call( this, n );
-		return this;
-	}
 	function setValues ( ) {
-		this.constructor.prototype.__set.call( this, arguments );
+		this.set.call( this, arguments );
 		return this;
 	}
 	function update ( ) {
@@ -154,5 +151,6 @@ define( [
 		this.buffer.target.update( this );
 		return this;
 	}
+	*/
 	return BufferObject;
 });

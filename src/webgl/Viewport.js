@@ -6,6 +6,7 @@ define( [
     "use strict";
 
     class Viewport {
+        
         setDimensions ( x, y, width, height ) {
             if ( x === undefined ) x = 0;
             if ( y === undefined ) y = 0;

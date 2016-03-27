@@ -9,6 +9,7 @@ struct Mesh {
 };
 
 struct Camera {
+    int frame;
     mat4 transform;
     mat4 projection;
 };

@@ -12,7 +12,6 @@ varying mat3 v_modelMatrix;
 #define MAX_LIGHTS 4
 
 struct Scene {
-    int frame;
     float deltaTime;
 };
 uniform Scene scene;

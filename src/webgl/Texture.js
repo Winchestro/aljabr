@@ -137,7 +137,7 @@ define( [
             return this;
         },
 
-        image2D ( data, level, format, type ) {
+        allocateImage2D ( data, level, format, type ) {
             if ( level === undefined )      level = 0;
             if ( format === undefined )     format = gl.RGBA;
             if ( type === undefined )       type = gl.UNSIGNED_BYTE;
@@ -152,7 +152,7 @@ define( [
             return this;
         },
 
-        data ( data, width, height, level, format, type ) {
+        allocateData ( data, width, height, level, format, type ) {
             if ( level === undefined )      level = 0;
             if ( format === undefined )     format = gl.RGBA;
             if ( type === undefined )       type = gl.UNSIGNED_BYTE;
@@ -180,7 +180,7 @@ define( [
             return this;
         },
 
-        subImage2D ( data, xoffset, yoffset, level, format, type ) {
+        updateImage2D ( data, xoffset, yoffset, level, format, type ) {
             if ( xoffset === undefined )    xoffset = 0;
             if ( yoffset === undefined )    yoffset = 0;
             if ( level === undefined )      level = 0;
@@ -199,7 +199,7 @@ define( [
             return this;
         },
 
-        subData ( data,  width, height, xoffset, yoffset, level, format, type ) {
+        updateData ( data,  width, height, xoffset, yoffset, level, format, type ) {
             if ( xoffset === undefined )    xoffset = 0;
             if ( yoffset === undefined )    yoffset = 0;
             if ( level === undefined )      level = 0;

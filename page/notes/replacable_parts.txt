@@ -1,0 +1,17 @@
+Software design in layers with replacable parts in mind
+
+One of the key design goals of Aljabr is to solve one of the problems I'm encountering with many other libraries, but especially with frameworks. The problem of replacing parts of them being needlessly tedious. In the javascript world all frameworks, and even most libraries come as one big bundle. Often you can customize the build to include only the functionality you want in this bundle, but very few are actually designed as replacable parts.
+
+The problem with all frameworks is that, no matter how well written, only work well for the specific use cases they were designed for. And that's ok, even nessecary. But they can never know what they are going to be used for. Ignoring that always leads to the same consequence : It's very easy to get a nearly-perfect solution, but incredibly difficult to get the perfect solution for your specific problem. Usually more difficult than not using the framework at all.
+
+But this last step is actually the most important one, because you never know what it's used for. There is no universal metric for what's "good enough". For some cases it really doesn't matter, but for others any small detail can completely break their application. As a programmer there's nothing more frustrating than having the right idea, but being unable to implement it because of some tiny, hard coded detail in the layer below you have no control over.
+
+One way to reduce that fricition is to design the entire engine as a set of modular, exchangable parts in multiple layers of abstraction. This gives the user the choice to either use a module, or break it down and use its parts, all the way down to not using it at all and writing all the code needed to do this specific job yourself. 
+
+Ideally the worst case, changing a detail on the lowest level, would only require you fork that one lowest-level module, and not anything else. And even if it does lead to changes in the higher level modules the worst case would be for that change to affect the entire dependency chain up to the high-level module you want to change. Even that is acceptable, as it only applies to structural changes.
+
+Instead of focusing only on reusability when deciding when to pull out code into a seperate module, focus on decomposability. Always break your modules apart, even if you don't reuse those parts anywhere else, to make it easier for others to understand how they work and to jump in. Don't write your documentation only for the upper most layer, but all the way down. Just, you know, make it a tree rather than a list.
+
+This way you can have both, the easy to learn high level interfaces and the gradually more and more difficult to learn implementation details, rewarding the user for their effort with more and more control over the important details as they go.
+
+Another side effect of this is especially important for javascript development. Because you deliver your framework in modules, rather than bundles ( and leave the bundling up to the developer ) it's easier for the developers to make good builds rather than, you know, bundle it all up into one huge messy web bundle of mostly dead code as they always do. And if they don't want to build, it's ok. It's  better to have like a hundred http requests to relatively small files they actually use, rather than 1 request to a huge pile of dead code. This way it's at least cachable, and won't time out on slower connections.

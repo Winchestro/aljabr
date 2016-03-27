@@ -1,68 +1,25 @@
 define ( [
     "../utilities/PropertyDescriptors",
-    "../utilities/allocateUint",
+    "../kernel/allocateUint",
+    "../kernel/ArrayBuffer",
     "../webgl/Context",
     "../webgl/AttributeLocation",
     "../webgl/BufferObject",
     "../mesh/Vertex",
+    "../mesh/VertexStructure",
     "../mesh/Element"
 ], function module (
     def,
     allocateUint,
+    ArrayBuffer,
     gl,
     AttributeLocation,
     BufferObject,
     Vertex,
+    VertexStructure,
     Element
 ) {
     "use strict";
-    /*
-        Drastically simplify vbo, geometry, attributes, vertexlist, interleaved arry
-
-        into one data structure "vertexList", which is a pool allocator for
-        vertices, initialized with a pool size and a vertex structure. It's always an
-        interleaved array. It's also a list of all currently used vertices.
-
-        It can't be used to draw itself, only when referenced by a mesh.
-
-        I'm basically removing drawArrays and force all vertices into an
-        interleaved structure.
-
-        Drawable Elements can be derrived from the corresponding primitives [ vetices, lines, faces ];
-
-        An element stores no connectivity information, but stores a reference to the mesh it was derrived from
-
-        The mesh stores connectivity information, 
-    */
-
-    class VertexStructure {
-        constructor ( structure ) {
-            let stride = VertexStructure.computeStride( structure );
-            let byteOffset = 0;
-            let index = 0;
-            for ( let attributeName in structure ) {
-                let attribute = structure[ attributeName ];
-
-                let length = attribute.length;
-                let location = new AttributeLocation( index, length, byteOffset, stride );
-
-                def.Property( this, attributeName, location, def.CONFIGURABLE | def.ENUMERABLE );
-
-                byteOffset += structure[ attributeName ].byteLength;
-                index++;
-            }
-
-            def.Property( this, "stride", stride, def.CONFIGURABLE );
-
-        } 
-        static computeStride ( structure ) {
-            let stride = 0;
-            for ( let view in structure ) stride += structure[ view ].byteLength;
-
-            return stride;
-        }
-
-    }
 
     class VertexList {
         constructor ( structure, maxLength, usage ) {
@@ -70,9 +27,9 @@ define ( [
 
             let vertexStructure = new VertexStructure( structure );
             let stride = vertexStructure.stride;
-
-            let arrayBuffer = new ArrayBuffer( stride * maxLength );
+            
             let vertexBuffer = new BufferObject.Vertex().bind().allocate( stride * maxLength, usage );
+            let arrayBuffer = new ArrayBuffer( stride * maxLength, vertexBuffer );
 
             def.Property( this, "length", 0, def.WRITABLE );
 
@@ -81,15 +38,12 @@ define ( [
                 this.push( vertex );
             }
 
-            def.Property( arrayBuffer, "target", vertexBuffer, def.CONFIGURABLE );
             def.Properties( this, {
                 structure           : vertexStructure,
                 buffer              : arrayBuffer,
                 BYTES_PER_ELEMENT   : stride,
             }, def.CONFIGURABLE );
         }
-
-
 
         allocate ( length, usage ) {
             let oldLength = this.length;
@@ -105,7 +59,7 @@ define ( [
 
             def.Property( newBuffer, "target", vbo, def.CONFIGURABLE );
 
-            vbo.bind().allocate( newByteLength, usage );
+            //vbo.bind().allocate( newByteLength, usage );
 
             for ( let index = 0; index < oldLength; index++ ) {
                 this[ index ].createViews( index, newBuffer, this.structure );
@@ -121,10 +75,15 @@ define ( [
 
             targetView.set( sourceView );
 
-            vbo.update( sourceView );
+            vbo.bind().allocate( sourceView, usage );
 
             def.Property( this, "buffer", newBuffer, def.CONFIGURABLE );
 
+            return this;
+        }
+
+        update ( ) {
+            this.buffer.update( );
             return this;
         }
 
@@ -160,10 +119,7 @@ define ( [
             return this;
         }
 
-        update ( ) {
-            this.buffer.target.update( this.buffer );
-            return this;
-        }
+        
         createElement ( material, uniforms, usage, buffer ) {
             return new Element( material, uniforms, gl.POINTS ).allocateBuffer( this.getData( buffer ), usage );
         }
