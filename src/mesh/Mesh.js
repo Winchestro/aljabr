@@ -27,8 +27,7 @@ define ( [
             super( children );
 
             if ( uniforms ) def.Properties( this, uniforms, def.ENUMERABLE | def.CONFIGURABLE | def.WRITABLE );
-
-
+            
             def.Properties( this, {
                 vertices,
                 faces,
@@ -39,8 +38,13 @@ define ( [
             
         }
 
-        update ( ) {
-            for ( let drawable of this.children ) drawable.update();
+        setVertices ( vertexList ) {
+            def.Property( this, "vertices", vertexList, def.CONFIGURABLE );
+            return this.vertexList;
+        }
+
+        update ( camera, scene, lights, partentMesh ) {
+            for ( let drawable of this.children ) drawable.update( camera, scene, lights, this );
         }
 
         draw ( camera, scene, lights, partentMesh ) {

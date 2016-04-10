@@ -1,9 +1,7 @@
-define ( [
-    "../utilities/PropertyDescriptors",
-    "../gl-matrix/dist/gl-matrix"
+define( [
+    "../utilities/PropertyDescriptors"
 ], function module (
-    def,
-    glMatrix
+    def
 ) {
     "use strict";
 
@@ -17,10 +15,9 @@ define ( [
     const _z_ = 2;
     const _w_ = 3;
 
-    class vec4 {
+    class vec4 extends Float32Array {
         constructor ( x, y, z, w ) {
-            return glMatrix.vec4.fromValues( x, y, z, w );
-            /*super( 4 );
+            super( 4 );
             if ( x === undefined ) x = 0;
             if ( y === undefined ) y = x;
             if ( z === undefined ) z = x;
@@ -29,9 +26,9 @@ define ( [
             this[_x_] = x;
             this[_y_] = y;
             this[_z_] = z;
-            this[_w_] = w;*/
+            this[_w_] = w;
         }
-        /*
+
         set ( inV4 ) {
             this[_x_] = inV4[_x_];
             this[_y_] = inV4[_y_];
@@ -142,7 +139,7 @@ define ( [
         static multiplyScalar ( outV4, s, vA ) {
             return vec4.prototype.multiplyScalar.call( outV4, s, vA );
         }
-        
+
         multiplyMat4 ( inM4, inV4 ) {
             if ( inV4 === undefined ) inV4 = this;
 
@@ -219,9 +216,7 @@ define ( [
         static getLengthManhattan ( inV4 ) {
             return vec4.prototype.getLengthManhattan.call( inV4 );
         }
-        */
     }
     
-    for ( let method in glMatrix.vec4 ) def.Property( vec4, method, glMatrix.vec4[ method ] );
     return vec4;
 });

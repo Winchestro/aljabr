@@ -1,13 +1,45 @@
 define( [
+    "../utilities/PropertyDescriptors",
     "../webgl/Context"
 ], function module (
+    def,
     gl
 ) {
     "use strict";
 
     class Viewport {
-        
+        constructor ( x, y, width, height ) {
+            if ( x === undefined ) x = 0;
+            if ( y === undefined ) y = 0;
+            if ( width === undefined ) width = gl.canvas.clientWidth;
+            if ( height === undefined ) height = gl.canvas.clientHeight;
+
+            def.Properties( this, {
+                x,
+                y,
+                width,
+                height
+            }, def.WRITABLE );
+        }
+
         setDimensions ( x, y, width, height ) {
+            if ( x === undefined ) x = this.x;
+            else this.x = x;
+
+            if ( y === undefined ) y = this.y;
+            else this.y = y;
+
+            if ( width === undefined ) width = this.width;
+            else this.width = width;
+
+            if ( height === undefined ) height = this.height;
+            else this.height = height;
+
+            Viewport.setDimensions( this.x, this.y, this.width, this.height );
+        }
+
+
+        static setDimensions ( x, y, width, height ) {
             if ( x === undefined ) x = 0;
             if ( y === undefined ) y = 0;
             if ( width === undefined ) width = gl.canvas.clientWidth;
@@ -25,7 +57,7 @@ define( [
             );
             return this;
         }
-        get getDimensions() { return gl.getParameter( gl.VIEWPORT );}
+        static get getDimensions() { return gl.getParameter( gl.VIEWPORT );}
     };
-    return new Viewport;
+    return Viewport;
 });

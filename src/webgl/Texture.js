@@ -179,7 +179,7 @@ define( [
             );
             return this;
         },
-
+/*void texSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLenum format, GLenum type, TexImageSource? source);*/
         updateImage2D ( data, xoffset, yoffset, level, format, type ) {
             if ( xoffset === undefined )    xoffset = 0;
             if ( yoffset === undefined )    yoffset = 0;
@@ -191,7 +191,6 @@ define( [
                 level,
                 xoffset,
                 yoffset,
-                format,
                 format,
                 type,
                 data

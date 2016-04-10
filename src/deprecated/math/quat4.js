@@ -1,16 +1,13 @@
 define ( [
-    "../utilities/PropertyDescriptors",
-    "../gl-matrix/dist/gl-matrix"
+    "../math/vec4"
 ], function module (
-    def,
-    glMatrix
+    vec4
 ) {
     "use strict";
 
-    class quat4 {
+    class quat4 extends Float32Array {
         constructor ( x, y, z, w ) {
-            return glMatrix.quat.create();
-            /*super( 4 );
+            super( 4 );
 
             if ( x === undefined ) x = 0;
             if ( y === undefined ) y = 0;
@@ -20,9 +17,9 @@ define ( [
             this[ 0 ] = x;
             this[ 1 ] = y;
             this[ 2 ] = z;
-            this[ 3 ] = w;*/
+            this[ 3 ] = w;
         }
-        /*
+
         set ( inV4 ) {
             this[ 0 ] = inV4[ 0 ];
             this[ 1 ] = inV4[ 1 ];
@@ -132,11 +129,8 @@ define ( [
 
             return this;
         }
-        */
     }
 
-    for ( let method in glMatrix.quat ) def.Property( quat4, method, glMatrix.quat[ method ] );
-
-    //const CACHE_QUAT4 = new quat4;
+    const CACHE_QUAT4 = new quat4;
     return quat4;
 });

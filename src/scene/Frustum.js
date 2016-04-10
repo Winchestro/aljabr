@@ -1,6 +1,7 @@
 define ( [
 	"../utilities/PropertyDescriptors",
 	"../webgl/Context",
+	"../kernel/Float32Array",
 	"../math/vec2",
 	"../math/vec3",
 	"../math/vec4",
@@ -9,6 +10,7 @@ define ( [
 ], function module (
 	def,
 	gl,
+	Float32Array,
 	vec2,
 	vec3,
 	vec4,
@@ -20,10 +22,8 @@ define ( [
 	const CACHE_VEC3 = new vec3;
 
 	class Frustum extends Float32Array {
-		constructor ( camera, xOffset, yOffset, zOffset ) {
-			if ( xOffset === undefined ) xOffset = 0;
-			if ( yOffset === undefined ) yOffset = xOffset;
-			if ( zOffset === undefined ) zOffset = xOffset;
+		constructor ( xOffset, yOffset, zOffset ) {
+			
 			
 			const vertexCount = 8;
 			const dimensions = 3;
@@ -34,9 +34,21 @@ define ( [
 				xOffset,
 				yOffset,
 				zOffset
-			}, def.CONFIGURABLE );
+			}, def.WRITABLE );
 
-			if ( camera !== undefined ) this.update( camera );
+			this.setOffset( xOffset, yOffset, zOffset );
+		}
+
+		setOffset ( xOffset, yOffset, zOffset ) {
+			if ( xOffset === undefined ) xOffset = 0;
+			if ( yOffset === undefined ) yOffset = xOffset;
+			if ( zOffset === undefined ) zOffset = xOffset;
+
+			this.xOffset = xOffset;
+			this.yOffset = yOffset;
+			this.zOffset = zOffset;
+
+			return this;
 		}
 
 		update ( camera ) {
@@ -44,8 +56,6 @@ define ( [
 			let height = gl.canvas.clientHeight;
 			let far = camera.far;
 			let near = camera.near;
-			let fov = camera.fov;
-			let aspect = camera.aspect;
 			
 			let depth = far - near;
 			
@@ -53,76 +63,86 @@ define ( [
 			let xOffset = this.xOffset;
 			let yOffset = this.yOffset;
 			let zOffset = this.zOffset;
-			let useOffset = xOffset !== 0 && yOffset !== 0 && zOffset !== 0;
+			let useOffset = xOffset !== 0 || yOffset !== 0 || zOffset !== 0;
 
+			if ( useOffset ) { 
+				camera.updateProjection( near + zOffset, far - zOffset );
+				mat4.invert( camera.projectionInverse, camera.projection );
+			}
 
-			if ( useOffset ) camera.updateProjection( near + zOffset, far - zOffset, fov, aspect );
-			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( xOffset, yOffset, 1 ) );
+			camera.unprojectFromScreenCoordinates( vec3.set( CACHE_VEC3, xOffset, yOffset, 1 ) );
 			/* top left far */
 			this[  0 ] = CACHE_VEC3[ 0 ];
 			this[  1 ] = CACHE_VEC3[ 1 ];
 			this[  2 ] = CACHE_VEC3[ 2 ];
 			
-			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( xOffset, height - yOffset, 1 ) );
+			camera.unprojectFromScreenCoordinates( vec3.set( CACHE_VEC3, xOffset, height - yOffset, 1 ) );
 			/* bottom left far */
 			this[  3 ] = CACHE_VEC3[ 0 ];
 			this[  4 ] = CACHE_VEC3[ 1 ];
 			this[  5 ] = CACHE_VEC3[ 2 ];
 
-			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( width - xOffset , height - yOffset, 1 ) );
+			camera.unprojectFromScreenCoordinates( vec3.set( CACHE_VEC3, width - xOffset , height - yOffset, 1 ) );
 			/* bottom right far */
 			this[  6 ] = CACHE_VEC3[ 0 ];
 			this[  7 ] = CACHE_VEC3[ 1 ];
 			this[  8 ] = CACHE_VEC3[ 2 ];
 
-			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( width - xOffset, yOffset, 1 ) );
+			camera.unprojectFromScreenCoordinates( vec3.set( CACHE_VEC3, width - xOffset, yOffset, 1 ) );
 			/* top right  far */
 			this[  9 ] = CACHE_VEC3[ 0 ];
 			this[ 10 ] = CACHE_VEC3[ 1 ];
 			this[ 11 ] = CACHE_VEC3[ 2 ];
 
-			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( xOffset, yOffset, 0 ) );
+			camera.unprojectFromScreenCoordinates( vec3.set( CACHE_VEC3, xOffset, yOffset, 0 ) );
 			/* top left near */
 			this[ 12 ] = CACHE_VEC3[ 0 ];
 			this[ 13 ] = CACHE_VEC3[ 1 ];
 			this[ 14 ] = CACHE_VEC3[ 2 ];
 			
-			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( xOffset, height - yOffset, 0 ) );
+			camera.unprojectFromScreenCoordinates( vec3.set( CACHE_VEC3, xOffset, height - yOffset, 0 ) );
 			/* bottom left near */
 			this[ 15 ] = CACHE_VEC3[ 0 ];
 			this[ 16 ] = CACHE_VEC3[ 1 ];
 			this[ 17 ] = CACHE_VEC3[ 2 ];
 
-			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( width - xOffset , height - yOffset, 0 ) );
+			camera.unprojectFromScreenCoordinates( vec3.set( CACHE_VEC3, width - xOffset , height - yOffset, 0 ) );
 			/* bottom right near */
 			this[ 18 ] = CACHE_VEC3[ 0 ];
 			this[ 19 ] = CACHE_VEC3[ 1 ];
 			this[ 20 ] = CACHE_VEC3[ 2 ];
 
-			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( width - xOffset, yOffset, 0 ) );
+			camera.unprojectFromScreenCoordinates( vec3.set( CACHE_VEC3, width - xOffset, yOffset, 0 ) );
 			/* top right near */
 			this[ 21 ] = CACHE_VEC3[ 0 ];
 			this[ 22 ] = CACHE_VEC3[ 1 ];
 			this[ 23 ] = CACHE_VEC3[ 2 ];
 
+			if ( useOffset ) {
+				camera.updateProjection( near, far );
 
+				mat4.invert( camera.projectionInverse, camera.projection );
+				
+			}
 
-			if ( useOffset ) camera.updateProjection( near, far, fov, aspect );
-			//console.log( CACHE_VEC3 );
-			if( this.vertexBuffer ) this.vertexBuffer.bind().update( this );
+			return this;
+		}
+
+		createMesh (  ) {
+			return new FrustumMesh( this );
 		}
 	}
 	
-	class FrustumMesh extends Frustum {
-		constructor ( camera, xOffset, yOffset, zOffset ) {
-			super ( camera, xOffset, yOffset, zOffset );
+	class FrustumMesh {
+		constructor ( frustum ) {
+			
 
-			let vertexBuffer = new BufferObject.Vertex( this, gl.DYNAMIC_DRAW );
+			let vertexBuffer = new BufferObject.Vertex( frustum, gl.DYNAMIC_DRAW );
 			
 			let colorBuffer = new BufferObject.Vertex( new Float32Array([
 				1, 1, 1, 1,
-				0, 0, .25, 1,
-				0, .25, 0, 1,
+				.05, .1, .25, 1,
+				.05, .1, .25, 1,
 				1, 1, 1, 1,
 				
 				1, 0, 0, 1,
@@ -131,7 +151,7 @@ define ( [
 				1, 0, 0, 1,
 			]), gl.STATIC_DRAW );
 
-			let lineBuffer = new BufferObject.Index( new Uint8Array([
+			let lines = new BufferObject.Index( new Uint8Array([
 				0, 1,
 				1, 2,
 				2, 3,
@@ -143,9 +163,13 @@ define ( [
 				7, 4,
 			]), gl.STATIC_DRAW );
 
-			let triangleBuffer = new BufferObject.Index( new Uint8Array([
+			let triangles = new BufferObject.Index( new Uint8Array([
 				0, 1, 2,
-				2, 3, 0
+				2, 3, 0,
+
+				4, 5, 6,
+				6, 7, 4,
+
 			]), gl.STATIC_DRAW );
 
 			let material = new VertexColors;
@@ -153,19 +177,36 @@ define ( [
 			material.alpha.enable().setFunc( Alpha.FN_SRC_COLOR , Alpha.FN_ONE_MINUS_DST_COLOR, Alpha.FN_SRC_ALPHA, Alpha.FN_DST_ALPHA );
     		
     		def.Properties( this, {
+    			frustum,
 				vertexBuffer,
 				colorBuffer,
-				lineBuffer,
-				triangleBuffer,
+				lines,
+				triangles,
 				material,
 			}, def.CONFIGURABLE );
 
 			def.Properties( this, {
 				visible : true
 			}, def.WRITABLE );
+
+			def.Properties( this.triangles, {
+				visible : true
+			}, def.WRITABLE );
+
+			def.Properties( this.lines, {
+				visible : true
+			}, def.WRITABLE );
+				
 		}
+
+		update ( camera, scene, lights, partentMesh ) {
+			this.frustum.update( camera );
+			this.vertexBuffer.bind().update( this.frustum );
+
+		}
+
 		draw ( camera, scene, lights, partentMesh ) {
-			this.update( camera );
+
 			if ( !this.visible ) return this;
 			if ( !this.material.program.getLinkStatus ) return this;
 
@@ -184,12 +225,12 @@ define ( [
 			uniforms = this.material.program.getActiveUniforms.mesh;
 			if ( uniforms ) {
 				if ( uniforms.scale ) {
-					uniforms.scale.setValues( 1, 1, 1 ).set();
-					
+
+					vec3.set( uniforms.scale.value, 1, 1, 1 );
 				}
 				if ( uniforms.transform ) {
-					uniforms.transform.makeIdentity().set();
-					
+
+					mat4.identity( uniforms.transform );
 				}
 			}
 			
@@ -204,18 +245,22 @@ define ( [
 			gl.enableVertexAttribArray( 1 );
 			gl.vertexAttribPointer( 1, 4, gl.FLOAT, false, 0, 0 );
 			
-				
-			this.triangleBuffer.bind();
-
-			gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 0 );
-			
-			this.lineBuffer.bind();
-
-			gl.drawElements( gl.LINES, 16, gl.UNSIGNED_BYTE, 0 );
+			if ( this.triangles.visible ) {
+				this.triangles.bind();
+				gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 0 );
+				camera.drawCalls++;
+			}
+			if ( this.lines.visible ) {
+				this.lines.bind();
+				gl.drawElements( gl.LINES, 16, gl.UNSIGNED_BYTE, 0 );
+				camera.drawCalls++;
+			}
 		}
+
+
 	}
 
-	def.Property( Frustum, "Mesh", FrustumMesh );
+	
 
 	return Frustum;
 });

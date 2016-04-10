@@ -98,7 +98,7 @@ define ( [
             return this;
         }
 
-        update ( ) {
+        update ( camera, scene, lights, mesh ) {
 
         }
 

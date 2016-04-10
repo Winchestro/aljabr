@@ -1,9 +1,8 @@
-define ( [
+define( [
     "../utilities/PropertyDescriptors",
-    "../gl-matrix/dist/gl-matrix"
+
 ], function module (
-    def,
-    glMatrix
+    def
 ) {
     "use strict";
     
@@ -17,10 +16,9 @@ define ( [
     const _2_0_ =  8; const _2_1_ =  9; const _2_2_ = 10; const _2_3_ = 11;
     const _3_0_ = 12; const _3_1_ = 13; const _3_2_ = 14; const _3_3_ = 15;
 
-    class vec3 {
+    class vec3 extends Float32Array {
         constructor ( x, y, z ) {
-            return glMatrix.vec3.fromValues( x, y, z );
-            /*super( 3 );
+            super( 3 );
 
             if ( x === undefined ) x = 0;
             if ( y === undefined ) y = x;
@@ -28,9 +26,9 @@ define ( [
 
             this[_x_] = x;
             this[_y_] = y;
-            this[_z_] = z;*/
+            this[_z_] = z;
         }
-        /*
+
         set ( inV3 ) {
             this[_x_] = inV3[_x_];
             this[_y_] = inV3[_y_];
@@ -228,6 +226,15 @@ define ( [
             this[_x_] = ( m[_0_0_] * x + m[_1_0_] * y + m[_2_0_] * z + m[_3_0_] ) * d;
             this[_y_] = ( m[_0_1_] * x + m[_1_1_] * y + m[_2_1_] * z + m[_3_1_] ) * d;
             this[_z_] = ( m[_0_2_] * x + m[_1_2_] * y + m[_2_2_] * z + m[_3_2_] ) * d;
+
+            /*
+
+            let d = 1 / ( m[_3_0_] * x + m[_3_1_] * y + m[_3_2_] * z + m[_3_3_] );
+            
+            this[_x_] = ( m[_0_0_] * x + m[_0_1_] * y + m[_0_2_] * z + m[_0_3_] ) * d;
+            this[_y_] = ( m[_1_0_] * x + m[_1_1_] * y + m[_1_2_] * z + m[_1_3_] ) * d;
+            this[_z_] = ( m[_2_0_] * x + m[_2_1_] * y + m[_2_2_] * z + m[_2_3_] ) * d;
+            */
             
             return this;
         }
@@ -268,13 +275,12 @@ define ( [
         static getLengthManhattan ( inV3 ) {
             return vec3.prototype.getLengthManhattan.call( inV3 );
         }
-        */
     }
     
 
-    //const CACHE_VEC3 = new vec3
+    const CACHE_VEC3 = new vec3
 
-    for ( let method in glMatrix.vec3 ) def.Property( vec3, method, glMatrix.vec3[ method ] );
+    
     def.Properties( vec3, {
         UP      : new vec3(  0,  0,  1 ),
         DOWN    : new vec3(  0,  0, -1 ),

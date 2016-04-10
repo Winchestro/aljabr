@@ -33,9 +33,9 @@ define( [
             if ( uniforms !== undefined ) def.Properties( this, uniforms, def.ENUMERABLE | def.CONFIGURABLE | def.WRITABLE );
         }
 
-        update ( ) {
+        update ( camera ) {
             this.time = ( Date.now() - START_TIME ) / 1000;
-            for ( let drawable of this.children ) drawable.update( );
+            for ( let drawable of this.children ) drawable.update( camera, this, this.lights );
         }
 
         draw ( camera ) {

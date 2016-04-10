@@ -87,11 +87,24 @@ define ( [
             return this;
         }
 
+        bind ( ) {
+            this.buffer.target.bind( );
+            for ( var locationName in this.structure ) this.structure[ locationName ].enable();
+            return this;
+        }
+
+        unbind ( ) {
+            for ( var locationName in this.structure ) this.structure[ locationName ].disable();
+            //this.buffer.target.unbind( );
+            return this;
+        }
+
         *[ Symbol.iterator ] ( ) {
             let i = -1;
             let max = this.length - 1;
             while ( i++ < max ) yield this[ i ];
         }
+
         join ( vertices ) {
             
             let openHalfedge = null;
@@ -107,22 +120,11 @@ define ( [
 
             return this;
         }
-        bind ( ) {
-            this.buffer.target.bind( );
-            for ( var locationName in this.structure ) this.structure[ locationName ].enable();
-            return this;
-        }
-
-        unbind ( ) {
-            for ( var locationName in this.structure ) this.structure[ locationName ].disable();
-            //this.buffer.target.unbind( );
-            return this;
-        }
-
         
         createElement ( material, uniforms, usage, buffer ) {
             return new Element( material, uniforms, gl.POINTS ).allocateBuffer( this.getData( buffer ), usage );
         }
+
         getData ( buffer ) {
             if ( buffer === undefined ) buffer = allocateUint( this.length );
             
@@ -144,8 +146,6 @@ define ( [
             
             return indexData;
         }
-
-        
 
         get byteLength ( ) {
             return this.buffer.byteLength;

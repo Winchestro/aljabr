@@ -11,6 +11,8 @@ struct Camera {
     int frame;
     mat4 transform;
     mat4 projection;
+    mat4 transformInverse;
+    mat4 projectionInverse;
 };
 struct Scene {
     int usedLights;
@@ -36,7 +38,7 @@ varying mat3 v_modelMatrix;
 void main ( void ) {
     v_worldVertex = mesh.transform * vec4( position * mesh.scale, 1. );
     
-    vec4 viewVertex = camera.transform * v_worldVertex;
+    vec4 viewVertex = camera.transformInverse * v_worldVertex;
     
     gl_Position = camera.projection * viewVertex ;
     gl_PointSize = 100. * 1./gl_Position.w;
