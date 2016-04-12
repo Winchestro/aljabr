@@ -1,53 +1,55 @@
 define( [
     "../utilities/PropertyDescriptors",
-    "../mesh/DisplayList",
-    "../scene/Camera",
+    "../mesh/Renderable",
     "../scene/Light"
 ], function module (
     def,
-    DisplayList,
-    Camera,
+    Renderable,
     Light
 ) {
     "use strict";
     const START_TIME = Date.now();
-
-    class Scene extends DisplayList {
-        constructor ( camera, lights, stacks, children, uniforms ) {
-            if ( camera === undefined ) camera = new Camera.Perspective;
+    
+    class Scene extends Renderable {
+        constructor ( lights, stacks, children, uniforms ) {
             if ( lights === undefined ) lights = [];
             if ( children === undefined ) children = [];
             if ( stacks === undefined ) stacks = {
                 transform : [],
-                translate : [],
                 scale : []
             };
             super( children );
             
             def.Properties( this, {
-                camera,
                 lights,
                 children,
                 stacks
             });
 
             def.Properties( this, {
-                deltaTime : 0,
-                frame : 0
+                deltaTime : 0
             }, def.WRITABLE | def.ENUMERABLE | def.CONFIGURABLE );
-
-            def.Properties( this, {
-                drawCalls : 0
-            }, def.WRITABLE | def.CONFIGURABLE );
             
             if ( uniforms !== undefined ) def.Properties( this, uniforms, def.ENUMERABLE | def.CONFIGURABLE | def.WRITABLE );
         }
+
+        update ( camera ) {
+            this.time = ( Date.now() - START_TIME ) / 1000;
+            for ( let drawable of this.children ) drawable.update( camera, this, this.lights );
+        }
+
+        draw ( camera ) {
+            
+            for ( let drawable of this.children ) drawable.draw( camera, this, this.lights );            
+        }
+        /*
         draw ( ) {
             this.drawCalls = 0;
             this.frame++;
-            this.deltaTime = Date.now() - START_TIME;
+            this.time = ( Date.now() - START_TIME ) / 1000;
+
             for ( let drawable of this.children ) drawable.draw( this, this.camera, this.lights );
-        }
+        }*/
 
     }
 

@@ -12,12 +12,12 @@ define( [
     var defaultOptions = { 
         alpha : true,
         depth : true,
-        stencil : false,
-        antialias : false,
-        premultipliedAlpha : false,
-        preserveDrawingBuffer : false,
-        preferLowPowerToHighPerformance : false,
-        failIfMajorPerformanceCaveat : false
+        //stencil : false,
+        //antialias : false,
+        //premultipliedAlpha : false,
+        //preserveDrawingBuffer : false,
+        //preferLowPowerToHighPerformance : false,
+        //failIfMajorPerformanceCaveat : false
     };
 
     var gl = canvas.getContext("webgl", defaultOptions ) || canvas.getContext("experimental-webgl", defaultOptions );

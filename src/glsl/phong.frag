@@ -16,7 +16,6 @@
 #define MAX_LIGHTS 4
 
 struct Scene {
-    int frame;
     int usedLights;
     float deltaTime;
 };

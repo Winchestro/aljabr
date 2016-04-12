@@ -1,7 +1,9 @@
 define( [
-    "../utilities/PropertyDescriptors"
+    "../utilities/PropertyDescriptors",
+    "../kernel/Float32Array"
 ], function module (
-    def
+    def,
+    Float32Array
 ){
     "use strict"; 
     const EDGE = { halfedgeA : null, halfedgeB : null };
@@ -10,8 +12,8 @@ define( [
         constructor ( index, buffer, structure ) {
             if ( buffer !== undefined && structure !== undefined ) this.createViews( index, buffer, structure );
             
-            this.index = index;
-            this.outgoingHalfedge = null;
+            def.Property( this, "index", index );
+            def.Property( this, "outgoingHalfedge", null, def.WRITABLE );
         }
         createViews( index, buffer, structure ) {
             for ( let attributeName in structure ) {
@@ -24,7 +26,7 @@ define( [
                 );
             }
         }
-
+        /* Deprecated
         rotateOutgoingHalfedgeRight ( ) {
             let currentHalfedge = this.outgoingHalfedge;
             let startHalfedge = currentHalfedge;
@@ -46,10 +48,10 @@ define( [
                 this.outgoingHalfedge = currentHalfedge;
             }
         }
+        */
         *[ Symbol.iterator ] ( ) {
             //TODO : Implement vertex splitting, vertex iterator
         }
-        
         *outgoingHalfedges ( ) {
             let currentHalfedge = this.outgoingHalfedge;
 
@@ -72,7 +74,6 @@ define( [
                 && currentHalfedge !== this.outgoingHalfedge.previousHalfedge
             ) yield currentHalfedge;
         }
-
         *outgoingVertices ( ) {
             let currentHalfedge = this.outgoingHalfedge;
 
@@ -95,7 +96,6 @@ define( [
                 && currentHalfedge !== this.outgoingHalfedge.previousHalfedge
             ) yield currentHalfedge.toVertex;
         }
-
         *faces ( ) {
             let currentHalfedge = this.outgoingHalfedge;
 
@@ -108,7 +108,6 @@ define( [
             ) yield currentHalfedge.face;
         }
     }
-
 
     return Vertex;
 });

@@ -9,8 +9,11 @@ struct Mesh {
 };
 
 struct Camera {
+    int frame;
     mat4 transform;
     mat4 projection;
+    mat4 transformInverse;
+    mat4 projectionInverse;
 };
 
 attribute vec3 position;
@@ -26,7 +29,7 @@ void main ( void ) {
 
     vec4 worldVertex = vec4( position * mesh.scale, 1. );
     
-    mat4 transform = camera.transform * mesh.transform;
+    mat4 transform = camera.transformInverse * mesh.transform;
 
     transform[0][0] = 1.;
     

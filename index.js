@@ -1,16 +1,7 @@
 const startTime = Date.now();
 const args = [];
 
-var cube;
-var grid;
-var sphere;
-var cylinder;
-var tetrahedron;
-var bipyramid;
-var icosahedron;
-var diagram;
-var cells;
-var tris;
+
 
 var directionalLight;
 var pointLight;
@@ -23,6 +14,8 @@ var scene;
 var camera;
 var lights;
 
+var debug;
+var point;
 var glyphAtlas;
 var text;
 var quad;
@@ -30,7 +23,6 @@ var gui;
 
 var library = {
     utilities : {
-        allocateUint : "",
         PropertyDescriptors : "def",
         GlyphAtlas : "",
     },
@@ -83,7 +75,16 @@ var library = {
     kernel : {
         InterleavedArray : "",
         PoolAllocator : "",
-        VBOArrayBuffer : ""
+        ArrayBuffer : "",
+        Float32Array : "",
+        Float64Array : "",
+        Int8Array : "",
+        Int16Array : "",
+        Int32Array : "",
+        Uint8Array : "",
+        Uint16Array : "",
+        Uint32Array : "",
+        allocateUint : ""
     },
     mesh : {
         Mesh : "",
@@ -115,21 +116,7 @@ var library = {
         createIcosahedron : ""
     },
     
-    "../../lib/Javascript-Voronoi" : {
-        "rhill-voronoi-core" : "Voronoi"
-    },
-    /*
-    "../../lib/noisejs" : {
-        "perlin" : "noise"
-    },*/
-    "../../lib/proc-noise-node/lib" : {
-        "proc-noise" : "Perlin"
-    },
-
-    /*
-    gui : {
-        gui : "GUI"
-    }*/
+    
 };
 
 void function setup ( ) {
@@ -141,37 +128,114 @@ void function setup ( ) {
         }
     }
 
+    dependencies.push( "page/js/VoronoiMesh" );
+    args.push( "VoronoiMesh" );
+
     eval( main.toString().replace( "$$dependencies", args.toString() ) );
+
+
+
     define( dependencies, main );
 }.call( );
 
 function main ( $$dependencies ) {
     "use strict";
-    let perlin = new Perlin;
+    
     // export as globals for debugging
     for ( let library in args ) def.Property( window, args[ library ], arguments[ library ] );
 
-    //gui = new GUI;
-
-    //gui.appendChild( gl.canvas );
-
     
     document.body.appendChild( gl.canvas );
-    gl.setPixelRatio();
     
-    scene = new Scene( new Camera.Perspective( 0.1, 1000 ) );
+    gl.setPixelRatio( 1 );
+    /*
+    gl.clearColor( 0.1, 0.0, 0.1, 1. );
+    window.vs = new Shader.Vertex().setShaderSource(`
+        attribute vec2 position;
+
+        void main ( ) {
+
+            gl_Position = vec4( position, 0., 1. );
+
+        }
+    `).compile(); if ( !vs.getCompileStatus ) console.warn( vs.getInfoLog );
+
+
+
+    window.fs = new Shader.Fragment().setShaderSource(`
+        precision mediump float;
+
+        uniform vec2 viewport;
+        uniform sampler2D tex;
+
+        void main ( ) {
+            vec2 uv = gl_FragCoord.xy / viewport;
+
+            uv.x = abs( uv.x - .5 ) + .5;
+
+            vec4 texel = texture2D( tex, uv );
+
+            gl_FragColor = texel;
+        }
+
+    `).compile(); if ( !fs.getCompileStatus ) console.warn( fs.getInfoLog );
+
+    window.program = new Program().attachShader( fs ).attachShader( vs ).link().validate().use();
+    window.uniforms = program.getActiveUniforms;
+
+    uniforms.viewport.setValues( innerWidth / 2, innerHeight / 2 );
+
+
+    navigator.webkitGetUserMedia({ video : true }, function ( stream ) {
+        video.src = URL.createObjectURL( stream );
+        video.oncanplay = function ( ) {
+            tex.allocateImage2D( video );
+            
+            loop();
+        }
+    }, console.error.bind( console ));
+    window.fsq = new BufferObject.Vertex().bind().allocate( new Float32Array([
+        -1, -1,
+         1, -1,
+        -1,  1,
+        -1,  1,
+         1, -1,
+         1,  1
+    ]));
+    gl.vertexAttribPointer( 0, 2, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( 0 );
+
     
     
+    gl.pixelStorei( gl.UNPACK_FLIP_Y_WEBGL, true );
+    let tex = new Texture().bind();
+    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST );
+    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST );
+    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE );
+    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE );
+    //gl.disable( gl.CULL_FACE );
+
+    function loop ( ) {
+        requestAnimationFrame( loop );
+
+        //gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
+        tex.updateImage2D( video ); 
+        gl.drawArrays( gl.TRIANGLES, 0, 6 );
+    };
+
     
-    directionalLight = new Light({
-        position        : new vec4( 1,1,1,0 ),
-        attenuation     : new vec3( 2, 1, 0.025 ),
-        color           : new vec3( 1 ),
-        direction       : new vec3( 0 ),
-        exponent        : 2,
-        innerCutoff     : 0.1,
-        outerCutoff     : 5.9
-    });
+    */
+
+    camera = new Camera.Perspective( 1, 1000 );
+    camera.frustum.setOffset( 5 );
+    camera.createFrustumMesh();
+    camera.eye[ 2 ] = 20;
+    //camera.scene.frustum.lines.visible = false;
+    //camera = new Camera.Orthographic( 0, 10, 0, 10, 1, 10 );
+    scene = camera.scene;
+
+    
+    directionalLight = new Light.Directional;
 
     pointLight = new Light({
         position        : new vec4( 1,1,1,1 ),
@@ -186,265 +250,292 @@ function main ( $$dependencies ) {
     scene.lights.push( directionalLight );
     //scene.lights.push( pointLight );
     
-    scene.camera.transform
-        .translate( 0, 0, -10 )
-        .rotate( -Math.PI / 4, 1, 0, 0 )
-    ;
-    scene.addChild( "frustum", new Frustum( scene.camera ) );
-    material = new Material.Phong;
-    waterMaterial = new Material.Phong;
-
-    //material.alpha.enable().setFunc( gl.SRC_COLOR , gl.ONE_MINUS_DST_COLOR, gl.SRC_ALPHA, gl.DST_ALPHA );
     
-    material.offset.enable().setFill( 1, 0 );
+    scene.addChild( "voronoi", new VoronoiMesh );
 
-    waterMaterial.depth.disableWrite();
-    waterMaterial.alpha.enable().setFunc( Alpha.FN_SRC_COLOR , Alpha.FN_ONE_MINUS_DST_COLOR, Alpha.FN_SRC_ALPHA, Alpha.FN_DST_ALPHA );
-    waterMaterial.offset.enable().setFill( 1, 0 );
+    let edgeMaterial = scene.voronoi.triangulation.lines.material;
+    let surfaceMaterial = scene.voronoi.triangulation.triangles.material;
 
+    createGrid.options.colorFn = function ( color, x, y ) {
+        return color.setValues( 1, 0, 0, 1 );
+    }
+    let gridXY = createGrid( {
+        scale       : new vec3( 11 ),
+        transform   : new mat4().makeTranslation( 0, 0, 0 )
+    }, 21, 21, 100 );
 
-    edgeMaterial = new Material.VertexColors;
+    gridXY.addChild( "lines", gridXY.edges.createElement( edgeMaterial ) );
+
+    camera.scene.addChild( "gridXY", gridXY );
     
+    createGrid.options.colorFn = function ( color, x, y ) {
+        return color.setValues( 0, 1, 0, 1 );
+    }
+    let gridXZ = createGrid( {
+        scale       : new vec3( 11 ),
+        transform   : new mat4().makeTranslation( 0, 0, 0 ).rotateY( Math.PI / 2 )
+    }, 21, 21, 100 );
+
+    gridXZ.addChild( "lines", gridXZ.edges.createElement( edgeMaterial ) );
+
+    camera.scene.addChild( "gridXZ", gridXZ );
+    
+    createGrid.options.colorFn = function ( color, x, y ) {
+        return color.setValues( 0, 0, 1, 1 );
+    }
+    let gridYZ = createGrid( {
+        scale       : new vec3( 11 ),
+        transform   : new mat4().makeTranslation( 0, 0, 0 ).rotateX( Math.PI / 2 )
+    }, 21, 21, 100 );
+
+    gridYZ.addChild( "lines", gridYZ.edges.createElement( edgeMaterial ) );
+
+    camera.scene.addChild( "gridYZ", gridYZ );
     /*
-    let cubeImg = new Image;
-    let cubeTex = new Texture;
-
-    cubeImg.src = "./page/assets/cubemap_cloudy_text_cube.jpg";
-
-    cubeImg.onload = function ( ) {
-        material.textures.setActiveTextureUnit( 0 ).setUnpackFlipY( true );
-        material.textures[ 0 ] = cubeTex;
-        cubeTex
-            .bind()
-            .image2D( cubeImg )
-            .setWrapS( gl.CLAMP_TO_EDGE )
-            .setWrapT( gl.CLAMP_TO_EDGE )
-            .setMinFilter( gl.NEAREST )
-            .setMagFilter( gl.NEAREST )
-        ;
-    };
-    */
-    
-    //edgeMaterial.cullFace.enable();
-    
-    
-    glyphAtlas = new GlyphAtlas("24px Helvetica");
-    textMaterial = glyphAtlas.material;
-
-    //console.profile( "create grid mesh" );
-    let bbox = { xl: -100, xr: 100, yt: -100, yb: 100 };
-    const NOISE_SCALE = 0.04;
-    const NOISE_EXPONENT = 2;
-    diagram = createSmooth( 1000, bbox, 4 );
-    
-    function createSmooth ( numSites, bbox, steps ) {
-        var sites = [];
-        var voronoi = new Voronoi();
-        var width = bbox.xr - bbox.xl;
-        var height = bbox.yb - bbox.yt;
-
-        for ( var i = 0; i < numSites; i++ ) {
-            var x, y;
-            do {
-                x = Math.random() * width - width * .5;
-                y = Math.random() * height - height * .5;
-            } while ( scaledNoise( x, y, NOISE_SCALE, NOISE_EXPONENT ) < Math.random() );
-            sites.push({
-                x : x,
-                y : y
-            });
-        }
-
-        let diagram = voronoi.compute( sites, bbox );
-    
-        while( steps ) {
-            sites.length = 0;
-            diagram.cells.forEach( function ( cell ) {
-                var avgX = cell.halfedges.reduce(
-                    function ( p, c ) { return p + c.edge.va.x + c.edge.vb.x }
-                    ,0
-                ) / 2 / cell.halfedges.length;
-                var avgY = cell.halfedges.reduce(
-                    function ( p, c ) { return p + c.edge.va.y + c.edge.vb.y }
-                    ,0
-                ) / 2 / cell.halfedges.length;
-                cell.site.x = avgX;
-                cell.site.y = avgY;
-                sites.push( cell.site );
-            })
-            voronoi.recycle( diagram );
-            diagram = voronoi.compute( sites, bbox );
-            steps--;
-        }
-        return diagram;
-    }
-
-
-    cells = new Mesh({
-        scale       : new vec3( 1 ),
-        transform   : new mat4().makeTranslation( 0, 0, 0 )
+    point = new Mesh({
+        scale : new vec3( 1 ),
+        transform : new mat4
     }, new VertexList({
-        position    : new Float32Array( 3 ),
-        color       : new Float32Array( 4 ),
-        normal      : new Float32Array( 3 ),
-        uv          : new Float32Array( 2 )
-    }, diagram.vertices.length,  gl.STATIC_DRAW ));
+        position : new Float32Array( 3 ),
+        color : new Float32Array( 4 )
+    }, 1, gl.STATIC_DRAW ));
 
-    tris = new Mesh({
-        scale       : new vec3( 1 ),
-        transform   : new mat4().makeTranslation( 0, 0, 0 )
+    point.vertices[ 0 ].color.update( 1,0,0,1 );
+
+    point.addChild( "point", point.vertices.createElement( edgeMaterial ) );
+    scene.addChild( "point", point );
+
+    debug = new Mesh({
+        scale : new vec3( 15 ),
+        transform : point.transform
     }, new VertexList({
-        position    : new Float32Array( 3 ),
-        color       : new Float32Array( 4 ),
-        normal      : new Float32Array( 3 ),
-        uv          : new Float32Array( 2 )
-    }, diagram.cells.length,  gl.STATIC_DRAW ));
+        position : new Float32Array( 3 ),
+        color : new Float32Array( 4 )
+    }, 6, gl.STATIC_DRAW ));
 
-    for ( let i = 0; i < diagram.vertices.length; i++ ) {
-        let sourceVertex = diagram.vertices[ i ];
-        
-        sourceVertex.id = i;
-        let targetVertex = cells.vertices[ i ];
-      
-        targetVertex.position.setValues( sourceVertex.x, sourceVertex.y, 0 );
-        targetVertex.color.setValues( .3,.5,.8, .6 );
-        targetVertex.normal.setValues( 0,0,1 );
-        targetVertex.uv.setValues( .5 * ( 1 + sourceVertex.x ),  .5 * ( 1 + sourceVertex.y ) );
-        //createIndexLabel( cells, i, "c_"+i/*faceIndices.join(" / ")*/, 2 );
-        
-    }
+    debug.vertices[ 0 ].position.setValues( 0,0,0 );
+    debug.vertices[ 2 ].position.setValues( 0,0,0 );
+    debug.vertices[ 4 ].position.setValues( 0,0,0 );
 
-    let faceIndices = [];
-    for ( let i = 0; i < diagram.cells.length; i++ ) {
-        let cell = diagram.cells[ i ];
+    debug.vertices[ 1 ].position.setValues( 1,0,0 );
+    debug.vertices[ 3 ].position.setValues( 0,1,0 );
+    debug.vertices[ 5 ].position.setValues( 0,0,1 );
 
-        
-        for ( let halfedge of cell.halfedges ) {
-            faceIndices.unshift( halfedge.getStartpoint().id );
-        }
+    debug.vertices[ 0 ].color.setValues( 1,0,0,1 );
+    debug.vertices[ 1 ].color.setValues( 1,0,0,1 );
 
-        let face = cells.createFace.apply( cells, faceIndices );
+    debug.vertices[ 2 ].color.setValues( 0,1,0,1 );
+    debug.vertices[ 3 ].color.setValues( 0,1,0,1 );
 
-        let sourceVertex = diagram.cells[ i ].site;
-        let targetVertex = tris.vertices[ i ];
+    debug.vertices[ 4 ].color.setValues( 0,0,1,1 );
+    debug.vertices[ 5 ].color.setValues( 0,0,1,1 );
 
-        face.site = targetVertex;
-        
-        let z = scaledNoise( sourceVertex.x, sourceVertex.y, NOISE_SCALE, NOISE_EXPONENT );
-        /*
-        let g;
-        ( z > 0 ) ? g = ( z + .5 ) * 0.75 : g = 0;
-        let b;
-        ( z < 0 ) ? b = 1 : b = 0;
-        */
-        let g = Math.max( z, -.25 ) + .75 - Math.min( z, 0 );
-        let w = Math.max( z +.25, .5 ); 
+    debug.vertices.update();
+
+    debug.addChild( "lines", new Element( edgeMaterial, undefined, gl.LINES ).allocateBuffer( [ 0,1,2,3,4,5 ] )  );
+    scene.addChild( "debugCross", debug );
+    
+*/
+    //glyphAtlas = new GlyphAtlas("24px Helvetica");
+    //textMaterial = glyphAtlas.material;
+
+    
+    gl.clearColor( .1,.1,.1, 1 );
 
 
-        //let b = Math.min( z, 0 ) + .5;
-        //console.log( z );
+    addEventListener( "resize", handleScale );
+    addEventListener( "mousemove", handleMouseMove );
+    var dragging = false;
 
-        targetVertex.position.setValues( sourceVertex.x, sourceVertex.y, /*( z  > 0 ) ? z * 10 : 0*/ z * 10 );
-        targetVertex.color.setValues( w, g, w, 1 );
-        //targetVertex.normal.setValues( 0, 0, 1 );
-        targetVertex.uv.setValues( .5 * ( 1 + sourceVertex.x ), .5 * ( 1 + sourceVertex.y ) );
-        //createIndexLabel( tris, i, "t_"+i/*faceIndices.join(" / ")*/, 2 );
-        //createIndexLabel( tris, i, faceIndices.join(" / "), 3 );
-        faceIndices.length = 0;
-        
-    }
-
-    //cells.alignHalfedges();
-
-
-    for ( let i = 0; i < cells.vertices.length; i++ ) {
-        let vertex = cells.vertices[ i ];
-        
-        for ( let face of vertex.faces() ) {
-            faceIndices.push( face.site.index );
-        }
-
-        //console.log( faceIndices.length, i );
-        //createIndexLabel( cells, i, faceIndices.join(" / "), 5 );
-        if ( faceIndices.length === 3 ) {
-            
-            let face = tris.createFace.apply( tris, faceIndices );
-            face.vertex = vertex;
-            
-            let vertices = tris.vertices.dereference( faceIndices );
-
-            let v0 = vec3.sub( new vec3, vertices[ 0 ].position, vertices[ 1 ].position );
-            let v1 = vec3.sub( new vec3, vertices[ 2 ].position, vertices[ 0 ].position );
-
-            let faceNormal = v0.cross( v1 );
-
-            face.normal = faceNormal;
-            
-
-        }
-
-        
-        faceIndices.length = 0;
-    }
-
-    let normal = new vec3;
-    for ( let vertex of tris.vertices ) {
-
-        let count = 0;
-
-        for ( let face of vertex.faces() ) {
-            if ( face.normal ) {
-                count++;
-                normal.add( face.normal );
+    var touchAstart = new vec2;
+    var touchBstart = new vec2;
+    var touchApos = new vec2;
+    var touchBpos = new vec2;
+    var touchTransformOrigin = new vec2;
+    
+    gl.canvas.addEventListener( "touchstart", function ( event ) {
+        if ( event.touches.length === 1 ) {
+            dragging = true;
+            event.target.focus( event.target );
+            if ( event.target === gl.canvas ) {
+                handleMouseMove( event.touches[ 0 ] );
+                event.preventDefault();
             }
-        }  
-        normal.divideScalar( count ).normalize();
+        } else {
+            touchAstart.setValues( event.touches[ 0 ].clientX, event.touches[ 0 ].clientY );
+            touchBstart.setValues( event.touches[ 1 ].clientX, event.touches[ 1 ].clientY );
+            dragging = false;
+
+        }
+    });
+    gl.canvas.addEventListener( "touchmove", function ( event ) {
+        if ( event.target === gl.canvas ) {
+            switch ( event.touches.length ) {
+                case 1 : {
+                    handleMouseMove( event.touches[ 0 ] );
+                } break;
+                case 2 : {
+                    touchApos.setValues( event.touches[ 0 ].clientX, event.touches[ 0 ].clientY );
+                    touchBpos.setValues( event.touches[ 1 ].clientX, event.touches[ 1 ].clientY );
+                    let distanceA = Math.sqrt( Math.pow( touchAstart[ 0 ] - touchBstart[ 0 ], 2 ), Math.pow( touchAstart[ 1 ] - touchBstart[ 1 ], 2 ) );
+                    let distanceB = Math.sqrt( Math.pow( touchApos[ 0 ] - touchBpos[ 0 ], 2 ), Math.pow( touchApos[ 1 ] - touchBpos[ 1 ], 2 ) );
+                    let delta = distanceA - distanceB;
+                    //scene.camera.transform[ 12 ] = touchTransformOrigin[ 0 ] + ( touchApos[ 0 ] + touchBpos[ 0 ] ) * .5;
+                    //scene.camera.transform[ 13 ] = touchTransformOrigin[ 1 ] + ( touchApos[ 1 ] + touchBpos[ 1 ] ) * .5;
+                    
+                    //console.log( distanceA, distanceB, delta );
+                }
+            }
+        }
+    });
+
+    gl.canvas.addEventListener( "touchend", function ( event ) {
+        if ( event.touches.length === 0 ) dragging = false;
+        else if ( event.touches.length ===  2 ) {
+            touchTransformOrigin.setValues( ( touchApos[ 0 ] + touchBpos[ 0 ] ) * .5, ( touchApos[ 1 ] + touchBpos[ 1 ] ) * .5 );
+        }
+    });
+
+    
+
+    gl.canvas.addEventListener( "mousedown", function ( e ) {
+        dragging = true;
+    });
+
+    gl.canvas.addEventListener( "mouseup", function ( ) {
+        dragging = false;
+    });
+
+    gl.canvas.addEventListener( "wheel", function ( e ) {
+        let delta = e.wheelDeltaY / Math.abs( e.wheelDeltaY );
+
+        camera.eye.addValues( 0, 0, delta * 25 );
+    });
+
+    let pressedKeys = new Set;
+    const KEY_W = "W".charCodeAt( 0 );
+    const KEY_A = "A".charCodeAt( 0 );
+    const KEY_S = "S".charCodeAt( 0 );
+    const KEY_D = "D".charCodeAt( 0 );
+    const KEY_X = "X".charCodeAt( 0 );
+    const KEY_Y = "Y".charCodeAt( 0 );
+    const KEY_V = "V".charCodeAt( 0 );
+
+    addEventListener( "keydown", function ( e ) {
+        pressedKeys.add( e.keyCode );
+        if ( e.keyCode === KEY_Y ) loop();
+    });
+    addEventListener( "keyup", function ( e ) {
+        pressedKeys.delete( e.keyCode );
+    });
+    let mouse = new vec3;
+
+    
+    function loop ( ) {
+        if ( !pressedKeys.has( KEY_X ) ) requestAnimationFrame( loop );
+        update();
+        redraw();
+    }
+
+    let lookVector = new vec3;
+
+    /*
+        lookAt ( xPos, yPos, zPos ) {
+            
+            let eye = CACHE_VEC3_EYE.setValues( this[_3_0_], this[_3_1_], this[_3_2_] );
+            let target = CACHE_VEC3_TARGET.setValues( xPos, yPos, zPos );
+            let up = vec3.DOWN;
+
+            let z = CACHE_VEC3_Z.set( target ).sub( eye ).normalize();
+            let x = CACHE_VEC3_X.set( up ).cross( z ).normalize();
+            let y = CACHE_VEC3_Y.set( z ).cross( x );
+            //console.log( x );
+            //console.log( y );
+            //console.log( z );
+
+
+
+            let m = this;
+                m[_0_0_] = x[_x_]; m[_0_1_] = y[_x_]; m[_0_2_] = z[_x_];
+                m[_1_0_] = x[_y_]; m[_1_1_] = y[_y_]; m[_1_2_] = z[_y_];
+                m[_2_0_] = x[_z_]; m[_2_1_] = y[_z_]; m[_2_2_] = z[_z_];
+                
+            return this;
+        }
+
+     */
+    
+    
+    let strafe = new vec3( 0, 0, 0 );
+    let forward = new vec3( 0, 0, 0 );
+
+    function update ( ) {
+        camera.viewTarget.setValues( mouse[ 0 ] * 100, -mouse[ 1 ] * 100, -50 );
         
-        vertex.normal.set( normal );
-
-        normal.setValues( 0,0,0 );
+        let speed = 5;
+        //console.log( strafe.cross( camera.direction, vec3.UP ) );
+        if ( pressedKeys.has( KEY_W ) ) camera.eye.add( forward.set( camera.direction ).multiplyScalar( -speed ) );
+        if ( pressedKeys.has( KEY_S ) ) camera.eye.add( forward.set( camera.direction ).multiplyScalar( speed ) );
+        if ( pressedKeys.has( KEY_D ) ) camera.eye.add( strafe.cross( camera.direction, vec3.UP ).normalize().multiplyScalar( -speed ) );
+        if ( pressedKeys.has( KEY_A ) ) camera.eye.add( strafe.cross( camera.direction, vec3.UP ).normalize().multiplyScalar( speed ) ); 
+        camera.update();
+    }
+    function redraw ( ) {
+        //log.clear();
+        
+        camera.draw();
     }
 
-    cells.vertices.update();
-    tris.vertices.update();
-
+    var pointer = new vec2;
+    var pointerMovement = new vec2;
+    var pointerPrevious = new vec2;
     
-    cells
-        .addChild( "points", cells.vertices.createElement( material ), 0 )
-        .addChild( "normals", cells.createNormalMesh( edgeMaterial, 5 ), 0 )
-        .addChild( "lines", cells.edges.createElement( edgeMaterial ), 0 )
-        .addChild( "triangles", cells.faces.createElement( waterMaterial ), 0 )
-    ;
-    cells.points.visible = false;
-    cells.lines.visible = false;
-    cells.normals.visible = false;
 
-    scene.addChild( "delaunay", tris );
-    scene.addChild( "voronoi", cells );
-    //scene.children.push( tris );
-    //scene.children.push( cells );
+    function handleMouseMove ( e ) {
+        pointer.setValues( e.clientX, e.clientY );
+        pointerMovement.sub( pointer, pointerPrevious );
 
-    
-    
-    
-    
-    tris
-        .addChild( "points", tris.vertices.createElement( material ), 0 )
-        .addChild( "lines", tris.edges.createElement( edgeMaterial ), 0 )
-        .addChild( "normals", tris.createNormalMesh( edgeMaterial, 5 ), 0 )
-        .addChild( "triangles", tris.faces.createElement( material ), 0 )
-    ;
+        //console.log( e, e.clientX, e.clientY );
+        mouse[ 0 ] = ( pointer[ 0 ] / innerWidth * 2 ) - 1;
+        mouse[ 1 ] = ( pointer[ 1 ] / innerHeight * 2 ) - 1;
+        mouse[ 2 ] = -1;
 
-    tris.points.visible = false;
-    tris.normals.visible = false;
-    tris.lines.visible = false;
+        //console.log( mouse );
+        //scene.camera.project( mouse );
+        //console.log( mouse );
+        //sphere.transform.setTranslation( mouse[ 0 ], mouse[ 1 ], mouse[ 2 ] );
+        if ( dragging ) {
+            //let movementX = e.movementX;
+            //let movementY = downY - e.clientY;
+            //transform.rotateX( pointerMovement[ 1 ] / 100 );
+           // transform.rotateY( pointerMovement[ 0 ] / 100 );
+            
+            
+        } else {
+            directionalLight.position[ 0 ] = Math.sin( mouse[ 0 ] / 2 * Math.PI );
+            directionalLight.position[ 1 ] = -Math.sin( mouse[ 1 ] / 2 * Math.PI );
 
+        }
+        pointerPrevious.setValues( e.clientX, e.clientY );
+    }
+    function handleScale( ) {
+        gl.canvas.width = innerWidth;
+        gl.canvas.height = innerHeight;
 
-    function scaledNoise( x, y, scale, exponent ) {
-        let n = ( perlin.noise( x * scale, y * scale ) - .5 ) * 2;
-        return  n;
+        camera.viewport.setDimensions( 0, 0, innerWidth, innerHeight );
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjection();
     }
 
+    
+
+    handleScale();
+    loop();
+  
+  
+    
+}
+    /*
     function createIndexLabel ( parent, index, label, offset ) {
         if ( !label ) return;
         let text = glyphAtlas.createTextMesh( label, {
@@ -459,25 +550,11 @@ function main ( $$dependencies ) {
         text.children.push( text.faces.createElement( textMaterial ) );
         parent.children.push( text );
 
-    }
-    createGrid.options.colorFn = function ( color, x, y ) {
-        return color.setValues( 0, x, y, 1 );
-    }
-    grid = createGrid( {
-        scale       : new vec3( 11 ),
-        transform   : new mat4().makeTranslation( 0, 0, 0 )
-    }, 21, 21, 100 );
+    }*/
 
-    //console.profileEnd( "create grid mesh" );
+   
 
-    grid
-        .addChild( "triangles", grid.faces.createElement( material ) )
-        .addChild( "lines", grid.edges.createElement( edgeMaterial ) )
-    ;
-    grid.triangles.visible = false;
-    grid.visible = false;
 
-    scene.addChild( "grid", grid );
     /*
     cube = createCube({
         scale       : new vec3( 2 ),
@@ -605,178 +682,3 @@ function main ( $$dependencies ) {
     bipyramid.children.push( text );
     */
     //scene.children.push( grid );
-
-
-    //console.log( scene );
-    //console.log( cube );
-    
-    //scene.children.push( grid.createNormalMesh( edgeMaterial, 1 ));
-
-    
-    
-
-    //uniforms = material.program.getActiveUniforms;
-
-    
-    //edgeMaterial.alpha.enable().setFunc( gl.SRC_ALPHA, gl.DST_ALPHA );
-
-    gl.clearColor( .1,.1,.1, 1 );
-    //new HttpSourceProgram( "./src/glsl/phong", setupPhong );
-    
-    //gui.inspect( tris );
-    //gui.inspect( cells );
-    //gui.inspect( scene );
-
-    addEventListener( "resize", handleScale );
-    addEventListener( "mousemove", handleMouseMove );
-    var dragging = false;
-
-    var touchAstart = new vec2;
-    var touchBstart = new vec2;
-    var touchApos = new vec2;
-    var touchBpos = new vec2;
-    var touchTransformOrigin = new vec2;
-    
-    gl.canvas.addEventListener( "touchstart", function ( event ) {
-        if ( event.touches.length === 1 ) {
-            dragging = true;
-            event.target.focus( event.target );
-            if ( event.target === gl.canvas ) {
-                handleMouseMove( event.touches[ 0 ] );
-                event.preventDefault();
-            }
-        } else {
-            touchAstart.setValues( event.touches[ 0 ].clientX, event.touches[ 0 ].clientY );
-            touchBstart.setValues( event.touches[ 1 ].clientX, event.touches[ 1 ].clientY );
-            dragging = false;
-
-        }
-    });
-    gl.canvas.addEventListener( "touchmove", function ( event ) {
-        if ( event.target === gl.canvas ) {
-            switch ( event.touches.length ) {
-                case 1 : {
-                    handleMouseMove( event.touches[ 0 ] );
-                } break;
-                case 2 : {
-                    touchApos.setValues( event.touches[ 0 ].clientX, event.touches[ 0 ].clientY );
-                    touchBpos.setValues( event.touches[ 1 ].clientX, event.touches[ 1 ].clientY );
-                    let distanceA = Math.sqrt( Math.pow( touchAstart[ 0 ] - touchBstart[ 0 ], 2 ), Math.pow( touchAstart[ 1 ] - touchBstart[ 1 ], 2 ) );
-                    let distanceB = Math.sqrt( Math.pow( touchApos[ 0 ] - touchBpos[ 0 ], 2 ), Math.pow( touchApos[ 1 ] - touchBpos[ 1 ], 2 ) );
-                    let delta = distanceA - distanceB;
-                    //scene.camera.transform[ 12 ] = touchTransformOrigin[ 0 ] + ( touchApos[ 0 ] + touchBpos[ 0 ] ) * .5;
-                    //scene.camera.transform[ 13 ] = touchTransformOrigin[ 1 ] + ( touchApos[ 1 ] + touchBpos[ 1 ] ) * .5;
-                    scene.camera.transform[ 14 ] =  -delta;
-                    //console.log( distanceA, distanceB, delta );
-                }
-            }
-        }
-    });
-
-    gl.canvas.addEventListener( "touchend", function ( event ) {
-        if ( event.touches.length === 0 ) dragging = false;
-        else if ( event.touches.length ===  2 ) {
-            touchTransformOrigin.setValues( ( touchApos[ 0 ] + touchBpos[ 0 ] ) * .5, ( touchApos[ 1 ] + touchBpos[ 1 ] ) * .5 );
-        }
-    });
-
-    
-
-    gl.canvas.addEventListener( "mousedown", function ( e ) {
-        dragging = true;
-    });
-
-    gl.canvas.addEventListener( "mouseup", function ( ) {
-        dragging = false;
-    });
-
-    gl.canvas.addEventListener( "wheel", function ( e ) {
-        let delta = e.wheelDeltaY / Math.abs( e.wheelDeltaY );
-
-        scene.camera.transform.translate( 0,0, -delta * 5 );
-    });
-
-    let pressedKeys = new Set;
-    const KEY_W = 87;
-    const KEY_A = 65;
-    const KEY_S = 83;
-    const KEY_D = 68;
-    
-    addEventListener( "keydown", function ( e ) {
-        pressedKeys.add( e.keyCode );
-    });
-    addEventListener( "keyup", function ( e ) {
-        pressedKeys.delete( e.keyCode );
-    });
-    let mouse = new vec3;
-
-    
-    function loop ( ) {
-        requestAnimationFrame( loop );
-        if ( pressedKeys.has( KEY_W ) ) scene.camera.transform[ 13 ]--;
-        if ( pressedKeys.has( KEY_S ) ) scene.camera.transform[ 13 ]++;
-        if ( pressedKeys.has( KEY_A ) ) scene.camera.transform[ 12 ]++; 
-        if ( pressedKeys.has( KEY_D ) ) scene.camera.transform[ 12 ]--;
-       
-        redraw();
-    }
-    function redraw ( ) {
-        //log.clear();
-        gl.clear( gl.COLOR_BUFFER_BIT  | gl.DEPTH_BUFFER_BIT );
-        scene.draw();
-    }
-
-    var pointer = new vec2;
-    var pointerMovement = new vec2;
-    var pointerPrevious = new vec2;
-
-    function handleMouseMove ( e ) {
-        pointer.setValues( e.clientX, e.clientY );
-        pointerMovement.sub( pointer, pointerPrevious );
-
-        //console.log( e, e.clientX, e.clientY );
-        mouse[ 0 ] = ( pointer[ 0 ] / innerWidth * 2 ) - 1;
-        mouse[ 1 ] = ( pointer[ 1 ] / innerHeight * 2 ) - 1;
-        mouse[ 2 ] = -1;
-
-        //console.log( mouse );
-        //scene.camera.project( mouse );
-        //console.log( mouse );
-        //sphere.transform.setTranslation( mouse[ 0 ], mouse[ 1 ], mouse[ 2 ] );
-        if ( dragging ) {
-            //let movementX = e.movementX;
-            //let movementY = downY - e.clientY;
-            
-            scene.camera.transform.rotateZ( pointerMovement[ 0 ] / 100 );
-            
-        } else {
-            directionalLight.position[ 0 ] = Math.sin( mouse[ 0 ] / 2 * Math.PI );
-            directionalLight.position[ 1 ] = -Math.sin( mouse[ 1 ] / 2 * Math.PI );
-            /*
-            scene.lights[0].position.setValues(
-                (.5 - e.x  / innerWidth ) * -20,
-                (.5 - e.y  / innerHeight ) * 20, 
-                7,
-                0
-            );
-*/
-        }
-        pointerPrevious.setValues( e.clientX, e.clientY );
-    }
-    function handleScale( ) {
-        gl.canvas.width = innerWidth;
-        gl.canvas.height = innerHeight;
-        gl.viewport( 0, 0, innerWidth, innerHeight );
-
-        scene.camera.aspect = innerWidth / innerHeight;
-        scene.camera.updateProjection();
-    }
-
-    
-
-    handleScale();
-    loop();
-  
-
-    
-}

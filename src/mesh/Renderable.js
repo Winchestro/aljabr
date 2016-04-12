@@ -6,21 +6,24 @@ define( [
     "use strict";
     let warned = false;
 
-    class DisplayList {
+    class Renderable {
         constructor ( children ) {
             if ( children === undefined ) children = [];
 
             def.Property( this, "children", children, def.CONFIGURABLE );
         }
+        update ( ) {
+            //update method may be empty
+        }
         draw ( ) {
             if ( !warned ) {
-                console.warn( "a class implementing the DisplayList interface must provide a draw method" );
+                console.warn( "a class implementing the Renderable interface must provide a draw method" );
                 console.trace( this );
                 warned = true;
             }
         }
         addChild ( name, child, index ) {
-            if ( !child || !child.draw ) console.warn( "child added to scene null or lacking a draw method" );
+            if ( !child || !child.draw ) console.warn( "child added to Renderable null or lacking a draw method" );
             if ( index === undefined ) index = this.children.length;
             else {
                 for ( let i = this.children.length; i > index; --i ) {
@@ -66,5 +69,5 @@ define( [
         }
     }
 
-    return DisplayList;
+    return Renderable;
 });

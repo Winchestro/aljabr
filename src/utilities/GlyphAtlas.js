@@ -87,7 +87,7 @@ define ( [
             img.onload = function ( ) {
                 material.textures.setActiveTextureUnit( 0 );
                 material.textures[ 0 ] = tex;
-                tex.bind().image2D( img ).generateMipmap();
+                tex.bind().allocateImage2D( img ).generateMipmap();
                 //tex.setMinFilter( gl.NEAREST );
             }
             this.glyphRects = glyphRects;

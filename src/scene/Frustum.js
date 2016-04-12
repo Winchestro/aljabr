@@ -1,6 +1,7 @@
 define ( [
 	"../utilities/PropertyDescriptors",
 	"../webgl/Context",
+	"../kernel/Float32Array",
 	"../math/vec2",
 	"../math/vec3",
 	"../math/vec4",
@@ -9,6 +10,7 @@ define ( [
 ], function module (
 	def,
 	gl,
+	Float32Array,
 	vec2,
 	vec3,
 	vec4,
@@ -20,16 +22,33 @@ define ( [
 	const CACHE_VEC3 = new vec3;
 
 	class Frustum extends Float32Array {
-		constructor ( camera ) {
-			let vertexCount = 8;
-			let elementCount = 3;
-			super( vertexCount * elementCount );
-
-            //let vertexBuffer = new BufferObject.Vertex().bind().allocate( vertexCount * this.BYTES_PER_ELEMENT, gl.STATIC_DRAW );
-
-			if ( camera !== undefined ) this.update( camera );
+		constructor ( xOffset, yOffset, zOffset ) {
 			
+			
+			const vertexCount = 8;
+			const dimensions = 3;
+			
+			super( vertexCount * dimensions );
 
+			def.Properties( this, {
+				xOffset,
+				yOffset,
+				zOffset
+			}, def.WRITABLE );
+
+			this.setOffset( xOffset, yOffset, zOffset );
+		}
+
+		setOffset ( xOffset, yOffset, zOffset ) {
+			if ( xOffset === undefined ) xOffset = 0;
+			if ( yOffset === undefined ) yOffset = xOffset;
+			if ( zOffset === undefined ) zOffset = xOffset;
+
+			this.xOffset = xOffset;
+			this.yOffset = yOffset;
+			this.zOffset = zOffset;
+
+			return this;
 		}
 
 		update ( camera, xOffset, yOffset, zOffset ) {
@@ -37,91 +56,153 @@ define ( [
 			let height = gl.canvas.clientHeight;
 			let far = camera.far;
 			let near = camera.near;
-			let fov = camera.fov;
-			let aspect = camera.aspect;
 			
 			let depth = far - near;
 
-			if ( xOffset === undefined ) xOffset = 5;
-			if ( yOffset === undefined ) yOffset = 5;
-			if ( zOffset === undefined ) zOffset = depth / 10;
+			
+			let xOffset = this.xOffset;
+			let yOffset = this.yOffset;
+			let zOffset = this.zOffset;
+			let useOffset = xOffset !== 0 || yOffset !== 0 || zOffset !== 0;
 
-			camera.updateProjection( near + zOffset, far - zOffset, fov, aspect );
+			if ( useOffset ) camera.updateProjection( near + zOffset, far - zOffset );
+
+
 			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( xOffset, yOffset, 1 ) );
-			/* top left */
+			/* top left far */
 			this[  0 ] = CACHE_VEC3[ 0 ];
 			this[  1 ] = CACHE_VEC3[ 1 ];
 			this[  2 ] = CACHE_VEC3[ 2 ];
 			
 			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( xOffset, height - yOffset, 1 ) );
-			/* bottom left */
+			/* bottom left far */
 			this[  3 ] = CACHE_VEC3[ 0 ];
 			this[  4 ] = CACHE_VEC3[ 1 ];
 			this[  5 ] = CACHE_VEC3[ 2 ];
 
 			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( width - xOffset , height - yOffset, 1 ) );
-			/* bottom right */
+			/* bottom right far */
 			this[  6 ] = CACHE_VEC3[ 0 ];
 			this[  7 ] = CACHE_VEC3[ 1 ];
 			this[  8 ] = CACHE_VEC3[ 2 ];
 
 			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( width - xOffset, yOffset, 1 ) );
-			/* top right */
+			/* top right  far */
 			this[  9 ] = CACHE_VEC3[ 0 ];
 			this[ 10 ] = CACHE_VEC3[ 1 ];
 			this[ 11 ] = CACHE_VEC3[ 2 ];
 
+			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( xOffset, yOffset, 0 ) );
+			/* top left near */
+			this[ 12 ] = CACHE_VEC3[ 0 ];
+			this[ 13 ] = CACHE_VEC3[ 1 ];
+			this[ 14 ] = CACHE_VEC3[ 2 ];
+			
+			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( xOffset, height - yOffset, 0 ) );
+			/* bottom left near */
+			this[ 15 ] = CACHE_VEC3[ 0 ];
+			this[ 16 ] = CACHE_VEC3[ 1 ];
+			this[ 17 ] = CACHE_VEC3[ 2 ];
 
-			camera.updateProjection( near, far, fov, aspect );
-			//console.log( CACHE_VEC3 );
-			if( this.vertexBuffer ) this.vertexBuffer.bind().update( this );
+			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( width - xOffset , height - yOffset, 0 ) );
+			/* bottom right near */
+			this[ 18 ] = CACHE_VEC3[ 0 ];
+			this[ 19 ] = CACHE_VEC3[ 1 ];
+			this[ 20 ] = CACHE_VEC3[ 2 ];
+
+			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( width - xOffset, yOffset, 0 ) );
+			/* top right near */
+			this[ 21 ] = CACHE_VEC3[ 0 ];
+			this[ 22 ] = CACHE_VEC3[ 1 ];
+			this[ 23 ] = CACHE_VEC3[ 2 ];
+
+			if ( useOffset ) camera.updateProjection( near, far );
+
+			return this;
 		}
 
-		setupDraw ( ) {
-			let vertexBuffer = new BufferObject.Vertex().bind().allocate( this.byteLength ).update( this );
+		createMesh (  ) {
+			return new FrustumMesh( this );
+		}
+	}
+	
+	class FrustumMesh {
+		constructor ( frustum ) {
+			
 
-			let colorBuffer = new BufferObject.Vertex().bind().allocate( 4 * 4 * this.BYTES_PER_ELEMENT ).update( new Float32Array([
+			let vertexBuffer = new BufferObject.Vertex( frustum, gl.DYNAMIC_DRAW );
+			
+			let colorBuffer = new BufferObject.Vertex( new Float32Array([
 				1, 1, 1, 1,
-				.5, 1, .5, 1,
-				.5, .5, 1, 1,
+				.05, .1, .25, 1,
+				.05, .1, .25, 1,
 				1, 1, 1, 1,
-			]));
+				
+				1, 0, 0, 1,
+				1, 0, 0, 1,
+				1, 0, 0, 1,
+				1, 0, 0, 1,
+			]), gl.STATIC_DRAW );
 
-			let lineBuffer = new BufferObject.Index().bind().allocate( 8 ).update( new Uint8Array([
+			let lines = new BufferObject.Index( new Uint8Array([
 				0, 1,
 				1, 2,
 				2, 3,
-				3, 0
-			]));
+				3, 0,
 
-			let triangleBuffer = new BufferObject.Index().bind().allocate( 6 ).update( new Uint8Array([
+				4, 5,
+				5, 6,
+				6, 7,
+				7, 4,
+			]), gl.STATIC_DRAW );
+
+			let triangles = new BufferObject.Index( new Uint8Array([
 				0, 1, 2,
-				2, 3, 0
-			]));
+				2, 3, 0,
+
+				4, 5, 6,
+				6, 7, 4,
+
+			]), gl.STATIC_DRAW );
 
 			let material = new VertexColors;
 
-			material.alpha.enable().setFunc( gl.SRC_COLOR , gl.ONE_MINUS_DST_COLOR, gl.SRC_ALPHA, gl.DST_ALPHA );
-    
 
-			def.Properties( this, {
+    		def.Properties( this, {
+    			frustum,
 				vertexBuffer,
 				colorBuffer,
-				lineBuffer,
-				triangleBuffer,
-				material
+				lines,
+				triangles,
+				material,
 			}, def.CONFIGURABLE );
 
 			def.Properties( this, {
 				visible : true
 			}, def.WRITABLE );
 
+			def.Properties( this.triangles, {
+				visible : true
+			}, def.WRITABLE );
+
+			def.Properties( this.lines, {
+				visible : true
+			}, def.WRITABLE );
+				
 		}
-		drawOverride ( scene, camera, lights, partentMesh ) {
+
+		update ( camera, scene, lights, partentMesh ) {
+			this.frustum.update( camera );
+			this.vertexBuffer.bind().update( this.frustum );
+
+		}
+
+		draw ( camera, scene, lights, partentMesh ) {
+
 			if ( !this.visible ) return this;
 			if ( !this.material.program.getLinkStatus ) return this;
 
-			this.update( camera );
+			
 			this.material.use();
 
 
@@ -147,7 +228,7 @@ define ( [
 			
 
 			this.vertexBuffer.bind();
-			gl.enableVertexAttribArray( 0 ); 
+			gl.enableVertexAttribArray( 0 );
 			gl.vertexAttribPointer( 0, 3, gl.FLOAT, false, 0, 0 );
 			
 			
@@ -156,32 +237,21 @@ define ( [
 			gl.enableVertexAttribArray( 1 );
 			gl.vertexAttribPointer( 1, 4, gl.FLOAT, false, 0, 0 );
 			
-				
-			this.triangleBuffer.bind();
-
-			gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 0 );
-			
-			this.lineBuffer.bind();
-
-			gl.drawElements( gl.LINES, 8, gl.UNSIGNED_BYTE, 0 );
-		}
-
-		draw ( ) {
-			if ( !this.hasOwnProperty( "draw" ) ) {
-				this.setupDraw();
-				def.Property( this, "draw", this.drawOverride, def.CONFIGURABLE );
+			if ( this.triangles.visible ) {
+				this.triangles.bind();
+				gl.drawElements( gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 0 );
+				camera.drawCalls++;
+			}
+			if ( this.lines.visible ) {
+				this.lines.bind();
+				gl.drawElements( gl.LINES, 16, gl.UNSIGNED_BYTE, 0 );
+				camera.drawCalls++;
 			}
 		}
-		
 
-		get width ( ) {
-			return Math.abs( this.left - this.right );
-		}
 
-		get height ( ) {
-			return Math.abs( this.top - this.bottom );
-		}
 	}
+
 	
 
 	return Frustum;
