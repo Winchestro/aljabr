@@ -1,10 +1,4 @@
-define ( [
-    "../utilities/PropertyDescriptors",
-    "../gl-matrix/dist/gl-matrix"
-], function module (
-    def,
-    glMatrix
-) {
+define ( function module ( ) {
     "use strict";
 
     const _0_0_ = 0; const _1_0_ = 3; const _2_0_ = 6;
@@ -12,13 +6,12 @@ define ( [
     const _0_2_ = 2; const _1_2_ = 5; const _2_2_ = 8;
 
 
-    class mat3 {
+    class mat3 extends Float32Array {
         constructor ( ) {
-            return glMatrix.mat3.create();
-            /*super( 9 );
-            this.makeIdentity();*/
+            super( 9 );
+            this.makeIdentity();
         }
-        /*
+
         static set ( outM3, inM3 ) {
             return mat3.prototype.set.call( outM3 );
         }
@@ -256,10 +249,10 @@ define ( [
             this[_2_1_] = 0;
             this[_2_2_] = 1;
             return this;
-        }*/
+        }
     }
-    for ( let method in glMatrix.mat3 ) mat3[ method ] = glMatrix.mat3[ method ];
-    //const CACHE_MAT3 = new mat3;
+
+    const CACHE_MAT3 = new mat3;
 
     return mat3;
 });

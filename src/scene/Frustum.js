@@ -65,65 +65,57 @@ define ( [
 			let zOffset = this.zOffset;
 			let useOffset = xOffset !== 0 || yOffset !== 0 || zOffset !== 0;
 
-			if ( useOffset ) { 
-				camera.updateProjection( near + zOffset, far - zOffset );
-				mat4.invert( camera.projectionInverse, camera.projection );
-			}
+			if ( useOffset ) camera.updateProjection( near + zOffset, far - zOffset );
 
-			camera.unprojectFromScreenCoordinates( vec3.set( CACHE_VEC3, xOffset, yOffset, 1 ) );
+			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( xOffset, yOffset, 1 ) );
 			/* top left far */
 			this[  0 ] = CACHE_VEC3[ 0 ];
 			this[  1 ] = CACHE_VEC3[ 1 ];
 			this[  2 ] = CACHE_VEC3[ 2 ];
 			
-			camera.unprojectFromScreenCoordinates( vec3.set( CACHE_VEC3, xOffset, height - yOffset, 1 ) );
+			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( xOffset, height - yOffset, 1 ) );
 			/* bottom left far */
 			this[  3 ] = CACHE_VEC3[ 0 ];
 			this[  4 ] = CACHE_VEC3[ 1 ];
 			this[  5 ] = CACHE_VEC3[ 2 ];
 
-			camera.unprojectFromScreenCoordinates( vec3.set( CACHE_VEC3, width - xOffset , height - yOffset, 1 ) );
+			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( width - xOffset , height - yOffset, 1 ) );
 			/* bottom right far */
 			this[  6 ] = CACHE_VEC3[ 0 ];
 			this[  7 ] = CACHE_VEC3[ 1 ];
 			this[  8 ] = CACHE_VEC3[ 2 ];
 
-			camera.unprojectFromScreenCoordinates( vec3.set( CACHE_VEC3, width - xOffset, yOffset, 1 ) );
+			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( width - xOffset, yOffset, 1 ) );
 			/* top right  far */
 			this[  9 ] = CACHE_VEC3[ 0 ];
 			this[ 10 ] = CACHE_VEC3[ 1 ];
 			this[ 11 ] = CACHE_VEC3[ 2 ];
 
-			camera.unprojectFromScreenCoordinates( vec3.set( CACHE_VEC3, xOffset, yOffset, 0 ) );
+			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( xOffset, yOffset, 0 ) );
 			/* top left near */
 			this[ 12 ] = CACHE_VEC3[ 0 ];
 			this[ 13 ] = CACHE_VEC3[ 1 ];
 			this[ 14 ] = CACHE_VEC3[ 2 ];
 			
-			camera.unprojectFromScreenCoordinates( vec3.set( CACHE_VEC3, xOffset, height - yOffset, 0 ) );
+			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( xOffset, height - yOffset, 0 ) );
 			/* bottom left near */
 			this[ 15 ] = CACHE_VEC3[ 0 ];
 			this[ 16 ] = CACHE_VEC3[ 1 ];
 			this[ 17 ] = CACHE_VEC3[ 2 ];
 
-			camera.unprojectFromScreenCoordinates( vec3.set( CACHE_VEC3, width - xOffset , height - yOffset, 0 ) );
+			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( width - xOffset , height - yOffset, 0 ) );
 			/* bottom right near */
 			this[ 18 ] = CACHE_VEC3[ 0 ];
 			this[ 19 ] = CACHE_VEC3[ 1 ];
 			this[ 20 ] = CACHE_VEC3[ 2 ];
 
-			camera.unprojectFromScreenCoordinates( vec3.set( CACHE_VEC3, width - xOffset, yOffset, 0 ) );
+			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( width - xOffset, yOffset, 0 ) );
 			/* top right near */
 			this[ 21 ] = CACHE_VEC3[ 0 ];
 			this[ 22 ] = CACHE_VEC3[ 1 ];
 			this[ 23 ] = CACHE_VEC3[ 2 ];
 
-			if ( useOffset ) {
-				camera.updateProjection( near, far );
-
-				mat4.invert( camera.projectionInverse, camera.projection );
-				
-			}
+			if ( useOffset ) camera.updateProjection( near, far );
 
 			return this;
 		}
@@ -225,12 +217,12 @@ define ( [
 			uniforms = this.material.program.getActiveUniforms.mesh;
 			if ( uniforms ) {
 				if ( uniforms.scale ) {
-
-					vec3.set( uniforms.scale.value, 1, 1, 1 );
+					uniforms.scale.setValues( 1, 1, 1 ).set();
+					
 				}
 				if ( uniforms.transform ) {
-
-					mat4.identity( uniforms.transform );
+					uniforms.transform.makeIdentity().set();
+					
 				}
 			}
 			

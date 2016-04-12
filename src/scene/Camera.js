@@ -1,6 +1,5 @@
 define( [
     "../utilities/PropertyDescriptors",
-    "../gl-matrix/dist/gl-matrix-min",
     "../webgl/Context",
     "../webgl/Viewport",
     "../math/mat4",
@@ -10,7 +9,6 @@ define( [
     "../scene/Frustum"
 ], function module (
     def,
-    glMatrix,
     gl,
     Viewport,
     mat4,
@@ -55,10 +53,11 @@ define( [
             def.Properties( this, {
                 scene,
                 frustum,
-                position : new vec3,
+                eye : new vec3( 1 ),
+                viewTarget : new vec3 ( 0 ),
                 farCenter : new vec3,
                 nearCenter : new vec3,
-                lookDirection : new vec3,
+                direction : new vec3,
                 viewport,
                 target,
                 drawCalls : 0
@@ -67,9 +66,9 @@ define( [
             def.Properties( this, uniforms, def.ENUMERABLE | def.CONFIGURABLE | def.WRITABLE );
         }
         project ( outV3 ) {
-            vec4.set( CACHE_VEC4, outV3[_x_], outV3[_y_], outV3[_z_], 1 );
-            vec4.transformMat4( CACHE_VEC4, CACHE_VEC4, this.transformInverse );
-            vec4.transformMat4( CACHE_VEC4, CACHE_VEC4, this.projection );
+            CACHE_VEC4.setValues( outV3[_x_], outV3[_y_], outV3[_z_], 1 );
+
+            CACHE_VEC4.multiplyMat4( this.transformInverse ).multiplyMat4( this.projection );
 
             let inverseW = 1 / CACHE_VEC4[_w_];
             
@@ -86,9 +85,9 @@ define( [
             return toScreenCoordinates( this.project( outV3 ) );
         }
         unproject ( outV3 ) {
-            vec4.set( CACHE_VEC4, outV3[_x_], outV3[_y_], outV3[_z_], 1 );
-            vec4.transformMat4( CACHE_VEC4, CACHE_VEC4, this.projectionInverse );
-            vec4.transformMat4( CACHE_VEC4, CACHE_VEC4, this.transform );
+            CACHE_VEC4.setValues( outV3[_x_], outV3[_y_], outV3[_z_], 1 );
+
+            CACHE_VEC4.multiplyMat4( this.projectionInverse ).multiplyMat4( this.transform );
             
             let inverseW = 1 / CACHE_VEC4[_w_];
 
@@ -102,17 +101,13 @@ define( [
             return this.unproject( toNormalizedDeviceCoordinates( outV3 ) );
         }
         update ( ) {
-            //mat4.invert( this.transformInverse, this.transform );
-            mat4.invert( this.projectionInverse, this.projection );
-            
-
-            this.unproject( vec3.set( this.nearCenter, 0, 0, 0 ) );
-            this.unproject( vec3.set( this.farCenter, 0, 0, 1 ) );
-            
-            vec3.sub( this.lookDirection, this.farCenter, this.nearCenter );
-            vec3.normalize( this.lookDirection, this.lookDirection );
-
-            vec3.set( this.position, this.transform[ 12 ], this.transform[ 13 ], this.transform[ 14 ] );
+            this.transformInverse.lookAt( this.eye, this.viewTarget, vec3.UP );
+            this.transform.invert( this.transformInverse );
+            this.projectionInverse.invert( this.projection );
+            this.unproject( this.nearCenter.setValues( 0, 0, 0 ) );
+            this.unproject( this.farCenter.setValues( 0, 0, 1 ) );
+            this.direction.sub( this.farCenter, this.nearCenter ).normalize();
+            //this.position.setValues( this.transform[ 12 ], this.transform[ 13 ], this.transform[ 14 ] );
             this.scene.update( this );
         }
         draw ( ) {
@@ -129,7 +124,7 @@ define( [
             return this.scene.addChild( "frustum", this.frustum.createMesh() );
         }
     }
- 
+
     class Perspective extends Camera {
         constructor( near, far, fov, aspect, uniforms, scene, target, frustum ) {
             if ( near === undefined ) near = 0.1;
@@ -139,7 +134,7 @@ define( [
 
             super( uniforms, scene, target, frustum );
             
-            mat4.perspective( this.projection, fov, aspect, near, far );
+            this.projection.makePerspective( aspect, fov, near, far ),
             
             def.Properties( this, {
                 near,
@@ -162,7 +157,8 @@ define( [
             if ( aspect === undefined ) aspect = this.aspect;
             else this.aspect = aspect;
 
-            mat4.perspective( this.projection, fov, aspect, near, far );
+            this.projection.makePerspective( aspect, fov, near, far );
+            this.projectionInverse.invert( this.projection );
             return this;
         }
         
@@ -179,8 +175,7 @@ define( [
             if ( top === undefined ) top = 15;
 
             super( uniforms, scene, target );
-
-            mat4.ortho( this.projection, left, right, bottom, top, near, far );
+            this.projection.makeOrthographic( left, right, bottom, top, near, far );
 
             def.Properties( this, {
                 near,
@@ -211,7 +206,7 @@ define( [
             if ( far === undefined ) far = this.far;
             else this.far = far;
 
-            mat4.ortho( this.projection, left, right, bottom, top, near, far );
+            this.projection.makeOrthographic( left, right, top, bottom, near, far );
             return this;
         }
     }

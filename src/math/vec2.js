@@ -1,27 +1,24 @@
-define ( [
-    "../utilities/PropertyDescriptors",
-    "../gl-matrix/dist/gl-matrix"
+define( [
+    "../utilities/PropertyDescriptors"
 ], function module (
-    def,
-    glMatrix
+    def
 ) {
     "use strict";
     const _x_ = 0;
     const _y_ = 1;
 
-    class vec2 {
+    class vec2 extends Float32Array {
 
         constructor ( x, y ) {
-            return glMatrix.vec2.fromValues( x, y );
-            /*super( 2 );
+            super( 2 );
 
             if ( x === undefined ) x = 0;
             if ( y === undefined ) y = x;
 
             this[_x_] = x;
-            this[_y_] = y;*/
+            this[_y_] = y;
         }
-        /*
+        
         dot ( vA ) {
             return this[_x_] * vA[_x_]
                  + this[_y_] * vA[_y_]; 
@@ -157,10 +154,9 @@ define ( [
         static getLengthManhattan ( inV2 ) {
             return vec2.prototype.getLengthManhattan.call( inV2 );
         }
-        */
     }
 
-    for ( let method in glMatrix.vec2 ) def.Property( vec2, method, glMatrix.vec2[ method ] );
+    
     return vec2;
 
 });

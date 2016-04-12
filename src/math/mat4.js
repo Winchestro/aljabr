@@ -1,9 +1,13 @@
-define ( [
+define( [
     "../utilities/PropertyDescriptors",
-    "../gl-matrix/dist/gl-matrix"
+    "../math/mat3",
+    "../math/vec4",
+    "../math/vec3"
 ], function module (
     def,
-    glMatrix
+    mat3,
+    vec4,
+    vec3
 ) {
     "use strict";
 
@@ -24,17 +28,12 @@ define ( [
     const abs = Math.abs;
     const EPSILON = Number.EPSILON;
 
-    //console.log( glMatrix );
-
-    class mat4 {
+    class mat4 extends Float32Array {
         constructor ( ) {
-            return glMatrix.mat4.create();
-            /*
             super( 16 );
             this.makeIdentity();
-            */
         }
-        /*
+
         set ( inM4 ) {
             let m = this;
                 m[_0_0_] = inM4[_0_0_]; m[_0_1_] = inM4[_0_1_]; m[_0_2_] = inM4[_0_2_]; m[_0_3_] = inM4[_0_3_];
@@ -370,25 +369,25 @@ define ( [
             return mat4.prototype.determinant.call( inM4 );
         }
 
-        lookAt ( xPos, yPos, zPos ) {
+        lookAt ( eye, target, up ) {
             
-            let eye = CACHE_VEC3_EYE.setValues( this[_3_0_], this[_3_1_], this[_3_2_] );
-            let target = CACHE_VEC3_TARGET.setValues( xPos, yPos, zPos );
-            let up = vec3.DOWN;
-
-            let z = CACHE_VEC3_Z.set( target ).sub( eye ).normalize();
-            let x = CACHE_VEC3_X.set( up ).cross( z ).normalize();
-            let y = CACHE_VEC3_Y.set( z ).cross( x );
-            //console.log( x );
-            //console.log( y );
-            //console.log( z );
-
-
-
+            let z = CACHE_VEC3_Z.set( eye ).sub( target ).normalize();
+            let x = CACHE_VEC3_X.set( z ).cross( up ).normalize();
+            let y = CACHE_VEC3_Y.set( x ).cross( z );
+            
             let m = this;
                 m[_0_0_] = x[_x_]; m[_0_1_] = y[_x_]; m[_0_2_] = z[_x_];
                 m[_1_0_] = x[_y_]; m[_1_1_] = y[_y_]; m[_1_2_] = z[_y_];
                 m[_2_0_] = x[_z_]; m[_2_1_] = y[_z_]; m[_2_2_] = z[_z_];
+                
+                m[_3_0_] = -x.dot( eye ); 
+                m[_3_1_] = -y.dot( eye );
+                m[_3_2_] = -z.dot( eye );
+
+                m[_0_3_] = 0;
+                m[_1_3_] = 0;
+                m[_2_3_] = 0;
+                m[_3_3_] = 1;
                 
             return this;
         }
@@ -940,14 +939,9 @@ define ( [
 
             return this;
         }
-        */
-       
-
     }
-
-    for ( let method in glMatrix.mat4 ) mat4[ method ] = glMatrix.mat4[ method ];
     
-/*
+
     const CACHE_MAT3 = new mat3;
     const CACHE_MAT4 = new mat4;
 
@@ -964,7 +958,7 @@ define ( [
     const CACHE_VEC3_X = new vec3;
     const CACHE_VEC3_Y = new vec3;
     const CACHE_VEC3_Z = new vec3;
-*/
+
     return mat4;
 });
 

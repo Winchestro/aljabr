@@ -1,23 +1,19 @@
 define ( [
-    "../utilities/PropertyDescriptors",
-    "../gl-matrix/dist/gl-matrix"
+    "../utilities/PropertyDescriptors"
 ], function module (
-    def,
-    glMatrix
+    def
 ) {
     "use strict";
 
     const _0_0_ = 0; const _1_0_ = 2;
     const _0_1_ = 1; const _1_1_ = 3;
 
-    //console.log( glMatrix );
-    class mat2 {
+    class mat2 extends Float32Array {
         constructor ( ) {
-            return glMatrix.mat2.create( );
-            /*super( 4 );
-            this.makeIdentity();*/
+            super( 4 );
+            this.makeIdentity();
         }
-        /*
+        
         static set ( outM2, inM2 ) {
             return mat2.prototype.set.call( outM2, inM2 );
         }
@@ -112,15 +108,10 @@ define ( [
 
         }
 
-        */
+
     }
-
-    for ( let method in glMatrix.mat2 ) mat2[ method ] = glMatrix.mat2[ method ];
-
-    //for ( let method in glMatrix.mat2 ) mat2[ method ] = glMatrix.mat2[ method ];
     
-    //console.log( mat2, new mat2 );
-    //const CACHE_MAT2 = new mat2;
+    const CACHE_MAT2 = new mat2;
 
     return mat2;
 });

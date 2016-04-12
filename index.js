@@ -115,9 +115,7 @@ var library = {
         createBipyramid : "",
         createIcosahedron : ""
     },
-    "gl-matrix/dist"  : {
-        "gl-matrix-min" : "glMatrix"
-    }
+    
     
 };
 
@@ -227,24 +225,31 @@ function main ( $$dependencies ) {
 
     
     */
-    let transform = new mat4;
-    let lookAt = new mat4;
 
     camera = new Camera.Perspective( 1, 1000 );
     camera.frustum.setOffset( 5 );
     camera.createFrustumMesh();
+    camera.eye[ 2 ] = 20;
     //camera.scene.frustum.lines.visible = false;
     //camera = new Camera.Orthographic( 0, 10, 0, 10, 1, 10 );
-    //
-    mat4.translate( camera.transform, camera.transform, [ 5, 5, 100 ] );
     scene = camera.scene;
 
     
     directionalLight = new Light.Directional;
 
-    scene.lights.push( directionalLight );
+    pointLight = new Light({
+        position        : new vec4( 1,1,1,1 ),
+        attenuation     : new vec3( 2, 1, 0.025 ),
+        color           : new vec3( 1 ),
+        direction       : new vec3( 0 ),
+        exponent        : 2,
+        innerCutoff     : 0.1,
+        outerCutoff     : 5.9
+    });
 
-    mat4.translate( transform, transform, [ 0, 0, 2 ] );
+    scene.lights.push( directionalLight );
+    //scene.lights.push( pointLight );
+    
     
     scene.addChild( "voronoi", new VoronoiMesh );
 
@@ -255,8 +260,8 @@ function main ( $$dependencies ) {
         return color.setValues( 1, 0, 0, 1 );
     }
     let gridXY = createGrid( {
-        scale       : new vec3( 11, 11, 11 ),
-        transform   : new mat4
+        scale       : new vec3( 11 ),
+        transform   : new mat4().makeTranslation( 0, 0, 0 )
     }, 21, 21, 100 );
 
     gridXY.addChild( "lines", gridXY.edges.createElement( edgeMaterial ) );
@@ -266,14 +271,10 @@ function main ( $$dependencies ) {
     createGrid.options.colorFn = function ( color, x, y ) {
         return color.setValues( 0, 1, 0, 1 );
     }
-
-    
-    
     let gridXZ = createGrid( {
-        scale       : new vec3( 11,11,11 ),
-        transform   : new mat4
+        scale       : new vec3( 11 ),
+        transform   : new mat4().makeTranslation( 0, 0, 0 ).rotateY( Math.PI / 2 )
     }, 21, 21, 100 );
-    mat4.rotateY( gridXZ.transform, gridXZ.transform, Math.PI / 2 );
 
     gridXZ.addChild( "lines", gridXZ.edges.createElement( edgeMaterial ) );
 
@@ -283,17 +284,16 @@ function main ( $$dependencies ) {
         return color.setValues( 0, 0, 1, 1 );
     }
     let gridYZ = createGrid( {
-        scale       : new vec3( 11,11,11 ),
-        transform   : new mat4
+        scale       : new vec3( 11 ),
+        transform   : new mat4().makeTranslation( 0, 0, 0 ).rotateX( Math.PI / 2 )
     }, 21, 21, 100 );
-    mat4.rotateX( gridYZ.transform, gridYZ.transform, Math.PI / 2 )
 
     gridYZ.addChild( "lines", gridYZ.edges.createElement( edgeMaterial ) );
 
     camera.scene.addChild( "gridYZ", gridYZ );
-    
+    /*
     point = new Mesh({
-        scale : new vec3( 1,1,1 ),
+        scale : new vec3( 1 ),
         transform : new mat4
     }, new VertexList({
         position : new Float32Array( 3 ),
@@ -306,7 +306,7 @@ function main ( $$dependencies ) {
     scene.addChild( "point", point );
 
     debug = new Mesh({
-        scale : new vec3( 15,15,15 ),
+        scale : new vec3( 15 ),
         transform : point.transform
     }, new VertexList({
         position : new Float32Array( 3 ),
@@ -335,12 +335,12 @@ function main ( $$dependencies ) {
     debug.addChild( "lines", new Element( edgeMaterial, undefined, gl.LINES ).allocateBuffer( [ 0,1,2,3,4,5 ] )  );
     scene.addChild( "debugCross", debug );
     
-
+*/
     //glyphAtlas = new GlyphAtlas("24px Helvetica");
     //textMaterial = glyphAtlas.material;
 
     
-    gl.clearColor( .1,.0,.1, 1 );
+    gl.clearColor( .1,.1,.1, 1 );
 
 
     addEventListener( "resize", handleScale );
@@ -382,7 +382,7 @@ function main ( $$dependencies ) {
                     let delta = distanceA - distanceB;
                     //scene.camera.transform[ 12 ] = touchTransformOrigin[ 0 ] + ( touchApos[ 0 ] + touchBpos[ 0 ] ) * .5;
                     //scene.camera.transform[ 13 ] = touchTransformOrigin[ 1 ] + ( touchApos[ 1 ] + touchBpos[ 1 ] ) * .5;
-                    transform[ 14 ] =  -delta;
+                    
                     //console.log( distanceA, distanceB, delta );
                 }
             }
@@ -409,7 +409,7 @@ function main ( $$dependencies ) {
     gl.canvas.addEventListener( "wheel", function ( e ) {
         let delta = e.wheelDeltaY / Math.abs( e.wheelDeltaY );
 
-        mat4.translate( camera.transform, camera.transform, [ 0, delta * 25, 0 ] );
+        camera.eye.addValues( 0, 0, delta * 25 );
     });
 
     let pressedKeys = new Set;
@@ -465,44 +465,20 @@ function main ( $$dependencies ) {
 
      */
     
-    window.temp = new mat4;
-
-    window.eye = new vec3( 0, 0, 10 );
-    let target = new vec3;
-    let rotation = new quat4;
-    let up = vec3.UP;
-
-    let x = new vec3;
-    let y = new vec3;
-    let z = new vec3;
+    
+    let strafe = new vec3( 0, 0, 0 );
+    let forward = new vec3( 0, 0, 0 );
 
     function update ( ) {
-        //vec3.copy( eye, camera.position );
-        vec3.set( target, mouse[ 0 ] * 100, -mouse[ 1 ] * 100, 10 );
-        if ( !pressedKeys.has( KEY_V ) ) {
-
-            mat4.lookAt( temp, eye, target, up );
-            debug.vertices[ 1 ].position.setValues( temp[ 0 ], temp[ 4 ], temp[ 8 ] );
-            debug.vertices[ 3 ].position.setValues( temp[ 1 ], temp[ 5 ], temp[ 9 ] );
-            debug.vertices[ 5 ].position.setValues( temp[ 2 ], temp[ 6 ], temp[ 10 ] );
-            debug.vertices.update();
-            
-        }
-
+        camera.viewTarget.setValues( mouse[ 0 ] * 100, -mouse[ 1 ] * 100, -50 );
+        
         let speed = 5;
-        //mat4.fromTranslation( camera.transform, eye );
-        mat4.lookAt( camera.transformInverse, eye, target, up );
-        //mat4.translate( camera.transform, camera.transform, eye );
-
-        //mat4.fromTranslation( point.transform, eye );
-        
-
-        if ( pressedKeys.has( KEY_W ) ) vec3.add( eye, eye, [ 0, 0, -speed ] );
-        if ( pressedKeys.has( KEY_S ) ) vec3.add( eye, eye, [ 0, 0, speed ] );
-        if ( pressedKeys.has( KEY_D ) ) vec3.add( eye, eye, [ speed, 0, 0 ] );
-        if ( pressedKeys.has( KEY_A ) ) vec3.add( eye, eye, [ -speed, 0, 0 ] );
+        //console.log( strafe.cross( camera.direction, vec3.UP ) );
+        if ( pressedKeys.has( KEY_W ) ) camera.eye.add( forward.set( camera.direction ).multiplyScalar( -speed ) );
+        if ( pressedKeys.has( KEY_S ) ) camera.eye.add( forward.set( camera.direction ).multiplyScalar( speed ) );
+        if ( pressedKeys.has( KEY_D ) ) camera.eye.add( strafe.cross( camera.direction, vec3.UP ).normalize().multiplyScalar( -speed ) );
+        if ( pressedKeys.has( KEY_A ) ) camera.eye.add( strafe.cross( camera.direction, vec3.UP ).normalize().multiplyScalar( speed ) ); 
         camera.update();
-        
     }
     function redraw ( ) {
         //log.clear();
@@ -516,14 +492,13 @@ function main ( $$dependencies ) {
     
 
     function handleMouseMove ( e ) {
-        vec2.set( pointer, e.clientX, e.clientY );
-        vec2.sub( pointerMovement, pointer, pointerPrevious );
-        
+        pointer.setValues( e.clientX, e.clientY );
+        pointerMovement.sub( pointer, pointerPrevious );
 
         //console.log( e, e.clientX, e.clientY );
         mouse[ 0 ] = ( pointer[ 0 ] / innerWidth * 2 ) - 1;
         mouse[ 1 ] = ( pointer[ 1 ] / innerHeight * 2 ) - 1;
-        mouse[ 2 ] = 0;
+        mouse[ 2 ] = -1;
 
         //console.log( mouse );
         //scene.camera.project( mouse );
@@ -541,7 +516,7 @@ function main ( $$dependencies ) {
             directionalLight.position[ 1 ] = -Math.sin( mouse[ 1 ] / 2 * Math.PI );
 
         }
-        vec2.set( pointerPrevious, e.clientX, e.clientY );
+        pointerPrevious.setValues( e.clientX, e.clientY );
     }
     function handleScale( ) {
         gl.canvas.width = innerWidth;

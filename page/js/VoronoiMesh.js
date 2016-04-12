@@ -41,8 +41,8 @@ define( [
 			let diagram = createSmooth( 1000, bbox, 4 );
 			
 			let cells = new Mesh({
-				scale       : new vec3( 1, 1, 1 ),
-				transform   : mat4.fromTranslation( new mat4, [ 0, 0, 0 ] )
+				scale       : new vec3( 1 ),
+				transform   : new mat4().makeTranslation( 0, 0, 0 )
 			}, new VertexList({
 				position    : new Float32Array( 3 ),
 				color       : new Float32Array( 4 ),
@@ -51,8 +51,8 @@ define( [
 			}, diagram.vertices.length,  gl.STATIC_DRAW ));
 
 			let triangulation = new Mesh({
-				scale       : new vec3( 1, 1, 1 ),
-				transform   : new mat4.fromTranslation( new mat4, [ 0, 0, 0 ] )
+				scale       : new vec3( 1 ),
+				transform   : new mat4().makeTranslation( 0, 0, 0 )
 			}, new VertexList({
 				position    : new Float32Array( 3 ),
 				color       : new Float32Array( 4 ),
@@ -127,10 +127,10 @@ define( [
 					
 					let vertices = triangulation.vertices.dereference( faceIndices );
 
-					let v0 = vec3.subtract( new vec3, vertices[ 0 ].position, vertices[ 1 ].position );
-					let v1 = vec3.subtract( new vec3, vertices[ 2 ].position, vertices[ 0 ].position );
+					let v0 = vec3.sub( new vec3, vertices[ 0 ].position, vertices[ 1 ].position );
+					let v1 = vec3.sub( new vec3, vertices[ 2 ].position, vertices[ 0 ].position );
 
-					let faceNormal = vec3.cross( v0, v0, v1 );
+					let faceNormal = v0.cross( v1 );
 
 					face.normal = faceNormal;
 					
@@ -149,19 +149,14 @@ define( [
 				for ( let face of vertex.faces() ) {
 					if ( face.normal ) {
 						count++;
-
-						vec3.add( normal, normal, face.normal );
-						
+						normal.add( face.normal );
 					}
 				}  
-
-				vec3.scale( normal, normal, 1 / count );
-				vec3.normalize( normal, normal );
-				//normal.divideScalar( count ).normalize();
+				normal.divideScalar( count ).normalize();
 				
 				vertex.normal.set( normal );
 
-				vec3.set( normal, 0,0,0 );
+				normal.setValues( 0,0,0 );
 			}
 
 			cells.vertices.update();
