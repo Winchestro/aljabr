@@ -34,7 +34,7 @@ define( [
     const _w_ = 3;
 
     class Camera {
-        constructor ( uniforms, scene, target, frustum, viewport ) {
+        constructor ( uniforms, scene, renderTarget, frustum, viewport ) {
             if ( uniforms === undefined ) uniforms = {};
             
             if ( uniforms.projection === undefined ) uniforms.projection = new mat4;
@@ -46,20 +46,27 @@ define( [
             if ( scene === undefined ) scene = new Scene;
             
 
-            if ( target === undefined ) target = null;
+            if ( renderTarget === undefined ) renderTarget = null;
             if ( frustum === undefined ) frustum = new Frustum;
             if ( viewport === undefined ) viewport = new Viewport;
 
             def.Properties( this, {
                 scene,
                 frustum,
-                eye : new vec3( 1 ),
-                viewTarget : new vec3 ( 0 ),
+                position : new vec3( 1 ),
+                viewTarget : null,
+                
+                wNear : 0,
+                hNear : 0,
+                wFar : 0,
+                hFar : 0,
+
                 farCenter : new vec3,
                 nearCenter : new vec3,
                 direction : new vec3,
+
                 viewport,
-                target,
+                renderTarget,
                 drawCalls : 0
             }, def.WRITABLE | def.CONFIGURABLE );
 
@@ -101,17 +108,23 @@ define( [
             return this.unproject( toNormalizedDeviceCoordinates( outV3 ) );
         }
         update ( ) {
-            this.transformInverse.lookAt( this.eye, this.viewTarget, vec3.UP );
-            this.transform.invert( this.transformInverse );
+            if ( this.viewTarget ) {
+                this.transformInverse.lookAt( this.position, this.viewTarget, vec3.UP );
+                this.transform.invert( this.transformInverse );
+            } else {
+                this.transform.setTranslation( this.position );
+                this.transformInverse.invert( this.transform );
+            }
             this.projectionInverse.invert( this.projection );
             this.unproject( this.nearCenter.setValues( 0, 0, 0 ) );
             this.unproject( this.farCenter.setValues( 0, 0, 1 ) );
             this.direction.sub( this.farCenter, this.nearCenter ).normalize();
-            //this.position.setValues( this.transform[ 12 ], this.transform[ 13 ], this.transform[ 14 ] );
+            this.frustum.update( this );
+
             this.scene.update( this );
         }
         draw ( ) {
-            gl.bindFramebuffer( gl.FRAMEBUFFER, this.target );
+            gl.bindFramebuffer( gl.FRAMEBUFFER, this.renderTarget );
             gl.clear( gl.COLOR_BUFFER_BIT  | gl.DEPTH_BUFFER_BIT );
             this.drawCalls = 0;
             this.frame++;
@@ -161,53 +174,73 @@ define( [
             this.projectionInverse.invert( this.projection );
             return this;
         }
-        
-        
+
+        resize ( width, height ) {
+            this.aspect = width / height;
+            this.viewport.setDimensions( 0, 0, width, height );
+            this.updateProjection();
+        }
     }
 
     class Orthographic extends Camera {
-        constructor ( left, right, bottom, top, near, far, uniforms, scene, target ) {
+        constructor ( near, far, zoom, uniforms, scene, target, frustum ) {
             if ( near === undefined ) near = 0.1;
             if ( far === undefined ) far = 10;
-            if ( left === undefined ) left = -15;
-            if ( right === undefined ) right = 15;
-            if ( bottom === undefined ) bottom = -15;
-            if ( top === undefined ) top = 15;
+            if ( zoom === undefined ) zoom = 1;
+            
+            super( uniforms, scene, target, frustum );
+            let width = this.viewport.width;
+            let height = this.viewport.height;
+            let x = this.viewport.x;
+            let y = this.viewport.y;
+            
 
-            super( uniforms, scene, target );
-            this.projection.makeOrthographic( left, right, bottom, top, near, far );
+            this.projection.makeOrthographic(
+                ( -width + x ) * zoom,
+                ( width + x ) * zoom,
+                ( -height + y ) * zoom,
+                ( height + y ) * zoom,
+                near,
+                far
+            );
+            this.projectionInverse.invert( this.projection );
 
             def.Properties( this, {
                 near,
                 far,
-                top,
-                bottom,
-                left,
-                right
+                zoom
             }, def.WRITABLE );
         }
 
-        updateProjection( left, right, bottom, top, near, far ) {
-            if ( left === undefined ) left = this.left;
-            else this.left = left;
-
-            if ( right === undefined ) right = this.right;
-            else this.right = right;
-
-            if ( bottom === undefined ) bottom = this.bottom;
-            else this.bottom = bottom;
-
-            if ( top === undefined ) top = this.top;
-            else this.top = top;
-
+        updateProjection( near, far, zoom ) {
             if ( near === undefined ) near = this.near;
             else this.near = near;
 
             if ( far === undefined ) far = this.far;
             else this.far = far;
 
-            this.projection.makeOrthographic( left, right, top, bottom, near, far );
+            if ( zoom === undefined ) zoom = this.zoom;
+            else this.zoom = zoom;
+
+            let width = this.viewport.width;
+            let height = this.viewport.height;
+            let x = this.viewport.x;
+            let y = this.viewport.y;
+
+            this.projection.makeOrthographic(
+                ( -width + x ) * zoom,
+                ( width + x ) * zoom,
+                ( -height + y ) * zoom,
+                ( height + y ) * zoom,
+                near,
+                far
+            );
+            this.projectionInverse.invert( this.projection );
             return this;
+        }
+
+        updateViewport ( x, y, width, height ) {
+            this.viewport.setDimensions( x, y, width, height );
         }
     }
 

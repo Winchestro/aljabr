@@ -2,19 +2,23 @@ define ( [
 	"../utilities/PropertyDescriptors",
 	"../webgl/Context",
 	"../kernel/Float32Array",
+	"../math/Plane",
 	"../math/vec2",
 	"../math/vec3",
 	"../math/vec4",
 	"../webgl/BufferObject",
+	"../mesh/VertexList",
 	"../material/VertexColors",
 ], function module (
 	def,
 	gl,
 	Float32Array,
+	Plane,
 	vec2,
 	vec3,
 	vec4,
 	BufferObject,
+	VertexList,
 	VertexColors
 ) {
 	"use strict";
@@ -23,14 +27,30 @@ define ( [
 
 	class Frustum extends Float32Array {
 		constructor ( xOffset, yOffset, zOffset ) {
-			
+
 			
 			const vertexCount = 8;
 			const dimensions = 3;
 			
 			super( vertexCount * dimensions );
 
+			let vertices = new VertexList({
+				position : new Float32Array( 3 )
+			}, vertexCount, gl.DYNAMIC_DRAW );
+
+
+
+			console.log( vertices );
+
 			def.Properties( this, {
+				farTopLeft : vertices[ 0 ],
+				farBottomLeft : vertices[ 1 ],
+				farBottomRight : vertices[ 2 ],
+				farTopRight : vertices[ 3 ],
+				nearTopLeft : vertices[ 4 ],
+				nearBottomLeft : vertices[ 5 ],
+				nearBottomRight : vertices[ 6 ],
+				nearTopRight : vertices[ 7 ],
 				xOffset,
 				yOffset,
 				zOffset
@@ -52,8 +72,8 @@ define ( [
 		}
 
 		update ( camera ) {
-			let width = gl.canvas.clientWidth;
-			let height = gl.canvas.clientHeight;
+			let width = camera.viewport.width;
+			let height = camera.viewport.height;
 			let far = camera.far;
 			let near = camera.near;
 			
@@ -192,7 +212,7 @@ define ( [
 		}
 
 		update ( camera, scene, lights, partentMesh ) {
-			this.frustum.update( camera );
+			//this.frustum.update( camera );
 			this.vertexBuffer.bind().update( this.frustum );
 
 		}

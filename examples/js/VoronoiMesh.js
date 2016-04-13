@@ -24,19 +24,15 @@ define( [
 	class VoronoiMesh {
 		constructor( ) {
 		    let landMaterial = new Material.Phong;
+		    let waterMaterial = new Material.Phong;
+		    let edgeMaterial = new Material.VertexColors;
+
 			landMaterial.offset.enable().setFill( 1, 0 );
 			//landMaterial.alpha.enable().setFunc( gl.SRC_COLOR , gl.ONE_MINUS_DST_COLOR, gl.SRC_ALPHA, gl.DST_ALPHA );
-
-		    let waterMaterial = new Material.Phong;
-
 		    
 		    waterMaterial.depth.disableWrite();
 		    waterMaterial.alpha.enable().setFunc( Alpha.FN_SRC_COLOR , Alpha.FN_ONE_MINUS_DST_COLOR, Alpha.FN_SRC_ALPHA, Alpha.FN_DST_ALPHA );
 		    waterMaterial.offset.enable().setFill( 1, 0 );
-
-
-		    let edgeMaterial = new Material.VertexColors;
-
 
 			let diagram = createSmooth( 1000, bbox, 4 );
 			
@@ -164,36 +160,36 @@ define( [
 
 			
 			cells
-				.addChild( "points", cells.vertices.createElement( waterMaterial ), 0 )
-				.addChild( "normals", cells.createNormalMesh( edgeMaterial, 5 ), 0 )
-				.addChild( "lines", cells.edges.createElement( edgeMaterial ), 0 )
+//				.addChild( "points", cells.vertices.createElement( waterMaterial ), 0 )
+//				.addChild( "normals", cells.createNormalMesh( edgeMaterial, 5 ), 0 )
+//				.addChild( "lines", cells.edges.createElement( edgeMaterial ), 0 )
 				.addChild( "triangles", cells.faces.createElement( waterMaterial ), 0 )
 			;
-			cells.points.visible = false;
-			cells.lines.visible = false;
-			cells.normals.visible = false;
 
 			
 			//scene.children.push( triangulation );
 			//scene.children.push( cells );
 			
 			triangulation
-				.addChild( "points", triangulation.vertices.createElement( landMaterial ), 0 )
-				.addChild( "lines", triangulation.edges.createElement( edgeMaterial ), 0 )
-				.addChild( "normals", triangulation.createNormalMesh( edgeMaterial, 5 ), 0 )
+//				.addChild( "points", triangulation.vertices.createElement( landMaterial ), 0 )
+//				.addChild( "lines", triangulation.edges.createElement( edgeMaterial ), 0 )
+//				.addChild( "normals", triangulation.createNormalMesh( edgeMaterial, 5 ), 0 )
 				.addChild( "triangles", triangulation.faces.createElement( landMaterial ), 0 )
 			;
-
-			triangulation.points.visible = false;
-			triangulation.normals.visible = false;
-			triangulation.lines.visible = false;
 			
 			def.Properties( this, {
 				cells,
 				triangulation,
 				diagram,
-				visible : true
+				landMaterial,
+				waterMaterial,
+				edgeMaterial,
+				
 			});
+
+			def.Properties( this, {
+				visible : true
+			}, def.WRITABLE );
 		}
 		update ( ) {
 			

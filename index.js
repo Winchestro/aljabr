@@ -128,7 +128,7 @@ void function setup ( ) {
         }
     }
 
-    dependencies.push( "page/js/VoronoiMesh" );
+    dependencies.push( "examples/js/VoronoiMesh" );
     args.push( "VoronoiMesh" );
 
     eval( main.toString().replace( "$$dependencies", args.toString() ) );
@@ -148,104 +148,26 @@ function main ( $$dependencies ) {
     document.body.appendChild( gl.canvas );
     
     gl.setPixelRatio( 1 );
-    /*
-    gl.clearColor( 0.1, 0.0, 0.1, 1. );
-    window.vs = new Shader.Vertex().setShaderSource(`
-        attribute vec2 position;
+    
 
-        void main ( ) {
-
-            gl_Position = vec4( position, 0., 1. );
-
-        }
-    `).compile(); if ( !vs.getCompileStatus ) console.warn( vs.getInfoLog );
-
-
-
-    window.fs = new Shader.Fragment().setShaderSource(`
-        precision mediump float;
-
-        uniform vec2 viewport;
-        uniform sampler2D tex;
-
-        void main ( ) {
-            vec2 uv = gl_FragCoord.xy / viewport;
-
-            uv.x = abs( uv.x - .5 ) + .5;
-
-            vec4 texel = texture2D( tex, uv );
-
-            gl_FragColor = texel;
-        }
-
-    `).compile(); if ( !fs.getCompileStatus ) console.warn( fs.getInfoLog );
-
-    window.program = new Program().attachShader( fs ).attachShader( vs ).link().validate().use();
-    window.uniforms = program.getActiveUniforms;
-
-    uniforms.viewport.setValues( innerWidth / 2, innerHeight / 2 );
-
-
-    navigator.webkitGetUserMedia({ video : true }, function ( stream ) {
-        video.src = URL.createObjectURL( stream );
-        video.oncanplay = function ( ) {
-            tex.allocateImage2D( video );
-            
-            loop();
-        }
-    }, console.error.bind( console ));
-    window.fsq = new BufferObject.Vertex().bind().allocate( new Float32Array([
-        -1, -1,
-         1, -1,
-        -1,  1,
-        -1,  1,
-         1, -1,
-         1,  1
-    ]));
-    gl.vertexAttribPointer( 0, 2, gl.FLOAT, false, 0, 0 );
-    gl.enableVertexAttribArray( 0 );
-
+    camera = new Camera.Orthographic( -2000, 2000, .1 );
     
     
-    gl.pixelStorei( gl.UNPACK_FLIP_Y_WEBGL, true );
-    let tex = new Texture().bind();
-    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST );
-    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST );
-    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE );
-    gl.texParameteri( gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE );
-    //gl.disable( gl.CULL_FACE );
-
-    function loop ( ) {
-        requestAnimationFrame( loop );
-
-        //gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
-        tex.updateImage2D( video ); 
-        gl.drawArrays( gl.TRIANGLES, 0, 6 );
-    };
-
-    
-    */
-
-    camera = new Camera.Perspective( 1, 1000 );
     camera.frustum.setOffset( 5 );
     camera.createFrustumMesh();
-    camera.eye[ 2 ] = 20;
-    //camera.scene.frustum.lines.visible = false;
-    //camera = new Camera.Orthographic( 0, 10, 0, 10, 1, 10 );
+    
+    camera.transform.rotate( Math.PI / 4, 0, 0, 1 );
+
+    camera.zoom = .8;
+    camera.viewTarget = new vec3;
+    camera.position.setValues( 5, 5, 5 );
+    
     scene = camera.scene;
 
     
     directionalLight = new Light.Directional;
 
-    pointLight = new Light({
-        position        : new vec4( 1,1,1,1 ),
-        attenuation     : new vec3( 2, 1, 0.025 ),
-        color           : new vec3( 1 ),
-        direction       : new vec3( 0 ),
-        exponent        : 2,
-        innerCutoff     : 0.1,
-        outerCutoff     : 5.9
-    });
+    
 
     scene.lights.push( directionalLight );
     //scene.lights.push( pointLight );
@@ -253,8 +175,8 @@ function main ( $$dependencies ) {
     
     scene.addChild( "voronoi", new VoronoiMesh );
 
-    let edgeMaterial = scene.voronoi.triangulation.lines.material;
-    let surfaceMaterial = scene.voronoi.triangulation.triangles.material;
+    let edgeMaterial = scene.voronoi.edgeMaterial;
+    let surfaceMaterial = scene.voronoi.landMaterial;
 
     createGrid.options.colorFn = function ( color, x, y ) {
         return color.setValues( 1, 0, 0, 1 );
@@ -264,7 +186,7 @@ function main ( $$dependencies ) {
         transform   : new mat4().makeTranslation( 0, 0, 0 )
     }, 21, 21, 100 );
 
-    gridXY.addChild( "lines", gridXY.edges.createElement( edgeMaterial ) );
+    gridXY.addChild( "lines", gridXY.vertices.createElement( edgeMaterial ) );
 
     camera.scene.addChild( "gridXY", gridXY );
     
@@ -276,7 +198,7 @@ function main ( $$dependencies ) {
         transform   : new mat4().makeTranslation( 0, 0, 0 ).rotateY( Math.PI / 2 )
     }, 21, 21, 100 );
 
-    gridXZ.addChild( "lines", gridXZ.edges.createElement( edgeMaterial ) );
+    gridXZ.addChild( "lines", gridXZ.vertices.createElement( edgeMaterial ) );
 
     camera.scene.addChild( "gridXZ", gridXZ );
     
@@ -288,56 +210,10 @@ function main ( $$dependencies ) {
         transform   : new mat4().makeTranslation( 0, 0, 0 ).rotateX( Math.PI / 2 )
     }, 21, 21, 100 );
 
-    gridYZ.addChild( "lines", gridYZ.edges.createElement( edgeMaterial ) );
+    gridYZ.addChild( "lines", gridYZ.vertices.createElement( edgeMaterial ) );
 
     camera.scene.addChild( "gridYZ", gridYZ );
-    /*
-    point = new Mesh({
-        scale : new vec3( 1 ),
-        transform : new mat4
-    }, new VertexList({
-        position : new Float32Array( 3 ),
-        color : new Float32Array( 4 )
-    }, 1, gl.STATIC_DRAW ));
-
-    point.vertices[ 0 ].color.update( 1,0,0,1 );
-
-    point.addChild( "point", point.vertices.createElement( edgeMaterial ) );
-    scene.addChild( "point", point );
-
-    debug = new Mesh({
-        scale : new vec3( 15 ),
-        transform : point.transform
-    }, new VertexList({
-        position : new Float32Array( 3 ),
-        color : new Float32Array( 4 )
-    }, 6, gl.STATIC_DRAW ));
-
-    debug.vertices[ 0 ].position.setValues( 0,0,0 );
-    debug.vertices[ 2 ].position.setValues( 0,0,0 );
-    debug.vertices[ 4 ].position.setValues( 0,0,0 );
-
-    debug.vertices[ 1 ].position.setValues( 1,0,0 );
-    debug.vertices[ 3 ].position.setValues( 0,1,0 );
-    debug.vertices[ 5 ].position.setValues( 0,0,1 );
-
-    debug.vertices[ 0 ].color.setValues( 1,0,0,1 );
-    debug.vertices[ 1 ].color.setValues( 1,0,0,1 );
-
-    debug.vertices[ 2 ].color.setValues( 0,1,0,1 );
-    debug.vertices[ 3 ].color.setValues( 0,1,0,1 );
-
-    debug.vertices[ 4 ].color.setValues( 0,0,1,1 );
-    debug.vertices[ 5 ].color.setValues( 0,0,1,1 );
-
-    debug.vertices.update();
-
-    debug.addChild( "lines", new Element( edgeMaterial, undefined, gl.LINES ).allocateBuffer( [ 0,1,2,3,4,5 ] )  );
-    scene.addChild( "debugCross", debug );
     
-*/
-    //glyphAtlas = new GlyphAtlas("24px Helvetica");
-    //textMaterial = glyphAtlas.material;
 
     
     gl.clearColor( .1,.1,.1, 1 );
@@ -409,7 +285,7 @@ function main ( $$dependencies ) {
     gl.canvas.addEventListener( "wheel", function ( e ) {
         let delta = e.wheelDeltaY / Math.abs( e.wheelDeltaY );
 
-        camera.eye.addValues( 0, 0, delta * 25 );
+        camera.zoom -= delta * .01;
     });
 
     let pressedKeys = new Set;
@@ -417,11 +293,16 @@ function main ( $$dependencies ) {
     const KEY_A = "A".charCodeAt( 0 );
     const KEY_S = "S".charCodeAt( 0 );
     const KEY_D = "D".charCodeAt( 0 );
+
+    const KEY_SPACE = 32;
+    const KEY_SHIFT = 16;
+
     const KEY_X = "X".charCodeAt( 0 );
     const KEY_Y = "Y".charCodeAt( 0 );
     const KEY_V = "V".charCodeAt( 0 );
 
     addEventListener( "keydown", function ( e ) {
+        
         pressedKeys.add( e.keyCode );
         if ( e.keyCode === KEY_Y ) loop();
     });
@@ -436,52 +317,27 @@ function main ( $$dependencies ) {
         update();
         redraw();
     }
-
-    let lookVector = new vec3;
-
-    /*
-        lookAt ( xPos, yPos, zPos ) {
-            
-            let eye = CACHE_VEC3_EYE.setValues( this[_3_0_], this[_3_1_], this[_3_2_] );
-            let target = CACHE_VEC3_TARGET.setValues( xPos, yPos, zPos );
-            let up = vec3.DOWN;
-
-            let z = CACHE_VEC3_Z.set( target ).sub( eye ).normalize();
-            let x = CACHE_VEC3_X.set( up ).cross( z ).normalize();
-            let y = CACHE_VEC3_Y.set( z ).cross( x );
-            //console.log( x );
-            //console.log( y );
-            //console.log( z );
-
-
-
-            let m = this;
-                m[_0_0_] = x[_x_]; m[_0_1_] = y[_x_]; m[_0_2_] = z[_x_];
-                m[_1_0_] = x[_y_]; m[_1_1_] = y[_y_]; m[_1_2_] = z[_y_];
-                m[_2_0_] = x[_z_]; m[_2_1_] = y[_z_]; m[_2_2_] = z[_z_];
-                
-            return this;
-        }
-
-     */
     
-    
-    let strafe = new vec3( 0, 0, 0 );
-    let forward = new vec3( 0, 0, 0 );
+    let strafe = new vec3;
+    let forward = new vec3;
+    let upward = new vec3;
 
     function update ( ) {
-        camera.viewTarget.setValues( mouse[ 0 ] * 100, -mouse[ 1 ] * 100, -50 );
+        if ( camera.viewTarget ) camera.viewTarget.setValues( mouse[ 0 ] * 100, -mouse[ 1 ] * 100, -50 );
         
         let speed = 5;
-        //console.log( strafe.cross( camera.direction, vec3.UP ) );
-        if ( pressedKeys.has( KEY_W ) ) camera.eye.add( forward.set( camera.direction ).multiplyScalar( -speed ) );
-        if ( pressedKeys.has( KEY_S ) ) camera.eye.add( forward.set( camera.direction ).multiplyScalar( speed ) );
-        if ( pressedKeys.has( KEY_D ) ) camera.eye.add( strafe.cross( camera.direction, vec3.UP ).normalize().multiplyScalar( -speed ) );
-        if ( pressedKeys.has( KEY_A ) ) camera.eye.add( strafe.cross( camera.direction, vec3.UP ).normalize().multiplyScalar( speed ) ); 
+
+
+        if ( pressedKeys.has( KEY_W ) ) camera.position.add( forward.set( camera.direction ).multiplyScalar( -speed ) );
+        if ( pressedKeys.has( KEY_S ) ) camera.position.add( forward.set( camera.direction ).multiplyScalar( speed ) );
+        if ( pressedKeys.has( KEY_D ) ) camera.position.add( strafe.cross( camera.direction, vec3.UP ).normalize().multiplyScalar( -speed ) );
+        if ( pressedKeys.has( KEY_A ) ) camera.position.add( strafe.cross( camera.direction, vec3.UP ).normalize().multiplyScalar( speed ) ); 
+        if ( pressedKeys.has( KEY_SPACE ) ) camera.position.add( upward.cross( strafe.cross( camera.direction, vec3.UP ), camera.direction ).multiplyScalar( speed ) );
+        if ( pressedKeys.has( KEY_SHIFT ) ) camera.position.add( upward.cross( strafe.cross( camera.direction, vec3.UP ), camera.direction ).multiplyScalar( -speed ) );
+
         camera.update();
     }
     function redraw ( ) {
-        //log.clear();
         
         camera.draw();
     }
@@ -495,21 +351,11 @@ function main ( $$dependencies ) {
         pointer.setValues( e.clientX, e.clientY );
         pointerMovement.sub( pointer, pointerPrevious );
 
-        //console.log( e, e.clientX, e.clientY );
         mouse[ 0 ] = ( pointer[ 0 ] / innerWidth * 2 ) - 1;
         mouse[ 1 ] = ( pointer[ 1 ] / innerHeight * 2 ) - 1;
-        mouse[ 2 ] = -1;
+        mouse[ 2 ] = 0;
 
-        //console.log( mouse );
-        //scene.camera.project( mouse );
-        //console.log( mouse );
-        //sphere.transform.setTranslation( mouse[ 0 ], mouse[ 1 ], mouse[ 2 ] );
         if ( dragging ) {
-            //let movementX = e.movementX;
-            //let movementY = downY - e.clientY;
-            //transform.rotateX( pointerMovement[ 1 ] / 100 );
-           // transform.rotateY( pointerMovement[ 0 ] / 100 );
-            
             
         } else {
             directionalLight.position[ 0 ] = Math.sin( mouse[ 0 ] / 2 * Math.PI );
@@ -521,10 +367,8 @@ function main ( $$dependencies ) {
     function handleScale( ) {
         gl.canvas.width = innerWidth;
         gl.canvas.height = innerHeight;
-
-        camera.viewport.setDimensions( 0, 0, innerWidth, innerHeight );
-        camera.aspect = innerWidth / innerHeight;
-        camera.updateProjection();
+       
+        camera.updateViewport( 0, 0, innerWidth, innerHeight );
     }
 
     
@@ -535,150 +379,4 @@ function main ( $$dependencies ) {
   
     
 }
-    /*
-    function createIndexLabel ( parent, index, label, offset ) {
-        if ( !label ) return;
-        let text = glyphAtlas.createTextMesh( label, {
-            scale       : new vec3( 8 ),
-            transform   : new mat4().makeTranslation(
-                parent.vertices[ index ].position[0] + parent.vertices[ index ].normal[0] * offset,
-                parent.vertices[ index ].position[1] + parent.vertices[ index ].normal[1] * offset,
-                parent.vertices[ index ].position[2] + parent.vertices[ index ].normal[2] * offset
-            )
-        });
-
-        text.children.push( text.faces.createElement( textMaterial ) );
-        parent.children.push( text );
-
-    }*/
-
    
-
-
-    /*
-    cube = createCube({
-        scale       : new vec3( 2 ),
-        transform   : new mat4().makeTranslation( 0, 0, 0 )
-    });
-    
-    //cube.children.push( cube.vertices.createElement( material ) );
-    cube.children.push( cube.faces.createElement( material ) );
-    cube.children.push( cube.edges.createElement( edgeMaterial ) );
-    scene.children.push( cube.createNormalMesh( edgeMaterial, .5 ));
-
-    cube.ondraw = function ( ) {
-        this.transform.rotateY( Math.PI * 2 / ( 60 * 20 ) );
-    }
-    scene.children.push( cube );
-
-    
-    
-    tetrahedron = createTetrahedron({
-        scale       : new vec3( 1 ),
-        transform   : new mat4().makeTranslation( 10, 10, 0 )
-    });
-    
-    //tetrahedron.children.push( tetrahedron.vertices.createElement( material ) );
-    tetrahedron.children.push( tetrahedron.faces.createElement( material ) );
-    tetrahedron.children.push( tetrahedron.edges.createElement( edgeMaterial ) );
-    
-    tetrahedron.ondraw = function () {
-        this.transform.rotateZ( Math.PI * 2 / ( 60 * 5 ) );
-    }
-    //scene.children.push( tetrahedron.createNormalMesh( edgeMaterial, .1 ));
-    scene.children.push( tetrahedron );
-    
-    bipyramid = createBipyramid({
-        scale       : new vec3( 1 ),
-        transform   : new mat4().makeTranslation( -10, 10, 0 )
-    }, 4 );
-    
-    //bipyramid.children.push( bipyramid.vertices.createElement( material ) );
-    bipyramid.children.push( bipyramid.faces.createElement( material ) );
-    bipyramid.children.push( bipyramid.edges.createElement( edgeMaterial ) );
-    
-    bipyramid.ondraw = function ( ) {
-        this.transform.rotateZ( Math.PI * 2 / ( 60 * 5 ) );
-    }
-       
-
-    scene.children.push( bipyramid );
-
-    icosahedron = createIcosahedron({
-        scale       : new vec3( 1 ),
-        transform   : new mat4().makeTranslation( -20, 10, 0 )
-    }, 12 );
-    
-    icosahedron.ondraw = function ( ) {
-        this.transform.rotateZ( Math.PI * 2 / ( 60 * 5 ) );
-    }
-
-
-    //icosahedron.children.push( icosahedron.vertices.createElement( material ) );
-    icosahedron.children.push( icosahedron.faces.createElement( material ) );
-    icosahedron.children.push( icosahedron.edges.createElement( edgeMaterial ) );
-    
-
-    scene.children.push( icosahedron.createNormalMesh( edgeMaterial, .1 ));
-    scene.children.push( icosahedron );
-
-    let sphereDivisions = 20;
-    
-    sphere = createUVSphere({
-        scale       : new vec3( 1 ),
-        transform   : new mat4().makeTranslation( 0, 10, 0 )
-    }, 20, 20 );
-    //sphere.children.push( sphere.vertices.createElement( material ) );
-    sphere.children.push( sphere.faces.createElement( material ) );
-    sphere.children.push( sphere.edges.createElement( edgeMaterial ) );
-    //scene.children.push( sphere.createNormalMesh( edgeMaterial, 0.10 ));
-    
-    sphere.ondraw = function ( ) {
-        this.transform.rotateY( Math.PI * 2 / ( 60 * 5 ) );
-    }
-    scene.children.push( sphere );
-
-    cylinder = createCylinder({
-        scale       : new vec3( .25 ),
-        transform   : new mat4().makeTranslation( 3, 0, 0 )
-    }, 12, 16 );
-    //cylinder.children.push( cylinder.vertices.createElement( material ) );
-    cylinder.children.push( cylinder.faces.createElement( material ) );
-    cylinder.children.push( cylinder.edges.createElement( edgeMaterial ) );
-    
-    cylinder.ondraw = function ( ) {
-        this.transform.rotateX( -Math.PI * 2 / ( 60 * 5 ) );
-    }
-    //scene.children.push( cylinder.createNormalMesh( edgeMaterial, .1 ) );
-    sphere.children.push( cylinder );
-    
-    
-    
-
-    
-    
-    text = glyphAtlas.createTextMesh( "Icosahedron", {
-        scale       : new vec3( 12 ),
-        transform   : new mat4().makeTranslation( 0, 0, 2 )
-    });
-
-    text.children.push( text.faces.createElement( textMaterial ) );
-    icosahedron.children.push( text );
-
-    text = glyphAtlas.createTextMesh( "Tetrahedron", {
-        scale       : new vec3( 12 ),
-        transform   : new mat4().makeTranslation( 0, 0, 2 )
-    });
-
-    text.children.push( text.faces.createElement( textMaterial ) );
-    tetrahedron.children.push( text );
-
-    text = glyphAtlas.createTextMesh( "Octahedron", {
-        scale       : new vec3( 12 ),
-        transform   : new mat4().makeTranslation( 0, 0, 2 )
-    });
-
-    text.children.push( text.faces.createElement( textMaterial ) );
-    bipyramid.children.push( text );
-    */
-    //scene.children.push( grid );
