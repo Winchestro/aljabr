@@ -19,141 +19,114 @@ define( [
             this[_y_] = y;
         }
         
-        dot ( vA ) {
-            return this[_x_] * vA[_x_]
-                 + this[_y_] * vA[_y_]; 
-        }
-        static dot ( inV2, vA ) {
-            return vec2.prototype.dot.call( inV2, vA );
-        }
-
-        set ( vA ) {
-            this[_x_] = vA[_x_];
-            this[_y_] = vA[_y_];
-            return this;    
-        }
-        static set ( outV2, vA ) {
-            return vec2.prototype.set.call( outV2, vA );
-        } 
-
-        setValues ( x, y ) {
-            this[_x_] = x;
-            this[_y_] = y;
-            return this;
-        }
-        static setValues ( outV2, x, y ) {
-            return vec2.prototype.setValues.call( outV2, x, y );
+        dot ( inV2B ) { return vec2.dot( this, inV2B ); }
+        static dot ( inV2B, inV2A ) {
+            return inV2A[_x_] * inV2B[_x_]
+                 + inV2A[_y_] * inV2B[_y_]; 
         }
         
-        add ( vA, vB ) {
-            if ( vB === undefined ) vB = this;
-
-            this[_x_] = vA[_x_] + vB[_x_];
-            this[_y_] = vA[_y_] + vB[_y_];
-            return this;
+        set ( inV2 ) { return vec2.set( this, inV2 ); }
+        static set ( outV2, inV2 ) {
+            outV2[_x_] = inV2[_x_];
+            outV2[_y_] = inV2[_y_];
+            return outV2;
         }
-        static add ( outV2, vA, vB ) {
-            return vec2.prototype.add.call( outV2, vA, vB );
+        
+        setValues ( x, y ) { return vec2.setValues( this, x, y ); }
+        static setValues ( outV2, x, y ) {
+            outV2[_x_] = x;
+            outV2[_y_] = y;
+            return outV2;
         }
+        
+        add ( inV2B, inV2A ) { return vec2.add( this, inV2B, inV2A ); }
+        static add ( outV2, inV2B, inV2A ) {
+            if ( inV2A === undefined ) inV2A = outV2;
 
-        sub ( vA, vB ) {
-            if ( vB === undefined ) vB = this;
-
-            this[_x_] = vB[_x_] - vA[_x_];
-            this[_y_] = vB[_y_] - vA[_y_];
-            return this;
+            outV2[_x_] = inV2A[_x_] + inV2B[_x_];
+            outV2[_y_] = inV2A[_y_] + inV2B[_y_];
+            return outV2;
         }
-        static sub ( outV2, vA, vB ) {
-            return vec2.prototype.sub.call( outV2, vA, vB );
-        }
+        
+        sub ( inV2B, inV2A ) { return vec2.sub( this, inV2B, inV2A ); }
+        static sub ( outV2, inV2B, inV2A ) {
+            if ( inV2A === undefined ) inV2A = outV2;
 
-        multiply ( vA, vB ) {
-            if ( vB === undefined ) vB = this;
+            outV2[_x_] = inV2A[_x_] - inV2B[_x_];
+            outV2[_y_] = inV2A[_y_] - inV2B[_y_];
+            return outV2;
+        }
+        
+        multiply ( inV2B, inV2A ) { return vec2.multiply( this, inV2B, inV2A ); }
+        static multiply ( outV2, inV2B, inV2A ) {
+            if ( inV2A === undefined ) inV2A = outV2;
                 
-            this[_x_] = vA[_x_] * vB[_x_];
-            this[_y_] = vA[_y_] * vB[_y_];
+            outV2[_x_] = inV2A[_x_] * inV2B[_x_];
+            outV2[_y_] = inV2A[_y_] * inV2B[_y_];
                 
-            return this;
+            return outV2;
         }
-        static multiply ( outV2, vA, vB ) {
-            return vec2.prototype.multiply.call( outV2, vA, vB );
-        }
+        
+        divide ( inV2B, inV2A ) { return vec2.divide( this, inV2B, inV2A ); }
+        static divide ( outV2, inV2B, inV2A ) {
+            if ( inV2A === undefined ) inV2A = outV2;
 
-        divide ( vA, vB ) {
-            if ( vB === undefined ) vB = this;
-
-            this[_x_] = vB[_x_] / vA[_x_];
-            this[_y_] = vB[_y_] / vA[_y_];
+            outV2[_x_] = inV2A[_x_] / inV2B[_x_];
+            outV2[_y_] = inV2A[_y_] / inV2B[_y_];
                 
-            return this;
+            return outV2;
         }
-        static divide ( outV2, vA, vB ) {
-            return vec2.prototype.divide.call( outV2, vA, vB );
-        }
-
-        addScalar ( s ) {
-            this[_x_] += s;
-            this[_y_] += s;
-            return this;
-        }
+        
+        addScalar ( s ) { return vec2.addScalar( this, s ); }
         static addScalar ( outV2, s ) {
-            return vec2.prototype.addScalar.call( outV2, s );
+            outV2[_x_] += s;
+            outV2[_y_] += s;
+            return outV2;
         }
-
-        multiplyScalar ( s ) {
-            this[_x_] *= s;
-            this[_y_] *= s;
-            return this;
-        }
+        
+        multiplyScalar ( s ) { return vec2.multiplyScalar( this, s ); }
         static multiplyScalar ( outV2, s ) {
-            return vec2.prototype.multiplyScalar.call( outV2, s );
+            outV2[_x_] *= s;
+            outV2[_y_] *= s;
+            return outV2;
         }
+        
+        lerp ( alpha, inV2B, inV2A ) { return vec2.lerp( this, alpha, inV2B, inV2A ); }
+        static lerp ( outV2, alpha, inV2B, inV2A ) {
+            if ( inV2A === undefined ) inV2A = outV2;
 
-        lerp ( s, vA, vB ) {
-            if ( vB === undefined ) vB = this;
-
-            this[_x_] = vA[_x_] + ( vB[_x_] - vA[_x_] ) * s;
-            this[_y_] = vA[_y_] + ( vB[_y_] - vA[_y_] ) * s;
+            outV2[_x_] = inV2A[_x_] + ( inV2B[_x_] - inV2A[_x_] ) * alpha;
+            outV2[_y_] = inV2A[_y_] + ( inV2B[_y_] - inV2A[_y_] ) * alpha;
             return this;
         }
-        static lerp ( outV2, s, vA, vB ) {
-            return vec2.prototype.lerp.call( outV2, s, vA, vB );
-        }
-
-        normalize ( ) {
-            let length = vec2.prototype.getLength.call( this );
-            if ( length === 0 ) return this;
-            else return vec2.prototype.multiplyScalar.call( this, 1 / length );
-        }
+        
+        normalize ( ) { return vec2.normalize( this ); }
         static normalize ( outV2 ) {
-            return vec2.prototype.normalize.call( outV2 );
-        } 
-
-        getLength ( ) {
+            let length = vec2.getLength( outV2 );
+            if ( length === 0 ) return outV2;
+            else return vec2.multiplyScalar( outV2, 1 / length );
+        }
+        
+        getLength ( ) { return vec2.getLength( this ); }
+        static getLength ( inV2 ) {
             return Math.sqrt(
-                  this[_x_] * this[_x_]
-                + this[_y_] * this[_y_]
+                  inV2[_x_] * inV2[_x_]
+                + inV2[_y_] * inV2[_y_]
             );  
         }
-        static getLength ( inV2 ) {
-            return vec2.prototype.getLength.call( inV2 );
-        }
-
-        getLengthSq ( ) {
-            return this[_x_] * this[_x_]
-                 + this[_y_] * this[_y_];   
-        }
+        
+        getLengthSq ( ) { return vec2.getLengthSq( this ); }
         static getLengthSq ( inV2 ) {
-            return vec2.prototype.getLengthSq.call( inV2 );
+            return inV2[_x_] * inV2[_x_]
+                 + inV2[_y_] * inV2[_y_];   
         }
-
-        getLengthManhattan ( ) {
-            return Math.abs( this[_x_] )
-                 + Math.abs( this[_y_] );
-        }
+        
+        getLengthManhattan ( ) { return vec2.getLengthManhattan( this ); }
         static getLengthManhattan ( inV2 ) {
-            return vec2.prototype.getLengthManhattan.call( inV2 );
+            return Math.abs( inV2[_x_] )
+                 + Math.abs( inV2[_y_] );
         }
+        
     }
 
     

@@ -633,23 +633,28 @@ define( [
             return mat4.prototype.rotateQuat4.call( outM4, quat );
         }
 
-        setTranslation ( x, y, z ) {
-            let m = this;
+        setTranslation ( inV3 ) { return mat4.setTranslation( this, inV3 ); }
+        static setTranslation ( outM4, inV3 ) {
+            outM4[_3_0_] = inV3[_x_];
+            outM4[_3_1_] = inV3[_y_];
+            outM4[_3_2_] = inV3[_z_];
+            return outM4;
+        }
 
-            if ( x === undefined ) x = m[_3_0_];
-            if ( y === undefined ) y = m[_3_1_];
-            if ( z === undefined ) z = m[_3_2_];
+        setTranslationValues ( x, y, z ) { return mat4.setTranslationValues( this, x, y, z ); }
+        static setTranslationValues ( outM4, x, y, z ) {
+            if ( x === undefined ) x = outM4[_3_0_];
+            if ( y === undefined ) y = outM4[_3_1_];
+            if ( z === undefined ) z = outM4[_3_2_];
 
-            m[_3_0_] = x;
-            m[_3_1_] = y;
-            m[_3_2_] = z;
+            outM4[_3_0_] = x;
+            outM4[_3_1_] = y;
+            outM4[_3_2_] = z;
             
-            return this;
+            return outM4;
         }
 
-        static setTranslation ( outM4, x, y, z ) {
-            return mat4.prototype.setTranslation.call( outM4, x, y, z );
-        }
+        
 
         setRotation ( rad, x, y, z ) {
             if ( rad === undefined ) rad = 0;
@@ -741,9 +746,9 @@ define( [
             let bt = 1 / ( top - bottom );
             let nf = 1 / ( far - near );
 
-            let x =  ( left + right ) *  lr;
-            let y =  ( top + bottom ) *  bt;
-            let z =  ( near + far )   *  nf;
+            let x =  ( left + right ) *  -lr;
+            let y =  ( top + bottom ) *  -bt;
+            let z =  ( near + far )   *  -nf;
 
             let w =  2 * lr;
             let h =  2 * bt;
@@ -753,7 +758,7 @@ define( [
                 m[_0_0_] = w; m[_0_1_] = 0; m[_0_2_] = 0; m[_0_3_] = 0;
                 m[_1_0_] = 0; m[_1_1_] = h; m[_1_2_] = 0; m[_1_3_] = 0;
                 m[_2_0_] = 0; m[_2_1_] = 0; m[_2_2_] = d; m[_2_3_] = 0;
-                m[_3_0_] = 0; m[_3_1_] = 0; m[_3_2_] = z; m[_3_3_] = 1;
+                m[_3_0_] = x; m[_3_1_] = y; m[_3_2_] = z; m[_3_3_] = 1;
             return this;
         }
 
