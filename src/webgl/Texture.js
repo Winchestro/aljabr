@@ -259,7 +259,7 @@ define( [
             switch ( event.type ) {
                 case "load" : {
                     gl.pixelStorei( gl.UNPACK_FLIP_Y_WEBGL, true );
-                    this.bind().image2D( event.path[ 0 ] ).unbind();
+                    this.bind().allocateImage2D( event.path[ 0 ] ).unbind();
                 } break;
             }
         }

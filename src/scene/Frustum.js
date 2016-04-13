@@ -51,7 +51,7 @@ define ( [
 			return this;
 		}
 
-		update ( camera, xOffset, yOffset, zOffset ) {
+		update ( camera ) {
 			let width = gl.canvas.clientWidth;
 			let height = gl.canvas.clientHeight;
 			let far = camera.far;
