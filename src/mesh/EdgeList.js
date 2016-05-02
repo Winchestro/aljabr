@@ -15,6 +15,7 @@ define ( [
 ){
     "use strict";
     const NOT_IN_LIST = -1;
+    const ITERATOR_EDGE = { a : null, b : null };
 
     class EdgeList extends PoolAllocator {
         constructor ( maxLength, halfedgeA, halfedgeB ) {
@@ -25,28 +26,74 @@ define ( [
             
             super();
             delete this.length;
+
+            class ListHalfedge extends Halfedge {};
+            def.Property( ListHalfedge.prototype, "list", this );
+
             /*
             for ( let i = 0; i < maxLength; i++ ) this.pool.push(
                 new Halfedge
             );
             */
             def.Properties( this, {
+                selection : new Set,
                 halfedgeA,
-                halfedgeB
+                halfedgeB,
+
+                ListHalfedge
             }, def.CONFIGURABLE );
         }
-        createItem ( toVertex, opposite, next, prev, face ) {
+        *[ Symbol.iterator ] ( ) {
+            let index = 0;
+            let listA = this.halfedgeA;
+            let listB = this.halfedgeB;
+
+            while ( index < listA.length || index < listB.lenght ) {
+                let a = listA[ index ];
+                let b = listB[ index ];
+                ITERATOR_EDGE.a = a;
+                ITERATOR_EDGE.b = b;
+
+                yield ITERATOR_EDGE;
+                index++;
+            }
+            ITERATOR_EDGE.a = null;
+            ITERATOR_EDGE.b = null;
+
+        }
+        *pairs ( ) {
+            let index = 0;
+            let listA = this.halfedgeA;
+            let listB = this.halfedgeB;
+
+            while ( index < listA.length || index < listB.lenght ) {
+                let a = listA[ index ];
+                let b = listB[ index ];
+                if ( a && b ) {
+                    ITERATOR_EDGE.a = a;
+                    ITERATOR_EDGE.b = b;
+                    yield ITERATOR_EDGE;
+                }
+                index++;
+            }
+        }
+
+        createItem ( toVertex, oppositeHalfedge, nextHalfedge, previousHalfedge, face ) {
+
+
+
             if ( this.pool.length !== 0 ) {
                 let halfedge = this.pool.pop();
                     halfedge.toVertex = toVertex;
-                    halfedge.oppositeHalfedge = opposite;
-                    halfedge.setNextHalfedge = next;
+                    halfedge.oppositeHalfedge = oppositeHalfedge;
+                    halfedge.nextHalfedge = nextHalfedge;
                     halfedge.previousHalfedge = previousHalfedge;
                     halfedge.face = face;
 
+                this.selection.add( halfedge );
                 return halfedge;
             } else {
-                return new Halfedge( toVertex, opposite, next, prev, face );
+                return new this.ListHalfedge( toVertex, oppositeHalfedge, nextHalfedge, previousHalfedge, face );
             }
         }
         createFromVertices ( vertexA, vertexB ) {
@@ -54,10 +101,8 @@ define ( [
             let halfedgeA = this.createHalfedgeFromTo( vertexA, vertexB );
             let halfedgeB = this.createHalfedgeFromTo( vertexB, vertexA );
 
-            /*
-            halfedgeA.setOppositeHalfedge( halfedgeB );
-            halfedgeB.setOppositeHalfedge( halfedgeA );
-            */
+
+
             halfedgeA.oppositeHalfedge = halfedgeB;
             halfedgeB.oppositeHalfedge = halfedgeA;
 
@@ -70,7 +115,8 @@ define ( [
             let halfedge = this.createItem();
 
             halfedge.toVertex = vertexB;
-            //halfedge.setVertex( vertexB );
+            if ( !vertexA.outgoingHalfedge ) vertexA.outgoingHalfedge = halfedge;
+            
             
         //  if ( vertexA && !vertexA.out ) vertexA.setOutgoingHalfedge( halfedge );
             
@@ -211,6 +257,11 @@ define ( [
             //this.length = Math.max( this.halfedgeA.length, this.halfedgeB.length );
             return this;
         }
+        put ( insertedHalfedge, oppositeHalfedge ) {
+            this.halfedgeA.push( insertedHalfedge );
+            this.halfedgeB.push( oppositeHalfedge );
+        }
+
         createElement ( material, uniforms, usage, buffer ) {
             return new Element( material, uniforms, gl.LINES ).allocateBuffer( this.getData( buffer ), usage );
         }
@@ -223,7 +274,7 @@ define ( [
             if ( buffer === undefined ) buffer = allocateUint( this.length * 2 );
             let offset = 0;
             this.forEach( function ( halfedgeA, halfedgeB, index ) {
-                //console.log( halfedgeA, halfedgeB );
+                
                 buffer[ offset++ ] = halfedgeA.toVertex.index;
 
                 if ( halfedgeB )                        buffer[ offset++ ] = halfedgeB.toVertex.index;

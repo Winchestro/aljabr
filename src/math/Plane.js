@@ -24,11 +24,11 @@ define([
 			this[ 3 ] = D;
 		}
 
-		projectPoint ( outV3point, inV3point ) { return Plane.projectPoint( outV3point, this, inV3point ); }
-		static projectPoint ( outV3point, inPlane, inV3point ) {
+		projectPoint ( outV3point, inV3point ) { return Plane.projectPoint( this, outV3point, inV3point ); }
+		static projectPoint ( inPlane, outV3point, inV3point ) {
 			outV3point = vec3.set( outV3point, inV3point );
 
-			let normal = N.set( inPlane );
+			let normal = vec3.set( N, inPlane );
 			let distance = Plane.signedDistance( inPlane, inV3point );
 
 			return vec3.multiply( vec3.subtractScalar( outV3point, distance ), normal );
@@ -38,17 +38,17 @@ define([
 		static signedDistance( inPlane, inV3point ) {
 			return N.set( inPlane ).dot( inV3point ) + inPlane[ 3 ];
 		}
-		
+
 		setFrom3Positions( inV3point0, inV3point1, inV3point2 ) { return Plane.setFrom3Positions( this, inV3point0, inV3point1, inV3point2 ); }
 		static setFrom3Positions ( outPlane, inV3point0, inV3point1, inV3point2 ) {
-			U.sub( inV3point0, inV3point1 );
-			V.sub( inV3point0, inV3point2 );
-			N.cross( U, V ).normalize();
+			vec3.sub( U, inV3point0, inV3point1 );
+			vec3.sub( V, inV3point0, inV3point2 );
+			vec3.normalize( vec3.cross( N, U, V ) );
 
 			outPlane[ 0 ] = N[ 0 ];
 			outPlane[ 1 ] = N[ 1 ];
 			outPlane[ 2 ] = N[ 2 ];
-			outPlane[ 3 ] = N.multiplyScalar( -1 ).dot( inV3point0 );
+			outPlane[ 3 ] = vec3.dot( vec3.multiplyScalar( N, -1 ), inV3point0 );
 
 			return inPlane;
 		}

@@ -91,217 +91,125 @@ define( [
             super();
             def.Property( this, "value", 0.0, def.ENUMERABLE | def.WRITABLE );
         }
-    }
-    def.Properties( UniformFloat.prototype, {
-        setValues ( f ) {
-            if ( f !== undefined ) this.value =  f;
-            this.location.set1f( f );
-        },
         set ( f ) {
-            if ( f !== undefined ) this.value =  f;
             this.location.set1f( f );
         }
-    });
-
+    }
+    
     class UniformFloatVec2 extends UniformVector {
         constructor ( ) {
             super();
             def.Property( this, "value", new vec2, def.ENUMERABLE );
         }
-    }
-    def.Properties( UniformFloatVec2.prototype, {
-        setValues ( x, y ) {
-            if ( x !== undefined ) this.value.set( arguments );
-            this.location.set2f( this.value );
-            return this;
-        },
         set ( vA ) {
-            if ( vA !== undefined ) this.value.set( vA );
-            this.location.set2f( this.value );
+            this.location.set2f( vA );
             return this;
         }
-    });
-    mixin( UniformFloatVec2, vec2 );
+    }
+    
 
     class UniformFloatVec3 extends UniformVector {
         constructor ( ) {
             super();
             def.Property( this, "value", new vec3, def.ENUMERABLE );
         }
-    }
-    def.Properties( UniformFloatVec3.prototype, {
-        setValues ( x, y, z ) {
-            if ( x !== undefined ) this.value.set( arguments );
-            this.location.set3f( this.value );
-            return this;
-        },
         set ( vA ) {
-            if ( vA !== undefined ) this.value.set( vA );
-            this.location.set3f( this.value );
+            this.location.set3f( vA );
             return this;
         }
-    });
-    mixin( UniformFloatVec3, vec3 );
-
+    }
+    
     class UniformFloatVec4 extends UniformVector {
         constructor ( ) { 
             super();
             def.Property( this, "value", new vec4, def.ENUMERABLE );
         }
-    }
-    def.Properties( UniformFloatVec4.prototype, {
-        setValues ( x, y, z, w ) {
-            if( arguments.length ) this.value.set( arguments );
-            this.location.set4f( this.value );
-            return this;
-        },
         set ( vA ) {
-            if( vA !== undefined ) this.value.set( vA );
-            this.location.set4f( this.value );
+            this.location.set4f( vA );
             return this;
         }
-    });
-    mixin( UniformFloatVec4, vec4 );
+    }
+    
+   
 
     class UniformFloatMat2 extends UniformVector {
         constructor ( ) {
             super();
-            def.Property( this, "value", new Float32Array( 4 ), def.ENUMERABLE );
+            def.Property( this, "value", new mat2, def.ENUMERABLE );
+        }
+        set ( m ) {
+            this.location.setMat2( m );
+            return this;
         }
     }
-    def.Properties( UniformFloatMat2.prototype, {
-        setValues ( ) {
-            if ( arguments.length ) this.value.set( arguments );
-            this.location.setMat2( this.value );
-            return this;
-        },
-        set ( m ) {
-            if ( m !== undefined ) this.value.set( m );
-            this.location.setMat2( this.value );
-            return this;
-        }
-    });
-    mixin( UniformFloatMat2, mat2 );
-
+    
     class UniformFloatMat3 extends UniformVector {
         constructor ( ) {
             super();
-            def.Property( this, "value", new Float32Array( 9 ), def.ENUMERABLE );
+            def.Property( this, "value", new mat3, def.ENUMERABLE );
+        }
+        set ( m ) {
+            this.location.setMat3( m );
+            return this;
         }
     }
-    def.Properties( UniformFloatMat3.prototype, {
-        setValues ( ) {
-            if ( arguments.length ) this.value.set( arguments );
-            this.location.setMat3( this.value );
-            return this;
-        },
-        set ( m ) {
-            if ( m !== undefined ) this.value.set( m );
-            this.location.setMat3( this.value );
-            return this;
-        }
-    });
-    mixin( UniformFloatMat3, mat3 );
 
     class UniformFloatMat4 extends UniformVector {
         constructor ( ) {
             super();
-            def.Property( this, "value", new Float32Array( 16 ), def.ENUMERABLE );
+            def.Property( this, "value", new mat4, def.ENUMERABLE );
+        }
+        set ( m ) {
+            this.location.setMat4( m );
+            return this;
         }
     }
-    def.Properties( UniformFloatMat4.prototype, {
-        setValues ( ) {
-            if ( arguments.length ) this.value.set( arguments );
-            this.location.setMat4( this.value );
-            return this;
-        },
-        set ( m ) {
-            if ( m !== undefined ) this.value.set( m );
-            this.location.setMat4( this.value );
-            return this;
-        }
-    });
-    mixin( UniformFloatMat4, mat4 );
 
     class UniformInt extends Uniform {
         constructor ( ) {
             super();
             def.Property( this, "value", 0, def.ENUMERABLE | def.WRITABLE );
         }
-    }
-    def.Properties( UniformInt.prototype, {
-        setValues ( i ) {
-            if ( i !== undefined ) this.value = i;
-            this.location.set1i( i );
-            return this;
-        },
         set ( i ) {
-            if ( i !== undefined ) this.value = i;
             this.location.set1i( i );
             return this;
         }
-    });
+    }
 
     class UniformIntVec2 extends UniformVector {
         constructor ( ) {
             super(); 
             def.Property( this, "value", new vec2, def.ENUMERABLE );
         }
-    }
-    def.Properties( UniformIntVec2.prototype, {
-        setValues ( x, y ) {
-            if ( x !== undefined ) this.value.set( arguments );
-            this.location.set2i( this.value );
-            return this;
-        },
         set ( vA ) {
-            if ( vA !== undefined ) this.value.set( vA );
-            this.location.set2i( this.value );
+            this.location.set2i( vA );
             return this;
         }
-    });
-    mixin( UniformFloatVec2, vec2 );
-
+    }
+    
     class UniformIntVec3 extends UniformVector {
         constructor ( ) {
             super();
-            Property( this, "value", new vec3, def.ENUMERABLE );
+            def.Property( this, "value", new vec3, def.ENUMERABLE );
+        }
+
+        set ( vA ) {
+            this.location.set3i( this.value );
+            return this;
         }
     }
-    def.Properties( UniformIntVec3.prototype, {
-        setValues ( x, y, z ) {
-            if ( x !== undefined ) this.value.set( arguments );
-            this.location.set3i( this.value );
-            return this;
-        },
-        set ( vA ) {
-            if ( vA !== undefined ) this.value.set( vA );
-            this.location.set3i( this.value );
-            return this;
-        }
-    });
-    mixin( UniformFloatVec3, vec3 );
 
     class UniformIntVec4 extends UniformVector {
         constructor ( ) {
             super();
             def.Property( this, "value", new vec4, def.ENUMERABLE );
         }
-    }
-    def.Properties( UniformIntVec4.prototype, {
-        setValues ( x, y, z, w ) {
-            if ( x !== undefined ) this.value.set( arguments );
-            this.location.set4i( this.value );
-            return this;
-        },
         set ( vA ) {
-            if ( vA !== undefined ) this.value.set( vA );
-            this.location.set4i( this.value );
+            this.location.set4i( vA );
             return this;
         }
-    });
-    mixin( UniformFloatVec4, vec4 );
-
+    }
+    
     class UniformTexture2D extends UniformInt {
     }
 
@@ -328,14 +236,14 @@ define( [
 
 
 
-
+    /*
     function mixin ( target, source ) {
         for ( let method of Object.getOwnPropertyNames( source.prototype ) )
         if ( target.prototype[ method ] === undefined ) def.Property( target.prototype, method, eval(`(function ( ) {
             ${ source.name }.prototype.${ method }.apply( this.value, arguments );
             return this;
         })`), def.CONFIGURABLE );
-    }
+    }*/
 
     return Uniform;
 });

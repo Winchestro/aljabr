@@ -1,7 +1,9 @@
 define( [
-    "../utilities/PropertyDescriptors"
+    "../utilities/PropertyDescriptors",
+    "../kernel/ArrayBuffer"
 ], function module (
-    def
+    def,
+    ArrayBuffer
 ) {
     "use strict";
     const _x_ = 0;
@@ -10,13 +12,17 @@ define( [
     class vec2 extends Float32Array {
 
         constructor ( x, y ) {
-            super( 2 );
+            if ( x instanceof ArrayBuffer ) {
+                super( x, y, 2 );
+            } else {
 
-            if ( x === undefined ) x = 0;
-            if ( y === undefined ) y = x;
-
-            this[_x_] = x;
-            this[_y_] = y;
+                super( 2 );
+                if ( x === undefined ) x = 0;
+                if ( y === undefined ) y = x;
+                
+                this[_x_] = x;
+                this[_y_] = y;
+            }
         }
         
         dot ( inV2B ) { return vec2.dot( this, inV2B ); }
