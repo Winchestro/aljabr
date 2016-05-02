@@ -25,38 +25,30 @@ define ( [
 
 	const CACHE_VEC3 = new vec3;
 
-	class Frustum extends Float32Array {
+	class Frustum {
 		constructor ( xOffset, yOffset, zOffset ) {
+			if ( xOffset === undefined ) xOffset = 0;
+			if ( yOffset === undefined ) yOffset = xOffset;
+			if ( zOffset === undefined ) zOffset = xOffset;
 
-			
 			const vertexCount = 8;
 			const dimensions = 3;
 			
-			super( vertexCount * dimensions );
+			//super( vertexCount * dimensions );
 
-			let vertices = new VertexList({
-				position : new Float32Array( 3 )
-			}, vertexCount, gl.DYNAMIC_DRAW );
+			let vertices = new VertexList;
+			vertices.allocateItems( vertexCount ).createItems();
+
+			//console.log( vertices );
 
 
-
-			console.log( vertices );
 
 			def.Properties( this, {
-				farTopLeft : vertices[ 0 ],
-				farBottomLeft : vertices[ 1 ],
-				farBottomRight : vertices[ 2 ],
-				farTopRight : vertices[ 3 ],
-				nearTopLeft : vertices[ 4 ],
-				nearBottomLeft : vertices[ 5 ],
-				nearBottomRight : vertices[ 6 ],
-				nearTopRight : vertices[ 7 ],
+				vertices,
 				xOffset,
 				yOffset,
 				zOffset
 			}, def.WRITABLE );
-
-			this.setOffset( xOffset, yOffset, zOffset );
 		}
 
 		setOffset ( xOffset, yOffset, zOffset ) {
@@ -76,9 +68,7 @@ define ( [
 			let height = camera.viewport.height;
 			let far = camera.far;
 			let near = camera.near;
-			
 			let depth = far - near;
-
 			
 			let xOffset = this.xOffset;
 			let yOffset = this.yOffset;
@@ -90,51 +80,35 @@ define ( [
 
 			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( xOffset, yOffset, 1 ) );
 			/* top left far */
-			this[  0 ] = CACHE_VEC3[ 0 ];
-			this[  1 ] = CACHE_VEC3[ 1 ];
-			this[  2 ] = CACHE_VEC3[ 2 ];
+			this.vertices[ 0 ].position.set( CACHE_VEC3 );
 			
 			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( xOffset, height - yOffset, 1 ) );
 			/* bottom left far */
-			this[  3 ] = CACHE_VEC3[ 0 ];
-			this[  4 ] = CACHE_VEC3[ 1 ];
-			this[  5 ] = CACHE_VEC3[ 2 ];
+			this.vertices[ 1 ].position.set( CACHE_VEC3 );
 
 			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( width - xOffset , height - yOffset, 1 ) );
 			/* bottom right far */
-			this[  6 ] = CACHE_VEC3[ 0 ];
-			this[  7 ] = CACHE_VEC3[ 1 ];
-			this[  8 ] = CACHE_VEC3[ 2 ];
+			this.vertices[ 2 ].position.set( CACHE_VEC3 );
 
 			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( width - xOffset, yOffset, 1 ) );
 			/* top right  far */
-			this[  9 ] = CACHE_VEC3[ 0 ];
-			this[ 10 ] = CACHE_VEC3[ 1 ];
-			this[ 11 ] = CACHE_VEC3[ 2 ];
+			this.vertices[ 3 ].position.set( CACHE_VEC3 );
 
 			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( xOffset, yOffset, 0 ) );
 			/* top left near */
-			this[ 12 ] = CACHE_VEC3[ 0 ];
-			this[ 13 ] = CACHE_VEC3[ 1 ];
-			this[ 14 ] = CACHE_VEC3[ 2 ];
+			this.vertices[ 4 ].position.set( CACHE_VEC3 );
 			
 			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( xOffset, height - yOffset, 0 ) );
 			/* bottom left near */
-			this[ 15 ] = CACHE_VEC3[ 0 ];
-			this[ 16 ] = CACHE_VEC3[ 1 ];
-			this[ 17 ] = CACHE_VEC3[ 2 ];
+			this.vertices[ 5 ].position.set( CACHE_VEC3 );
 
 			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( width - xOffset , height - yOffset, 0 ) );
 			/* bottom right near */
-			this[ 18 ] = CACHE_VEC3[ 0 ];
-			this[ 19 ] = CACHE_VEC3[ 1 ];
-			this[ 20 ] = CACHE_VEC3[ 2 ];
+			this.vertices[ 6 ].position.set( CACHE_VEC3 );
 
 			camera.unprojectFromScreenCoordinates( CACHE_VEC3.setValues( width - xOffset, yOffset, 0 ) );
 			/* top right near */
-			this[ 21 ] = CACHE_VEC3[ 0 ];
-			this[ 22 ] = CACHE_VEC3[ 1 ];
-			this[ 23 ] = CACHE_VEC3[ 2 ];
+			this.vertices[ 7 ].position.set( CACHE_VEC3 );
 
 			if ( useOffset ) camera.updateProjection( near, far );
 
@@ -150,7 +124,7 @@ define ( [
 		constructor ( frustum ) {
 			
 
-			let vertexBuffer = new BufferObject.Vertex( frustum, gl.DYNAMIC_DRAW );
+			//let vertexBuffer = new BufferObject.Vertex( frustum, gl.DYNAMIC_DRAW );
 			
 			let colorBuffer = new BufferObject.Vertex( new Float32Array([
 				1, 1, 1, 1,
@@ -190,7 +164,6 @@ define ( [
 
     		def.Properties( this, {
     			frustum,
-				vertexBuffer,
 				colorBuffer,
 				lines,
 				triangles,
@@ -213,8 +186,8 @@ define ( [
 
 		update ( camera, scene, lights, partentMesh ) {
 			//this.frustum.update( camera );
-			this.vertexBuffer.bind().update( this.frustum );
-
+			//this.vertexBuffer.bind().update( this.frustum );
+			this.frustum.vertices.update();
 		}
 
 		draw ( camera, scene, lights, partentMesh ) {
@@ -237,22 +210,20 @@ define ( [
 			uniforms = this.material.program.getActiveUniforms.mesh;
 			if ( uniforms ) {
 				if ( uniforms.scale ) {
-					uniforms.scale.setValues( 1, 1, 1 ).set();
+					uniforms.scale.value.setValues( 1, 1, 1 );
+					uniforms.scale.set( uniforms.scale.value );
 					
 				}
 				if ( uniforms.transform ) {
-					uniforms.transform.makeIdentity().set();
+					uniforms.transform.value.makeIdentity();
+					uniforms.transform.set( uniforms.transform.value );
 					
 				}
 			}
 			
 
-			this.vertexBuffer.bind();
-			gl.enableVertexAttribArray( 0 );
-			gl.vertexAttribPointer( 0, 3, gl.FLOAT, false, 0, 0 );
-			
-			
-			//gl.vertexAttrib4f( 1, .25, .8, 1, .25 );
+			this.frustum.vertices.bind();
+
 			this.colorBuffer.bind();
 			gl.enableVertexAttribArray( 1 );
 			gl.vertexAttribPointer( 1, 4, gl.FLOAT, false, 0, 0 );

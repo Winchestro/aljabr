@@ -10,18 +10,16 @@ define( [
     "use strict";
 
     class UniformStruct extends Uniform {
-        *[ Symbol.iterator ] ( ) {
-            let properties = Object.getOwnPropertyNames( this );
-            let index = 0;
-            while ( index < properties.length ) yield this[ properties[ index++ ] ];
-        }
+        
     }
-
+    window.COUNT = 0;
+    window.MISS = 0;
     def.Properties( UniformStruct.prototype, {
         set ( object ) {
-            for ( var property in this ) {
-                if ( object && property in object ) this[ property ].set( object[ property ] );
-                else this[ property ].set();
+            for ( var propertyName in object ) {
+                let ownProperty = this[ propertyName ];
+                if ( ownProperty ) COUNT++, ownProperty.set( object[ propertyName ] );
+                else MISS++;
             }
             return this;
         },

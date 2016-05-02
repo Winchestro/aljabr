@@ -1,14 +1,26 @@
 define( [
-    "../utilities/PropertyDescriptors"
+    "../utilities/PropertyDescriptors",
+    "../math/vec3"
 ], function module (
-    def
+    def,
+    vec3
 ){
     "use strict";
 
     class Face {
-        constructor ( halfedge, length ) {
+        constructor ( halfedge, length, normal ) {
             this.halfedge = halfedge;
+            this.normal = new vec3;
             this.length = length;
+
+        }
+
+        destroy ( ) {
+            this.list.destroyItem( this );
+        }
+
+        extrude ( ) {
+            
         }
 
         *[ Symbol.iterator ] (  ) {

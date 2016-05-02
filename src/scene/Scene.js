@@ -40,7 +40,7 @@ define( [
 
         draw ( camera ) {
             
-            for ( let drawable of this.children ) drawable.draw( camera, this, this.lights );            
+            for ( let drawable in this.children ) this.children[ drawable ].draw( camera, this, this.lights );            
         }
         /*
         draw ( ) {

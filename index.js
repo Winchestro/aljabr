@@ -1,26 +1,6 @@
 const startTime = Date.now();
 const args = [];
 
-
-
-var directionalLight;
-var pointLight;
-
-var material;
-var waterMaterial;
-var edgeMaterial;
-var textMaterial;
-var scene;
-var camera;
-var lights;
-
-var debug;
-var point;
-var glyphAtlas;
-var text;
-var quad;
-var gui;
-
 var library = {
     utilities : {
         PropertyDescriptors : "def",
@@ -70,12 +50,13 @@ var library = {
     material : {
         VertexColors : "",
         Phong : "",
+        VertexColorsPoint : "",
         Material : "",
     },
     kernel : {
         InterleavedArray : "",
         PoolAllocator : "",
-        ArrayBuffer : "",
+/*        ArrayBuffer : "",
         Float32Array : "",
         Float64Array : "",
         Int8Array : "",
@@ -83,7 +64,7 @@ var library = {
         Int32Array : "",
         Uint8Array : "",
         Uint16Array : "",
-        Uint32Array : "",
+        Uint32Array : "",*/
         allocateUint : ""
     },
     mesh : {
@@ -140,243 +121,229 @@ void function setup ( ) {
 
 function main ( $$dependencies ) {
     "use strict";
-    
+   
     // export as globals for debugging
     for ( let library in args ) def.Property( window, args[ library ], arguments[ library ] );
 
-    
-    document.body.appendChild( gl.canvas );
-    
-    gl.setPixelRatio( 1 );
-    
+    const APP = {
+        pressedKeys : new Set,
+        KEY_W : "W".charCodeAt( 0 ),
+        KEY_A : "A".charCodeAt( 0 ),
+        KEY_S : "S".charCodeAt( 0 ),
+        KEY_D : "D".charCodeAt( 0 ),
+        KEY_Q : "Q".charCodeAt( 0 ),
+        KEY_E : "E".charCodeAt( 0 ),
+        KEY_X : "X".charCodeAt( 0 ),
+        KEY_Y : "Y".charCodeAt( 0 ),
+        KEY_V : "V".charCodeAt( 0 ),
+        KEY_SPACE : 32,
+        KEY_SHIFT : 16,
+        
+        dragging : false,
+        mouse : new vec3,
+        pointer : new vec3,
+        pointerMovement : new vec3,
+        pointerPrevious : new vec3,
+        strafe : new vec3,
+        forward : new vec3,
+        upward : new vec3,
 
-    camera = new Camera.Orthographic( -2000, 2000, .1 );
-    
-    
-    camera.frustum.setOffset( 5 );
-    camera.createFrustumMesh();
-    
-    camera.transform.rotate( Math.PI / 4, 0, 0, 1 );
+        handleEvent ( event ) {
+            switch ( event.type ) {
+                case "keydown" : 
+                    this.pressedKeys.add( event.keyCode );
+                    if ( event.keyCode === APP.KEY_Y ) loop();
+                break;
+                case "keyup" :
+                    this.pressedKeys.delete( event.keyCode );
+                break;
+                case "mousedown" :
+                    this.dragging = true;
+                break;
+                case "mouseup" : 
+                    this.dragging = false;
+                break;
+                case "mousemove" : 
+                    let dragging = this.dragging;
+                    let mouse = this.mouse;
+                    let pointer = this.pointer;
+                    let pointerMovement = this.pointerMovement;
+                    let pointerPrevious = this.pointerPrevious;
+                    let light = this.light;
 
-    camera.zoom = .8;
-    camera.viewTarget = new vec3;
-    camera.position.setValues( 5, 5, 5 );
-    
-    scene = camera.scene;
+                    pointer.setValues( event.clientX, event.clientY );
+                    pointerMovement.sub( pointer, pointerPrevious );
 
-    
-    directionalLight = new Light.Directional;
+                    mouse[ 0 ] = ( pointer[ 0 ] / innerWidth * 2 ) - 1;
+                    mouse[ 1 ] = ( pointer[ 1 ] / innerHeight * 2 ) - 1;
+                    mouse[ 2 ] = 0;
 
-    
+                    if ( dragging ) {
+                        
+                    } else {
+                        light.position[ 0 ] = Math.sin( mouse[ 0 ] / 2 * Math.PI );
+                        light.position[ 1 ] = -Math.sin( mouse[ 1 ] / 2 * Math.PI );
 
-    scene.lights.push( directionalLight );
-    //scene.lights.push( pointLight );
-    
-    
-    scene.addChild( "voronoi", new VoronoiMesh );
-
-    let edgeMaterial = scene.voronoi.edgeMaterial;
-    let surfaceMaterial = scene.voronoi.landMaterial;
-
-    createGrid.options.colorFn = function ( color, x, y ) {
-        return color.setValues( 1, 0, 0, 1 );
-    }
-    let gridXY = createGrid( {
-        scale       : new vec3( 11 ),
-        transform   : new mat4().makeTranslation( 0, 0, 0 )
-    }, 21, 21, 100 );
-
-    gridXY.addChild( "lines", gridXY.vertices.createElement( edgeMaterial ) );
-
-    camera.scene.addChild( "gridXY", gridXY );
-    
-    createGrid.options.colorFn = function ( color, x, y ) {
-        return color.setValues( 0, 1, 0, 1 );
-    }
-    let gridXZ = createGrid( {
-        scale       : new vec3( 11 ),
-        transform   : new mat4().makeTranslation( 0, 0, 0 ).rotateY( Math.PI / 2 )
-    }, 21, 21, 100 );
-
-    gridXZ.addChild( "lines", gridXZ.vertices.createElement( edgeMaterial ) );
-
-    camera.scene.addChild( "gridXZ", gridXZ );
-    
-    createGrid.options.colorFn = function ( color, x, y ) {
-        return color.setValues( 0, 0, 1, 1 );
-    }
-    let gridYZ = createGrid( {
-        scale       : new vec3( 11 ),
-        transform   : new mat4().makeTranslation( 0, 0, 0 ).rotateX( Math.PI / 2 )
-    }, 21, 21, 100 );
-
-    gridYZ.addChild( "lines", gridYZ.vertices.createElement( edgeMaterial ) );
-
-    camera.scene.addChild( "gridYZ", gridYZ );
-    
-
-    
-    gl.clearColor( .1,.1,.1, 1 );
-
-
-    addEventListener( "resize", handleScale );
-    addEventListener( "mousemove", handleMouseMove );
-    var dragging = false;
-
-    var touchAstart = new vec2;
-    var touchBstart = new vec2;
-    var touchApos = new vec2;
-    var touchBpos = new vec2;
-    var touchTransformOrigin = new vec2;
-    
-    gl.canvas.addEventListener( "touchstart", function ( event ) {
-        if ( event.touches.length === 1 ) {
-            dragging = true;
-            event.target.focus( event.target );
-            if ( event.target === gl.canvas ) {
-                handleMouseMove( event.touches[ 0 ] );
-                event.preventDefault();
-            }
-        } else {
-            touchAstart.setValues( event.touches[ 0 ].clientX, event.touches[ 0 ].clientY );
-            touchBstart.setValues( event.touches[ 1 ].clientX, event.touches[ 1 ].clientY );
-            dragging = false;
-
-        }
-    });
-    gl.canvas.addEventListener( "touchmove", function ( event ) {
-        if ( event.target === gl.canvas ) {
-            switch ( event.touches.length ) {
-                case 1 : {
-                    handleMouseMove( event.touches[ 0 ] );
-                } break;
-                case 2 : {
-                    touchApos.setValues( event.touches[ 0 ].clientX, event.touches[ 0 ].clientY );
-                    touchBpos.setValues( event.touches[ 1 ].clientX, event.touches[ 1 ].clientY );
-                    let distanceA = Math.sqrt( Math.pow( touchAstart[ 0 ] - touchBstart[ 0 ], 2 ), Math.pow( touchAstart[ 1 ] - touchBstart[ 1 ], 2 ) );
-                    let distanceB = Math.sqrt( Math.pow( touchApos[ 0 ] - touchBpos[ 0 ], 2 ), Math.pow( touchApos[ 1 ] - touchBpos[ 1 ], 2 ) );
-                    let delta = distanceA - distanceB;
-                    //scene.camera.transform[ 12 ] = touchTransformOrigin[ 0 ] + ( touchApos[ 0 ] + touchBpos[ 0 ] ) * .5;
-                    //scene.camera.transform[ 13 ] = touchTransformOrigin[ 1 ] + ( touchApos[ 1 ] + touchBpos[ 1 ] ) * .5;
+                    }
+                    pointerPrevious.setValues( event.clientX, event.clientY );
+                break;
+                case "wheel" :
+                    let delta = event.wheelDeltaY / Math.abs( event.wheelDeltaY );
                     
-                    //console.log( distanceA, distanceB, delta );
-                }
+                    this.camera.position.add( this.forward.set( this.camera.direction ).multiplyScalar( delta * 10 ) );
+                    //camera.zoom -= delta * .01;
+                break;
+                case "resize" :
+                    gl.canvas.width = innerWidth;
+                    gl.canvas.height = innerHeight;
+                    
+                    this.camera.updateViewport( 0, 0, innerWidth, innerHeight );
+                break;
             }
-        }
-    });
+        },
+        initialize ( ) {
+            document.body.appendChild( gl.canvas );
+            gl.canvas.width = innerWidth;
+            gl.canvas.height = innerHeight;
 
-    gl.canvas.addEventListener( "touchend", function ( event ) {
-        if ( event.touches.length === 0 ) dragging = false;
-        else if ( event.touches.length ===  2 ) {
-            touchTransformOrigin.setValues( ( touchApos[ 0 ] + touchBpos[ 0 ] ) * .5, ( touchApos[ 1 ] + touchBpos[ 1 ] ) * .5 );
-        }
-    });
+            gl.setPixelRatio( 1 );
+            gl.clearColor( .0,.0,.0, 1 );
 
-    
+            //camera = new Camera.Orthographic( -2000, 2000, .1 );
+            let camera = window.camera = new Camera.Perspective( .1, 4000 );
+            let scene = window.scene = camera.scene;
+            let light = new Light.Directional;
 
-    gl.canvas.addEventListener( "mousedown", function ( e ) {
-        dragging = true;
-    });
+            camera.updateViewport( 0, 0, innerWidth, innerHeight );
+            //camera.frustum.setOffset( 5 );
+            //camera.createFrustumMesh();
 
-    gl.canvas.addEventListener( "mouseup", function ( ) {
-        dragging = false;
-    });
-
-    gl.canvas.addEventListener( "wheel", function ( e ) {
-        let delta = e.wheelDeltaY / Math.abs( e.wheelDeltaY );
-
-        camera.zoom -= delta * .01;
-    });
-
-    let pressedKeys = new Set;
-    const KEY_W = "W".charCodeAt( 0 );
-    const KEY_A = "A".charCodeAt( 0 );
-    const KEY_S = "S".charCodeAt( 0 );
-    const KEY_D = "D".charCodeAt( 0 );
-
-    const KEY_SPACE = 32;
-    const KEY_SHIFT = 16;
-
-    const KEY_X = "X".charCodeAt( 0 );
-    const KEY_Y = "Y".charCodeAt( 0 );
-    const KEY_V = "V".charCodeAt( 0 );
-
-    addEventListener( "keydown", function ( e ) {
-        
-        pressedKeys.add( e.keyCode );
-        if ( e.keyCode === KEY_Y ) loop();
-    });
-    addEventListener( "keyup", function ( e ) {
-        pressedKeys.delete( e.keyCode );
-    });
-    let mouse = new vec3;
-
-    
-    function loop ( ) {
-        if ( !pressedKeys.has( KEY_X ) ) requestAnimationFrame( loop );
-        update();
-        redraw();
-    }
-    
-    let strafe = new vec3;
-    let forward = new vec3;
-    let upward = new vec3;
-
-    function update ( ) {
-        if ( camera.viewTarget ) camera.viewTarget.setValues( mouse[ 0 ] * 100, -mouse[ 1 ] * 100, -50 );
-        
-        let speed = 5;
+            camera.transform.rotateValues( Math.PI / 4, 0, 0, 1 );
+            camera.zoom = .8;
+            camera.viewTarget = new vec3;
+            camera.position.setValues( 0, 250, 500 );
 
 
-        if ( pressedKeys.has( KEY_W ) ) camera.position.add( forward.set( camera.direction ).multiplyScalar( -speed ) );
-        if ( pressedKeys.has( KEY_S ) ) camera.position.add( forward.set( camera.direction ).multiplyScalar( speed ) );
-        if ( pressedKeys.has( KEY_D ) ) camera.position.add( strafe.cross( camera.direction, vec3.UP ).normalize().multiplyScalar( -speed ) );
-        if ( pressedKeys.has( KEY_A ) ) camera.position.add( strafe.cross( camera.direction, vec3.UP ).normalize().multiplyScalar( speed ) ); 
-        if ( pressedKeys.has( KEY_SPACE ) ) camera.position.add( upward.cross( strafe.cross( camera.direction, vec3.UP ), camera.direction ).multiplyScalar( speed ) );
-        if ( pressedKeys.has( KEY_SHIFT ) ) camera.position.add( upward.cross( strafe.cross( camera.direction, vec3.UP ), camera.direction ).multiplyScalar( -speed ) );
+            scene.lights.push( light );
+            //scene.lights.push( pointLight );
+            console.time("voronoi mesh gen")
+            let voronoi = window.voronoi = new VoronoiMesh( 10000, 3 );
+            console.timeEnd("voronoi mesh gen")
+            let renderMesh = window.renderMesh = voronoi.renderMesh;
+            scene.addChild( "voronoi", voronoi );
 
-        camera.update();
-    }
-    function redraw ( ) {
-        
-        camera.draw();
-    }
 
-    var pointer = new vec2;
-    var pointerMovement = new vec2;
-    var pointerPrevious = new vec2;
-    
 
-    function handleMouseMove ( e ) {
-        pointer.setValues( e.clientX, e.clientY );
-        pointerMovement.sub( pointer, pointerPrevious );
+            voronoi.scale.setValues( 10,10,10 );
 
-        mouse[ 0 ] = ( pointer[ 0 ] / innerWidth * 2 ) - 1;
-        mouse[ 1 ] = ( pointer[ 1 ] / innerHeight * 2 ) - 1;
-        mouse[ 2 ] = 0;
-
-        if ( dragging ) {
+            renderMesh.triangles.material.offset.setFill( 5, 1 );
             
-        } else {
-            directionalLight.position[ 0 ] = Math.sin( mouse[ 0 ] / 2 * Math.PI );
-            directionalLight.position[ 1 ] = -Math.sin( mouse[ 1 ] / 2 * Math.PI );
+            /*
+            let edgeMaterial = voronoi.edgeMaterial;
+            let surfaceMaterial = voronoi.landMaterial;
 
+            createGrid.options.colorFn = function ( color, x, y ) {
+                return color.setValues( 1, 0, 0, 1 );
+            }
+            let gridXY = createGrid( 21, 21, 100 );
+            gridXY.createLineElement( edgeMaterial );
+            scene.addChild( "gridXY", gridXY );
+
+            createGrid.options.colorFn = function ( color, x, y ) {
+                return color.setValues( 0, 1, 0, 1 );
+            }
+            let gridXZ = createGrid( 21, 21, 100 );
+            gridXY.createLineElement( edgeMaterial );
+            scene.addChild( "gridXZ", gridXZ );
+
+            createGrid.options.colorFn = function ( color, x, y ) {
+                return color.setValues( 0, 0, 1, 1 );
+            }
+            let gridYZ = createGrid( 21, 21, 100 );
+            
+            gridYZ.createLineElement( edgeMaterial );
+            scene.addChild( "gridYZ", gridYZ );
+            delete createGrid.options.colorFn;
+            */
+
+
+            gl.canvas.addEventListener( "mousemove", this );
+            gl.canvas.addEventListener( "wheel", this );
+            window.addEventListener( "keydown", this );
+            window.addEventListener( "keyup", this );
+            window.addEventListener( "resize", this );
+            
+            def.Properties( this, {
+                camera,
+                scene,
+                light
+            });
+
+            this.loop();
+        },
+        loop ( ) {
+            if ( !APP.pressedKeys.has( APP.KEY_X ) ) requestAnimationFrame( APP.loop );
+            APP.update();
+            APP.redraw();
+        },
+        update ( ) {
+            let speed = 5;
+            let forward = this.forward;
+            let upward = this.upward;
+            let strafe = this.strafe;
+            let camera = this.camera;
+            let position = camera.position;
+            let direction = camera.direction;
+            let viewTarget = camera.viewTarget;
+            let pressedKeys = this.pressedKeys;
+            let mouse = this.mouse;
+
+            const UP = vec3.UP;
+
+            //if ( viewTarget ) viewTarget.setValues( mouse[ 0 ] * 1000, -mouse[ 1 ] * 1000, -50 );
+
+            forward.multiplyValues( 1,1,0, direction ).normalize().multiplyScalar( speed );
+            strafe.cross( direction, UP ).normalize().multiplyScalar( speed );
+            upward.cross( strafe, direction ).normalize().multiplyScalar( speed );
+
+            if ( pressedKeys.has( APP.KEY_W ) ) {
+                camera.position.add( forward ); 
+                camera.viewTarget.add( forward );
+            }
+            else if ( pressedKeys.has( APP.KEY_S ) ) {
+                forward.multiplyScalar( -1 );
+                camera.position.add( forward );
+                camera.viewTarget.add( forward );
+                forward.multiplyScalar( -1 );
+            }
+            if ( pressedKeys.has( APP.KEY_D ) ) {
+                camera.position.add( strafe );
+                camera.viewTarget.add( strafe );
+            }
+            else if ( pressedKeys.has( APP.KEY_A ) ) {
+                strafe.multiplyScalar( -1 );
+                position.add( strafe ); 
+                viewTarget.add( strafe );
+                strafe.multiplyScalar( -1 );
+            }
+            if ( pressedKeys.has( APP.KEY_Q ) ) position.add( strafe );
+            else if ( pressedKeys.has( APP.KEY_E ) ) {
+                strafe.multiplyScalar( -1 );
+                position.add( strafe );
+                strafe.multiplyScalar( -1 );
+            }
+            if ( pressedKeys.has( APP.KEY_SPACE ) ) position.add( upward );
+            else if ( pressedKeys.has( APP.KEY_SHIFT ) ) {
+                upward.multiplyScalar( -1 );
+                position.add( upward );
+            }
+
+            camera.update();
+        },
+        redraw ( ) {
+            APP.camera.draw();
         }
-        pointerPrevious.setValues( e.clientX, e.clientY );
-    }
-    function handleScale( ) {
-        gl.canvas.width = innerWidth;
-        gl.canvas.height = innerHeight;
-       
-        camera.updateViewport( 0, 0, innerWidth, innerHeight );
-    }
+    };
 
-    
-
-    handleScale();
-    loop();
-  
-  
-    
+    APP.initialize();
 }
-   

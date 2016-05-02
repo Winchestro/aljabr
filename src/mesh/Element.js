@@ -131,11 +131,11 @@ define ( [
                     var stack = scene.stacks[ element ];
                     var uniform = uniforms[ element ];
                     if ( uniform ) {
-                        uniform.set( stack[ 0 ] );
+                        uniform.value.set( stack[ 0 ] );
                         for ( var i = 1; i < stack.length; i++ ) {
-                            uniform.multiply( stack[ i ] );    
+                            uniform.value.multiply( stack[ i ] );    
                         }
-                        uniform.set();
+                        uniform.set( uniform.value );
                     }    
                     
                 }

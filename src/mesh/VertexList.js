@@ -2,6 +2,7 @@ define ( [
     "../utilities/PropertyDescriptors",
     "../kernel/allocateUint",
     "../kernel/ArrayBuffer",
+    "../kernel/PoolAllocator",
     "../webgl/Context",
     "../webgl/AttributeLocation",
     "../webgl/BufferObject",
@@ -12,6 +13,7 @@ define ( [
     def,
     allocateUint,
     ArrayBuffer,
+    PoolAllocator,
     gl,
     AttributeLocation,
     BufferObject,
@@ -21,75 +23,126 @@ define ( [
 ) {
     "use strict";
 
-    class VertexList {
-        constructor ( structure, maxLength, usage ) {
-            if ( usage === undefined ) usage = gl.STATIC_DRAW;
+    const DEFAULT_STRUCTURE = new VertexStructure({
+        position    : new Float32Array( 3 ),
+        color       : new Float32Array( 4 ),
+        normal      : new Float32Array( 3 ),
+        uv          : new Float32Array( 2 )
+    });
 
-            let vertexStructure = new VertexStructure( structure );
-            let stride = vertexStructure.stride;
+    class VertexList extends PoolAllocator {
+        constructor (  ) {
+            super();
+            let structure = this.VertexStructure;
+            let BYTES_PER_ELEMENT = structure.stride;
             
-            let vertexBuffer = new BufferObject.Vertex().bind().allocate( stride * maxLength, usage );
-            let arrayBuffer = new ArrayBuffer( stride * maxLength, vertexBuffer );
+            let buffer = new ArrayBuffer( 0 );
 
-            def.Property( this, "length", 0, def.WRITABLE );
-
-            for ( let index = 0; index < maxLength; index++ ) {
-                let vertex = new Vertex( index, arrayBuffer, vertexStructure );
-                this.push( vertex );
-            }
+            class ListVertex extends Vertex {};
+            def.Property( ListVertex.prototype, "list", this );
+            
 
             def.Properties( this, {
-                structure           : vertexStructure,
-                buffer              : arrayBuffer,
-                BYTES_PER_ELEMENT   : stride,
+                selection : new Set,
+                ListVertex,
+                structure,
+                buffer,
+                BYTES_PER_ELEMENT,
             }, def.CONFIGURABLE );
         }
 
-        allocate ( length, usage ) {
-            let oldLength = this.length;
+        createItems ( count ) {
+            if ( count === undefined ) count = this.pool.length;
+            while ( count-- ) this.createItem();
+        }
+        
+        createItem ( outgoingHalfedge = null ) {
+            // experimental dynamic growth. buffer dynamically doubles in size. slower than pre-allocating in most cases
+            if ( !this.pool.length ) this.allocateItems( this.maxLength );
+
+            // todo - vertex order should be irrelevant, should pop rather than dequeue
+            let vertex = this.pool.shift();
+            
+            vertex.outgoingHalfedge = outgoingHalfedge;
+            this.selection.add( vertex );
+            this.push( vertex );
+            return vertex;
+        }
+
+        setVertexStructure ( structureDescription ) {
+            let structure = new VertexStructure( structureDescription );
+            let BYTES_PER_ELEMENT = structure.stride;
+
+            def.Properties( this, {
+                structure,
+                BYTES_PER_ELEMENT
+            }, def.CONFIGURABLE );
+        }
+
+        static setDefaultVertexStructure ( structureDescription ) {
+
+            def.Property( VertexList.prototype, "VertexStructure", new VertexStructure( structureDescription ), def.CONFIGURABLE );
+        }
+
+        allocateVBO ( usage ) {
+            if ( usage === undefined ) {
+                if ( this.buffer.target ) usage = this.buffer.target.usage;
+                else usage = gl.STATIC_DRAW;
+            }
+            if ( this.buffer.target ) this.buffer.target.bind().allocate( this.buffer, usage );
+            else this.buffer.setTarget( new BufferObject.Vertex().bind().allocate( this.buffer, usage ) );
+
+            return this;
+        }
+
+        allocateItems ( length ) {
+            let oldLength = this.maxLength;
             let newLength = oldLength + length;
 
             let newByteLength = this.BYTES_PER_ELEMENT * newLength;
             
             let oldBuffer = this.buffer;
             let newBuffer = new ArrayBuffer( newByteLength );
-            let vbo = this.buffer.target;
-
-            if ( usage === undefined ) usage = this.buffer.target.usage;
-
-            def.Property( newBuffer, "target", vbo, def.CONFIGURABLE );
-
-            //vbo.bind().allocate( newByteLength, usage );
-
-            for ( let index = 0; index < oldLength; index++ ) {
-                this[ index ].createViews( index, newBuffer, this.structure );
-            }
-
-            for ( let index = oldLength; index < newLength; index++ ) {
-                this.push( new Vertex( index, newBuffer, this.structure ) );
-            }
-
-
-            let sourceView = new Float32Array( oldBuffer );
-            let targetView = new Float32Array( newBuffer );
-
-            targetView.set( sourceView );
-
-            vbo.bind().allocate( sourceView, usage );
-
             def.Property( this, "buffer", newBuffer, def.CONFIGURABLE );
+
+
+            for ( let index = 0; index < oldLength; index++ ) this[ index ].createViews( index, newBuffer, this.structure );
+            for ( let index = oldLength; index < newLength; index++ ) this.pool.push( new this.ListVertex( index, newBuffer, this.structure ) );
+            
+            this.copyArrayBuffer( oldBuffer );
+
+            let vbo = oldBuffer.target;
+            if ( vbo ) {
+                newBuffer.setTarget( vbo );
+                vbo.bind().allocate( newBuffer, vbo.usage );
+
+            }
+            
+            
 
             return this;
         }
 
-        update ( ) {
+        updateVBO ( ) {
             this.buffer.update( );
             return this;
         }
 
+        copyArrayBuffer ( sourceBuffer ) {
+            let targetBuffer = this.buffer;
+
+            let sourceView = new Float32Array( sourceBuffer );
+            let targetView = new Float32Array( targetBuffer );
+
+            targetView.set( sourceView );
+            return this;
+        }
+
         bind ( ) {
-            this.buffer.target.bind( );
-            for ( var locationName in this.structure ) this.structure[ locationName ].enable();
+            if ( this.buffer.target ) {
+                this.buffer.target.bind( );
+                for ( var locationName in this.structure ) this.structure[ locationName ].enable();
+            }
             return this;
         }
 
@@ -150,10 +203,14 @@ define ( [
         get byteLength ( ) {
             return this.buffer.byteLength;
         }
+
+        get maxLength ( ) {
+            return this.length + this.pool.length;
+        }
     }
 
     def.Properties( VertexList.prototype, {
-        
+        VertexStructure : DEFAULT_STRUCTURE,
         splice : [].splice,
         push : [].push,
         forEach : [].forEach

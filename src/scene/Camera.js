@@ -34,43 +34,30 @@ define( [
     const _w_ = 3;
 
     class Camera {
-        constructor ( uniforms, scene, renderTarget, frustum, viewport ) {
-            if ( uniforms === undefined ) uniforms = {};
-            
-            if ( uniforms.projection === undefined ) uniforms.projection = new mat4;
-            if ( uniforms.projectionInverse === undefined ) uniforms.projectionInverse = new mat4;
-            if ( uniforms.transform === undefined ) uniforms.transform = new mat4;
-            if ( uniforms.transformInverse === undefined ) uniforms.transformInverse = new mat4;
-            if ( uniforms.frame === undefined ) uniforms.frame = 0;
+        constructor ( scene ) {
+            this.projection = new mat4;
+            this.projectionInverse = new mat4;
+            this.transform = new mat4;
+            this.transformInverse = new mat4;
+            this.frame = 0;
 
             if ( scene === undefined ) scene = new Scene;
             
-
-            if ( renderTarget === undefined ) renderTarget = null;
-            if ( frustum === undefined ) frustum = new Frustum;
-            if ( viewport === undefined ) viewport = new Viewport;
-
             def.Properties( this, {
                 scene,
-                frustum,
+                frustum : new Frustum,
+                viewport : new Viewport,
+                
                 position : new vec3( 1 ),
                 viewTarget : null,
                 
-                wNear : 0,
-                hNear : 0,
-                wFar : 0,
-                hFar : 0,
-
                 farCenter : new vec3,
                 nearCenter : new vec3,
                 direction : new vec3,
 
-                viewport,
-                renderTarget,
+                renderTarget : null,
                 drawCalls : 0
             }, def.WRITABLE | def.CONFIGURABLE );
-
-            def.Properties( this, uniforms, def.ENUMERABLE | def.CONFIGURABLE | def.WRITABLE );
         }
         project ( outV3 ) {
             CACHE_VEC4.setValues( outV3[_x_], outV3[_y_], outV3[_z_], 1 );
@@ -88,8 +75,21 @@ define( [
 
             return outV3;
         }
+        toScreenCoordinates ( outV2 ) {
+            outV2[_x_] = ( outV2[_x_] + 1 ) / 2 * this.viewport.width;
+            outV2[_y_] = ( -outV2[_y_] + 1 ) / 2 * this.viewport.height;
+
+            return outV2;
+        }
+
+        toNormalizedDeviceCoordinates ( outV2 ) {
+            outV2[_x_] = outV2[_x_] / this.viewport.width * 2 - 1;
+            outV2[_y_] = -( outV2[_y_] / this.viewport.height * 2 - 1 );
+
+            return outV2;
+        }
         projectToScreenCoordinates ( outV3 ) {
-            return toScreenCoordinates( this.project( outV3 ) );
+            return this.toScreenCoordinates( this.project( outV3 ) );
         }
         unproject ( outV3 ) {
             CACHE_VEC4.setValues( outV3[_x_], outV3[_y_], outV3[_z_], 1 );
@@ -105,11 +105,11 @@ define( [
             return outV3;
         }
         unprojectFromScreenCoordinates( outV3 ) {
-            return this.unproject( toNormalizedDeviceCoordinates( outV3 ) );
+            return this.unproject( this.toNormalizedDeviceCoordinates( outV3 ) );
         }
         update ( ) {
             if ( this.viewTarget ) {
-                this.transformInverse.lookAt( this.position, this.viewTarget, vec3.UP );
+                this.transformInverse.makeLookAt( this.position, this.viewTarget, vec3.UP );
                 this.transform.invert( this.transformInverse );
             } else {
                 this.transform.setTranslation( this.position );
@@ -118,13 +118,13 @@ define( [
             this.projectionInverse.invert( this.projection );
             this.unproject( this.nearCenter.setValues( 0, 0, 0 ) );
             this.unproject( this.farCenter.setValues( 0, 0, 1 ) );
-            this.direction.sub( this.farCenter, this.nearCenter ).normalize();
+            this.direction.sub( this.nearCenter, this.farCenter ).normalize();
             this.frustum.update( this );
 
             this.scene.update( this );
         }
         draw ( ) {
-            gl.bindFramebuffer( gl.FRAMEBUFFER, this.renderTarget );
+            //gl.bindFramebuffer( gl.FRAMEBUFFER, this.renderTarget );
             gl.clear( gl.COLOR_BUFFER_BIT  | gl.DEPTH_BUFFER_BIT );
             this.drawCalls = 0;
             this.frame++;
@@ -136,16 +136,18 @@ define( [
         createFrustumMesh ( ) {
             return this.scene.addChild( "frustum", this.frustum.createMesh() );
         }
+
+
     }
 
     class Perspective extends Camera {
-        constructor( near, far, fov, aspect, uniforms, scene, target, frustum ) {
+        constructor( near, far, fov, aspect ) {
             if ( near === undefined ) near = 0.1;
             if ( far === undefined ) far = 1000;
             if ( fov === undefined ) fov = Math.PI / 3;
             if ( aspect === undefined ) aspect = gl.canvas.width / gl.canvas.height;
 
-            super( uniforms, scene, target, frustum );
+            super( );
             
             this.projection.makePerspective( aspect, fov, near, far ),
             
@@ -175,20 +177,20 @@ define( [
             return this;
         }
 
-        resize ( width, height ) {
+        updateViewport ( x, y, width, height ) {
             this.aspect = width / height;
-            this.viewport.setDimensions( 0, 0, width, height );
+            this.viewport.setDimensions( x, y, width, height );
             this.updateProjection();
         }
     }
 
     class Orthographic extends Camera {
-        constructor ( near, far, zoom, uniforms, scene, target, frustum ) {
+        constructor ( near, far, zoom ) {
             if ( near === undefined ) near = 0.1;
             if ( far === undefined ) far = 10;
             if ( zoom === undefined ) zoom = 1;
             
-            super( uniforms, scene, target, frustum );
+            super( );
             let width = this.viewport.width;
             let height = this.viewport.height;
             let x = this.viewport.x;
@@ -244,19 +246,7 @@ define( [
         }
     }
 
-    function toScreenCoordinates ( outV2 ) {
-        outV2[_x_] = ( outV2[_x_] + 1 ) / 2 * gl.canvas.clientWidth;
-        outV2[_y_] = ( -outV2[_y_] + 1 ) / 2 * gl.canvas.clientHeight;
-
-        return outV2;
-    }
-
-    function toNormalizedDeviceCoordinates ( outV2 ) {
-        outV2[_x_] = outV2[_x_] / gl.canvas.clientWidth * 2 - 1;
-        outV2[_y_] = -( outV2[_y_] / gl.canvas.clientHeight * 2 - 1 );
-
-        return outV2;
-    }
+    
 
     def.Properties( Camera, {
         Perspective,

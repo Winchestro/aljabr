@@ -6,13 +6,19 @@ define ( [
 	"use strict";
 
 	class ClientArrayBuffer extends ArrayBuffer {
-		constructor ( byteLength, targetVBO ) {
+		constructor ( byteLength ) {
 			super( byteLength );
-			def.Property( this, "target", targetVBO, def.WRITABLE );
+			def.Property( this, "target", null, def.WRITABLE );
 		}
 
 		update ( ) {
 			if( this.target ) this.target.update( this );
+			return this;
+		}
+
+		setTarget ( vbo ) {
+			this.target = vbo;
+			return this;
 		}
 	}
 

@@ -17,204 +17,180 @@ define( [
 
     class vec4 extends Float32Array {
         constructor ( x, y, z, w ) {
-            super( 4 );
-            if ( x === undefined ) x = 0;
-            if ( y === undefined ) y = x;
-            if ( z === undefined ) z = x;
-            if ( w === undefined ) w = x;
-            
-            this[_x_] = x;
-            this[_y_] = y;
-            this[_z_] = z;
-            this[_w_] = w;
+            if ( x instanceof ArrayBuffer ) {
+                super( x, y, 4 );
+            } else {
+
+                super( 4 );
+                if ( x === undefined ) x = 0;
+                if ( y === undefined ) y = x;
+                if ( z === undefined ) z = x;
+                if ( w === undefined ) w = x;
+                
+                this[_x_] = x;
+                this[_y_] = y;
+                this[_z_] = z;
+                this[_w_] = w;
+            }
         }
 
-        set ( inV4 ) {
-            this[_x_] = inV4[_x_];
-            this[_y_] = inV4[_y_];
-            this[_z_] = inV4[_z_];
-            this[_w_] = inV4[_w_];
-            return this;    
-        }
-        static set ( outV4, inV4 ) {
-            vec4.prototype.set.call( outV4, inV4 );
-        }
-
-        setValues ( x, y, z, w ) {
-            this[_x_] = x;
-            this[_y_] = y;
-            this[_z_] = z;
-            this[_w_] = w;
-            return this;
-        }
-        static setValues ( outV4, x, y, z, w ) {
-            return vec4.prototype.setValues.call( outV4, x, y, z, w );
+        set ( in_vec4 ) { return vec4.set( this, in_vec4 ); }
+        static set ( out_vec4, in_vec4 ) {
+            out_vec4[_x_] = in_vec4[_x_];
+            out_vec4[_y_] = in_vec4[_y_];
+            out_vec4[_z_] = in_vec4[_z_];
+            out_vec4[_w_] = in_vec4[_w_];
+            return out_vec4;
         }
         
-        add ( vA, vB ) {
-            if ( vB === undefined ) vB = this;
-
-            this[_x_] = vA[_x_] + vB[_x_];
-            this[_y_] = vA[_y_] + vB[_y_];
-            this[_z_] = vA[_z_] + vB[_z_];
-            this[_w_] = vA[_w_] + vB[_w_];
-            return this;
+        setValues ( x, y, z, w ) { return vec4.setValues( this, x, y, z, w ); }
+        static setValues ( out_vec4, x, y, z, w ) {
+            out_vec4[_x_] = x;
+            out_vec4[_y_] = y;
+            out_vec4[_z_] = z;
+            out_vec4[_w_] = w;
+            return out_vec4;
         }
-        static add ( outV4, vA, vB ) {
-            return vec4.prototype.add.call( outV4, vA, vB );
-        }
+        
+        add ( in_vec4_B, in_vec4_A ) { return vec4.add( this, in_vec4_B, in_vec4_A ); }
+        static add ( out_vec4, in_vec4_B, in_vec4_A ) {
+            if ( in_vec4_A === undefined ) in_vec4_A = out_vec4;
 
-        sub ( vA, vB ) {
-            if ( vB === undefined ) vB = this;
-
-            this[_x_] = vB[_x_] - vA[_x_];
-            this[_y_] = vB[_y_] - vA[_y_];
-            this[_z_] = vB[_z_] - vA[_z_];
-            this[_w_] = vB[_w_] - vA[_w_];
-            return this;
-        }
-        static sub ( outV4, vA, vB ) {
-            return vec4.prototype.sub.call( outV4, vA, vB );
+            out_vec4[_x_] = in_vec4_A[_x_] + in_vec4_B[_x_];
+            out_vec4[_y_] = in_vec4_A[_y_] + in_vec4_B[_y_];
+            out_vec4[_z_] = in_vec4_A[_z_] + in_vec4_B[_z_];
+            out_vec4[_w_] = in_vec4_A[_w_] + in_vec4_B[_w_];
+            return out_vec4;
         }
 
-        multiply ( vA, vB ) {
-            if ( vB === undefined ) vB = this;
+        addValues( x, y, z, w ) { return vec4.addValues( this, x, y, z, w ); }
+        static addValues ( out_vec4, x, y, z, w, in_vec4 ) {
+            if ( in_vec4 === undefined ) in_vec4 = out_vec4;
 
-            this[_x_] = vA[_x_] * vB[_x_];
-            this[_y_] = vA[_y_] * vB[_y_];
-            this[_z_] = vA[_z_] * vB[_z_];
-            this[_w_] = vA[_w_] * vB[_w_];
-            return this;
+            out_vec4[_x_] = in_vec4[_x_] + x;
+            out_vec4[_y_] = in_vec4[_y_] + y;
+            out_vec4[_z_] = in_vec4[_z_] + z;
+            out_vec4[_w_] = in_vec4[_w_] + w;
+            return out_vec4;
         }
-        static multiply ( outV4, vA, vB ) {
-            return vec4.prototype.multiply.call( outV4, vA, vB );
-        }
+        
+        sub ( in_vec4_B, in_vec4_A ) { return vec4.sub( this, in_vec4_B, in_vec4_A ); }
+        static sub ( out_vec4, in_vec4_B, in_vec4_A ) {
+            if ( in_vec4_A === undefined ) in_vec4_A = out_vec4;
 
-        divide ( vA, vB ) {
-            if ( vB === undefined ) vB = this;
-
-            this[_x_] = vA[_x_] / vB[_x_];
-            this[_y_] = vA[_y_] / vB[_y_];
-            this[_z_] = vA[_z_] / vB[_z_];
-            this[_w_] = vA[_w_] / vB[_w_];
-            return this;
+            out_vec4[_x_] = in_vec4_A[_x_] - in_vec4_B[_x_];
+            out_vec4[_y_] = in_vec4_A[_y_] - in_vec4_B[_y_];
+            out_vec4[_z_] = in_vec4_A[_z_] - in_vec4_B[_z_];
+            out_vec4[_w_] = in_vec4_A[_w_] - in_vec4_B[_w_];
+            return out_vec4;
         }
-        static divide ( outV4, vA, vB ) {
-            return vec4.prototype.divide.call( outV4, vA, vB );
-        }
+        
+        multiply ( in_vec4_B, in_vec4_A ) { return vec4.multiply( this, in_vec4_B, in_vec4_A ); }
+        static multiply ( out_vec4, in_vec4_B, in_vec4_A ) {
+            if ( in_vec4_A === undefined ) in_vec4_A = out_vec4;
 
-        dot ( vA ) {
-            return ( this[_x_] * vA[_x_]
-                   + this[_y_] * vA[_y_]
-                   + this[_z_] * vA[_z_]
-                   + this[_w_] * vA[_w_]
+            out_vec4[_x_] = in_vec4_A[_x_] * in_vec4_B[_x_];
+            out_vec4[_y_] = in_vec4_A[_y_] * in_vec4_B[_y_];
+            out_vec4[_z_] = in_vec4_A[_z_] * in_vec4_B[_z_];
+            out_vec4[_w_] = in_vec4_A[_w_] * in_vec4_B[_w_];
+            return out_vec4;
+        }
+        
+        divide ( in_vec4_B, in_vec4_A ) { return vec4.divide( this, in_vec4_B, in_vec4_A ); }
+        static divide ( out_vec4, in_vec4_B, in_vec4_A ) {
+            if ( in_vec4_A === undefined ) in_vec4_A = out_vec4;
+
+            out_vec4[_x_] = in_vec4_A[_x_] / in_vec4_B[_x_];
+            out_vec4[_y_] = in_vec4_A[_y_] / in_vec4_B[_y_];
+            out_vec4[_z_] = in_vec4_A[_z_] / in_vec4_B[_z_];
+            out_vec4[_w_] = in_vec4_A[_w_] / in_vec4_B[_w_];
+            return out_vec4;
+        }
+        
+        dot ( in_vec4 ) { return vec4.dot( this, in_vec4 ); }
+        static dot ( in_vec4_B, in_vec4_A ) {
+            return ( in_vec4_A[_x_] * in_vec4_B[_x_]
+                   + in_vec4_A[_y_] * in_vec4_B[_y_]
+                   + in_vec4_A[_z_] * in_vec4_B[_z_]
+                   + in_vec4_A[_w_] * in_vec4_B[_w_]
             );
         }
-        static dot ( vA, vB ) {
-            return vec4.prototype.dot.call( vA, vB );
+        
+        addScalar ( s, in_vec4 ) { return vec4.addScalar( this, s, in_vec4 ); }
+        static addScalar ( out_vec4, s, in_vec4 ) {
+            if ( in_vec4 === undefined ) in_vec4 = out_vec4;
+
+            out_vec4[_x_] = in_vec4[_x_] + s;
+            out_vec4[_y_] = in_vec4[_y_] + s;
+            out_vec4[_z_] = in_vec4[_z_] + s;
+            out_vec4[_w_] = in_vec4[_w_] + s;
+            return out_vec4;
         }
+        
+        multiplyScalar ( s, in_vec4 ) { return vec4.multiplyScalar( this, s, in_vec4 ); }
+        static multiplyScalar ( out_vec4, s, in_vec4 ) {
+            if ( in_vec4 === undefined ) in_vec4 = out_vec4;
 
-        addScalar ( s, vA ) {
-            if ( vA === undefined ) vA = this;
-
-            this[_x_] = vA[_x_] + s;
-            this[_y_] = vA[_y_] + s;
-            this[_z_] = vA[_z_] + s;
-            this[_w_] = vA[_w_] + s;
-            return this
+            out_vec4[_x_] = in_vec4[_x_] * s;
+            out_vec4[_y_] = in_vec4[_y_] * s;
+            out_vec4[_z_] = in_vec4[_z_] * s;
+            out_vec4[_w_] = in_vec4[_w_] * s;
+            return out_vec4;
         }
-        static addScalar ( outV4, s, vA ) {
-            return vec4.prototype.addScalar.call( outV4, s, vA );
+        
+        multiplyMat4 ( in_mat4, in_vec4 ) { return vec4.multiplyMat4( this, in_mat4, in_vec4 ); }
+        static multiplyMat4 ( out_vec4, in_mat4, in_vec4 ) {
+            if ( in_vec4 === undefined ) in_vec4 = out_vec4;
+
+            let x = out_vec4[_x_];
+            let y = out_vec4[_y_];
+            let z = out_vec4[_z_];
+            let w = out_vec4[_w_];
+
+            out_vec4[_x_] = x * in_mat4[_0_0_] + y * in_mat4[_1_0_] + z * in_mat4[_2_0_] + w * in_mat4[_3_0_];
+            out_vec4[_y_] = x * in_mat4[_0_1_] + y * in_mat4[_1_1_] + z * in_mat4[_2_1_] + w * in_mat4[_3_1_];
+            out_vec4[_z_] = x * in_mat4[_0_2_] + y * in_mat4[_1_2_] + z * in_mat4[_2_2_] + w * in_mat4[_3_2_];
+            out_vec4[_w_] = x * in_mat4[_0_3_] + y * in_mat4[_1_3_] + z * in_mat4[_2_3_] + w * in_mat4[_3_3_];
+
+            return out_vec4;
         }
+        
+        lerp ( alpha, in_vec4_B, in_vec4_A ) { return vec4.lerp( this, alpha, in_vec4_B, in_vec4_A ); }
+        static lerp ( out_vec4, alpha, in_vec4_B, in_vec4_A ) {
+            if ( in_vec4_A === undefined ) in_vec4_A = out_vec4;
 
-        multiplyScalar ( s, vA ) {
-            if ( vA === undefined ) vA = this;
-
-            this[_x_] = vA[_x_] * s;
-            this[_y_] = vA[_y_] * s;
-            this[_z_] = vA[_z_] * s;
-            this[_w_] = vA[_w_] * s;
-            return this
+            out_vec4[_x_] = in_vec4_A[_x_] + ( in_vec4_B[_x_] - in_vec4_A[_x_] ) * alpha;
+            out_vec4[_y_] = in_vec4_A[_y_] + ( in_vec4_B[_y_] - in_vec4_A[_y_] ) * alpha;
+            out_vec4[_z_] = in_vec4_A[_z_] + ( in_vec4_B[_z_] - in_vec4_A[_z_] ) * alpha;
+            out_vec4[_w_] = in_vec4_A[_w_] + ( in_vec4_B[_w_] - in_vec4_A[_w_] ) * alpha;
+            return out_vec4;
         }
-        static multiplyScalar ( outV4, s, vA ) {
-            return vec4.prototype.multiplyScalar.call( outV4, s, vA );
+        
+        normalize ( ) { return vec4.normalize( this ); } 
+        static normalize ( out_vec4 ) {
+            let length = vec4.getLength( out_vec4 );
+            if ( length === 0 ) return out_vec4;
+            else return vec4.multiplyScalar( out_vec4, 1 / length );
         }
-
-        multiplyMat4 ( inM4, inV4 ) {
-            if ( inV4 === undefined ) inV4 = this;
-
-            let x = this[_x_];
-            let y = this[_y_];
-            let z = this[_z_];
-            let w = this[_w_];
-
-            this[_x_] = x * inM4[_0_0_] + y * inM4[_1_0_] + z * inM4[_2_0_] + w * inM4[_3_0_];
-            this[_y_] = x * inM4[_0_1_] + y * inM4[_1_1_] + z * inM4[_2_1_] + w * inM4[_3_1_];
-            this[_z_] = x * inM4[_0_2_] + y * inM4[_1_2_] + z * inM4[_2_2_] + w * inM4[_3_2_];
-            this[_w_] = x * inM4[_0_3_] + y * inM4[_1_3_] + z * inM4[_2_3_] + w * inM4[_3_3_];
-
-            return this;
-        }
-        static multiplyMat4 ( outV4, inM4, inV4 ) {
-            return vec4.prototype.multiplyMat4.call( outV4, inM4, inV4 );
-        }
-
-        lerp ( sAlpha, vA, vB ) {
-            if ( vB === undefined ) vB = this;
-
-            this[_x_] = vA[_x_] + ( vB[_x_] - vA[_x_] ) * sAlpha;
-            this[_y_] = vA[_y_] + ( vB[_y_] - vA[_y_] ) * sAlpha;
-            this[_z_] = vA[_z_] + ( vB[_z_] - vA[_z_] ) * sAlpha;
-            this[_w_] = vA[_w_] + ( vB[_w_] - vA[_w_] ) * sAlpha;
-            return this;
-        }
-        static lerp ( outV4, sAlpha, vA, vB ) {
-            return vec4.prototype.lerp.call( outV4, sAlpha, vA, vB );
-        }
-
-        normalize ( ) {
-            let length = vec4.getLength( this );
-            if ( length === 0 ) return this;
-            else return vec4.multiplyScalar( this, 1 / length );
-        }
-        static normalize ( inV4 ) {
-            return vec4.prototype.normalize.call( inV4 );
-        } 
-
-        getLength ( ) {
+        
+        getLength ( ) { return vec4.getLength( this ); }
+        static getLength ( in_vec4 ) {
             return Math.sqrt(
-                this[_x_] * this[_x_] +
-                this[_y_] * this[_y_] +
-                this[_z_] * this[_z_] +
-                this[_w_] * this[_w_]
-            );  
+                in_vec4[_x_] * in_vec4[_x_] +
+                in_vec4[_y_] * in_vec4[_y_] +
+                in_vec4[_z_] * in_vec4[_z_] +
+                in_vec4[_w_] * in_vec4[_w_]
+            );
         }
-        static getLength ( inV4 ) {
-            return vec4.prototype.getLength.call( inV4 );
-        }
-
-        getLengthSq ( ) {
+        
+        getLengthSq ( ) { return vec4.getLengthSquared( this ); }
+        static getLengthSquared ( in_vec4 ) {
             return (
-                this[_x_] * this[_x_] + 
-                this[_y_] * this[_y_] + 
-                this[_z_] * this[_z_] + 
-                this[_w_] * this[_w_]
+                in_vec4[_x_] * in_vec4[_x_] + 
+                in_vec4[_y_] * in_vec4[_y_] + 
+                in_vec4[_z_] * in_vec4[_z_] + 
+                in_vec4[_w_] * in_vec4[_w_]
             );
-        }
-        static getLengthSq ( inV4 ) {
-            return vec4.prototype.getLengthSq.call( inV4 );
-        }
-
-        getLengthManhattan ( ) {
-            return ( 
-                Math.abs( this[_x_] ) + 
-                Math.abs( this[_y_] ) + 
-                Math.abs( this[_z_] ) + 
-                Math.abs( this[_w_] )
-            );
-        }
-        static getLengthManhattan ( inV4 ) {
-            return vec4.prototype.getLengthManhattan.call( inV4 );
         }
     }
     

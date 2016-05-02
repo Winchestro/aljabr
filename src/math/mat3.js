@@ -1,19 +1,28 @@
-define ( function module ( ) {
+define( [
+    "../utilities/PropertyDescriptors"
+], function module (
+    def
+) {
     "use strict";
 
     const _0_0_ = 0; const _1_0_ = 3; const _2_0_ = 6;
     const _0_1_ = 1; const _1_1_ = 4; const _2_1_ = 7;
     const _0_2_ = 2; const _1_2_ = 5; const _2_2_ = 8;
-
+    
+    const _x_ = 0;
+    const _y_ = 1;
+    const _z_ = 2;
+    const _w_ = 3;
 
     class mat3 extends Float32Array {
-        constructor ( ) {
-            super( 9 );
-            this.makeIdentity();
-        }
+        constructor ( buffer, byteOffset ) {
+            if ( buffer instanceof ArrayBuffer ) super( buffer, byteOffset, 9 );
+            else super( 9 );
 
-        set ( in_mat3 ) { return mat3.set( this, in_mat3 );
+            mat3.makeIdentity( this );
         }
+        
+        set        (           in_mat3 ) { return mat3.set( in_mat3 ); }
         static set ( out_mat3, in_mat3 ) {
             out_mat3[_0_0_] = in_mat3[_0_0_];
             out_mat3[_0_1_] = in_mat3[_0_1_];
@@ -27,9 +36,9 @@ define ( function module ( ) {
             return out_mat3;
         }
 
-        setValues ( _00, _01, _02, _10, _11, _12, _20, _21, _22 ) { return mat3.setValues( this,  _00, _01, _02, _10, _11, _12, _20, _21, _22 );
-        }
-        static setValues ( out_mat3, _00, _01, _02, _10, _11, _12, _20, _21, _22_2 ) {
+
+        setValues ( _00,_01,_02,  _10,_11,_12,  _20,_21,_22 ) { return mat3.setValues( this,  _00,_01,_02,  _10,_11,_12,  _20,_21,_22 ); }
+        static setValues ( out_mat3, _00,_01,_02,  _10,_11,_12,  _20,_21,_22 ) {
             out_mat3[_0_0_] = _00;
             out_mat3[_0_1_] = _01;
             out_mat3[_0_2_] = _02;
@@ -42,209 +51,143 @@ define ( function module ( ) {
             return out_mat3;
         }
 
-        transpose ( ) { return mat3.transpose( this ); }
-        static transpose ( out_mat3, in_mat3 ) {
-            if ( in_mat3 === undefined ) in_mat3 = mat3.set( CACHE_MAT3, out_mat3 );
 
-            out_mat3[_0_0_] = in_mat3[_0_0_];
-            out_mat3[_0_1_] = in_mat3[_1_0_];
-            out_mat3[_0_2_] = in_mat3[_2_0_];
-            out_mat3[_1_0_] = in_mat3[_0_1_];
-            out_mat3[_1_1_] = in_mat3[_1_1_];
-            out_mat3[_1_2_] = in_mat3[_2_1_];
-            out_mat3[_2_0_] = in_mat3[_0_2_];
-            out_mat3[_2_1_] = in_mat3[_1_2_];
-            out_mat3[_2_2_] = in_mat3[_2_2_];
+        transpose        (         ) { return mat3.transpose( this ); }
+        static transpose ( in_mat3 ) {
+            if ( in_mat3 === undefined ) in_mat3 = mat3.set( CACHE_MAT3, in_mat3 );
+            
+            out_mat3[_0_0_] = out_mat3[_0_0_];
+            out_mat3[_0_1_] = out_mat3[_1_0_];
+            out_mat3[_0_2_] = out_mat3[_2_0_];
+            out_mat3[_1_0_] = out_mat3[_0_1_];
+            out_mat3[_1_1_] = out_mat3[_1_1_];
+            out_mat3[_1_2_] = out_mat3[_2_1_];
+            out_mat3[_2_0_] = out_mat3[_0_2_];
+            out_mat3[_2_1_] = out_mat3[_1_2_];
+            out_mat3[_2_2_] = out_mat3[_2_2_];
             return out_mat3;
         }
 
-        add ( in_mat3 ) { return mat3.add( this, in_mat3 ); }
-        static add ( inM3_a, inM3_b ) {
-            if ( inM3_b === undefined ) inM3_b = this;
+        add        (           in_mat3_B, in_mat3_A ) { return mat3.add( this, in_mat3_B, in_mat3_A ); }
+        static add ( out_mat3, in_mat3_B, in_mat3_A ) {
+            if ( in_mat3_A === undefined ) in_mat3_A = out_mat3;
 
-            this[_0_0_] = inM3_a[_0_0_] + inM3_b[_0_0_];
-            this[_0_1_] = inM3_a[_0_1_] + inM3_b[_0_1_];
-            this[_0_2_] = inM3_a[_0_2_] + inM3_b[_0_2_];
-            this[_1_0_] = inM3_a[_1_0_] + inM3_b[_1_0_];
-            this[_1_1_] = inM3_a[_1_1_] + inM3_b[_1_1_];
-            this[_1_2_] = inM3_a[_1_2_] + inM3_b[_1_2_];
-            this[_2_0_] = inM3_a[_2_0_] + inM3_b[_2_0_];
-            this[_2_1_] = inM3_a[_2_1_] + inM3_b[_2_1_];
-            this[_2_2_] = inM3_a[_2_2_] + inM3_b[_2_2_];
-            return this;
+            out_mat3[_0_0_] = in_mat3_A[_0_0_] + in_mat3_B[_0_0_];
+            out_mat3[_0_1_] = in_mat3_A[_0_1_] + in_mat3_B[_0_1_];
+            out_mat3[_0_2_] = in_mat3_A[_0_2_] + in_mat3_B[_0_2_];
+            out_mat3[_1_0_] = in_mat3_A[_1_0_] + in_mat3_B[_1_0_];
+            out_mat3[_1_1_] = in_mat3_A[_1_1_] + in_mat3_B[_1_1_];
+            out_mat3[_1_2_] = in_mat3_A[_1_2_] + in_mat3_B[_1_2_];
+            out_mat3[_2_0_] = in_mat3_A[_2_0_] + in_mat3_B[_2_0_];
+            out_mat3[_2_1_] = in_mat3_A[_2_1_] + in_mat3_B[_2_1_];
+            out_mat3[_2_2_] = in_mat3_A[_2_2_] + in_mat3_B[_2_2_];
+            return out_mat3;
         }
 
-        static multiply ( outM3, inM3 ) {
-            return mat3.prototype.multiply.call( outM3, inM3 );
-        }
-        multiply ( inM3_a, inM3_b ) {
-            if ( inM3_b === undefined ) inM3_b = CACHE_MAT3.set( this );
-            let a = inM3_a;
-            let b = inM3_b;
+        multiply        (           in_mat3_B, in_mat3_A ) { return mat3.multiply( this, in_mat3_B, in_mat3_A ); }
+        static multiply ( out_mat3, in_mat3_B, in_mat3_A ) {
+            if ( in_mat3_A === undefined ) in_mat3_A = mat3.set( CACHE_MAT3, out_mat3 );
 
-            this[_0_0_] = a[_0_0_] * b[_0_0_] + a[_0_1_] * b[_1_0_] + a[_0_2_] * b[_2_0_];
-            this[_0_1_] = a[_0_0_] * b[_0_1_] + a[_0_1_] * b[_1_1_] + a[_0_2_] * b[_2_1_];
-            this[_0_2_] = a[_0_0_] * b[_0_2_] + a[_0_1_] * b[_1_2_] + a[_0_2_] * b[_2_2_];
-            this[_1_0_] = a[_1_0_] * b[_0_0_] + a[_1_1_] * b[_1_0_] + a[_1_2_] * b[_2_0_];
-            this[_1_1_] = a[_1_0_] * b[_0_1_] + a[_1_1_] * b[_1_1_] + a[_1_2_] * b[_2_1_];
-            this[_1_2_] = a[_1_0_] * b[_0_2_] + a[_1_1_] * b[_1_2_] + a[_1_2_] * b[_2_2_];
-            this[_2_0_] = a[_2_0_] * b[_0_0_] + a[_2_1_] * b[_1_0_] + a[_2_2_] * b[_2_0_];
-            this[_2_1_] = a[_2_0_] * b[_0_1_] + a[_2_1_] * b[_1_1_] + a[_2_2_] * b[_2_1_];
-            this[_2_2_] = a[_2_0_] * b[_0_2_] + a[_2_1_] * b[_1_2_] + a[_2_2_] * b[_2_2_];
-            return this;
+            out_mat3[_0_0_] = in_mat3_A[_0_0_] * in_mat3_B[_0_0_] + in_mat3_A[_0_1_] * in_mat3_B[_1_0_] + in_mat3_A[_0_2_] * in_mat3_B[_2_0_];
+            out_mat3[_0_1_] = in_mat3_A[_0_0_] * in_mat3_B[_0_1_] + in_mat3_A[_0_1_] * in_mat3_B[_1_1_] + in_mat3_A[_0_2_] * in_mat3_B[_2_1_];
+            out_mat3[_0_2_] = in_mat3_A[_0_0_] * in_mat3_B[_0_2_] + in_mat3_A[_0_1_] * in_mat3_B[_1_2_] + in_mat3_A[_0_2_] * in_mat3_B[_2_2_];
+            out_mat3[_1_0_] = in_mat3_A[_1_0_] * in_mat3_B[_0_0_] + in_mat3_A[_1_1_] * in_mat3_B[_1_0_] + in_mat3_A[_1_2_] * in_mat3_B[_2_0_];
+            out_mat3[_1_1_] = in_mat3_A[_1_0_] * in_mat3_B[_0_1_] + in_mat3_A[_1_1_] * in_mat3_B[_1_1_] + in_mat3_A[_1_2_] * in_mat3_B[_2_1_];
+            out_mat3[_1_2_] = in_mat3_A[_1_0_] * in_mat3_B[_0_2_] + in_mat3_A[_1_1_] * in_mat3_B[_1_2_] + in_mat3_A[_1_2_] * in_mat3_B[_2_2_];
+            out_mat3[_2_0_] = in_mat3_A[_2_0_] * in_mat3_B[_0_0_] + in_mat3_A[_2_1_] * in_mat3_B[_1_0_] + in_mat3_A[_2_2_] * in_mat3_B[_2_0_];
+            out_mat3[_2_1_] = in_mat3_A[_2_0_] * in_mat3_B[_0_1_] + in_mat3_A[_2_1_] * in_mat3_B[_1_1_] + in_mat3_A[_2_2_] * in_mat3_B[_2_1_];
+            out_mat3[_2_2_] = in_mat3_A[_2_0_] * in_mat3_B[_0_2_] + in_mat3_A[_2_1_] * in_mat3_B[_1_2_] + in_mat3_A[_2_2_] * in_mat3_B[_2_2_];
+            return out_mat3;
         }
 
-        static addScalar ( outM3, s ) {
-            return mat3.prototype.addScalar.call( outM3, s );
-        }
-        addScalar ( s, inM3 ) {
-            if ( inM3 === undefined ) inM3 = this;
+        addScalar        (           s, in_mat3 ) { return mat3.addScalar( this, s, in_mat3 ); }
+        static addScalar ( out_mat3, s, in_mat3 ) {
+            if ( in_mat3 === undefined ) inM3 = out_mat3;
 
-            this[_0_0_] = inM3[_0_0_] + s;
-            this[_0_1_] = inM3[_0_1_] + s;
-            this[_0_2_] = inM3[_0_2_] + s;
-            this[_1_0_] = inM3[_1_0_] + s;
-            this[_1_1_] = inM3[_1_1_] + s;
-            this[_1_2_] = inM3[_1_2_] + s;
-            this[_2_0_] = inM3[_2_0_] + s;
-            this[_2_1_] = inM3[_2_1_] + s;
-            this[_2_2_] = inM3[_2_2_] + s;
-            return this;
+            out_mat3[_0_0_] = in_mat3[_0_0_] + s;
+            out_mat3[_0_1_] = in_mat3[_0_1_] + s;
+            out_mat3[_0_2_] = in_mat3[_0_2_] + s;
+            out_mat3[_1_0_] = in_mat3[_1_0_] + s;
+            out_mat3[_1_1_] = in_mat3[_1_1_] + s;
+            out_mat3[_1_2_] = in_mat3[_1_2_] + s;
+            out_mat3[_2_0_] = in_mat3[_2_0_] + s;
+            out_mat3[_2_1_] = in_mat3[_2_1_] + s;
+            out_mat3[_2_2_] = in_mat3[_2_2_] + s;
+            return out_mat3;
         }
 
-        static multiplyScalar ( outM3, s ) {
-            return mat3.prototype.multiplyScalar.call( outM3, s );
-        }
-        multiplyScalar ( s, inM3 ) {
-            if ( inM3 === undefined ) inM3 = this;
+        multiplyScalar        (           s, in_mat3 ) { return mat3.multiplyScalar( this, s, in_mat3 ); }
+        static multiplyScalar ( out_mat3, s, in_mat3 ) {
+            if ( in_mat3 === undefined ) in_mat3 = out_mat3;
 
-            this[_0_0_] = inM3[_0_0_] * s;
-            this[_0_1_] = inM3[_0_1_] * s;
-            this[_0_2_] = inM3[_0_2_] * s;
-            this[_1_0_] = inM3[_1_0_] * s;
-            this[_1_1_] = inM3[_1_1_] * s;
-            this[_1_2_] = inM3[_1_2_] * s;
-            this[_2_0_] = inM3[_2_0_] * s;
-            this[_2_1_] = inM3[_2_1_] * s;
-            this[_2_2_] = inM3[_2_2_] * s;
-            return this;
+            out_mat3[_0_0_] = in_mat3[_0_0_] * s;
+            out_mat3[_0_1_] = in_mat3[_0_1_] * s;
+            out_mat3[_0_2_] = in_mat3[_0_2_] * s;
+            out_mat3[_1_0_] = in_mat3[_1_0_] * s;
+            out_mat3[_1_1_] = in_mat3[_1_1_] * s;
+            out_mat3[_1_2_] = in_mat3[_1_2_] * s;
+            out_mat3[_2_0_] = in_mat3[_2_0_] * s;
+            out_mat3[_2_1_] = in_mat3[_2_1_] * s;
+            out_mat3[_2_2_] = in_mat3[_2_2_] * s;
+            return out_mat3;
         }
 
-        static makeIdentity ( outM3 ) {
-            return mat3.prototype.makeIdentity.call( outM3 );
+        makeIdentity (  ) { return mat3.makeIdentity( this ); }
+        static makeIdentity ( out_mat3 ) {
+            out_mat3[_0_0_] = 1;
+            out_mat3[_0_1_] = 0;
+            out_mat3[_0_2_] = 0;
+            out_mat3[_1_0_] = 0;
+            out_mat3[_1_1_] = 1;
+            out_mat3[_1_2_] = 0;
+            out_mat3[_2_0_] = 0;
+            out_mat3[_2_1_] = 0;
+            out_mat3[_2_2_] = 1;
+            return out_mat3;
         }
-        makeIdentity ( ) {
-            this[_0_0_] = 1;
-            this[_0_1_] = 0;
-            this[_0_2_] = 0;
-            this[_1_0_] = 0;
-            this[_1_1_] = 1;
-            this[_1_2_] = 0;
-            this[_2_0_] = 0;
-            this[_2_1_] = 0;
-            this[_2_2_] = 1;
-            return this;
-        }
-
-        static makeTranslation ( outM3, sX, sY, sZ ) {
-            return mat3.prototype.makeTranslation.call( outM3, sX, sY, sZ );
-        }
-        makeTranslation ( sX, sY, sZ ) {
-            if ( sX === undefined ) sX = 0;
-            if ( sY === undefined ) sY = 0;
-            if ( sZ === undefined ) sZ = 0;
-
-            this[_0_0_] = 1;
-            this[_0_1_] = 0;
-            this[_0_2_] = 0;
-            this[_1_0_] = 0;
-            this[_1_1_] = 1;
-            this[_1_2_] = 0;
-            this[_2_0_] = sX;
-            this[_2_1_] = sY;
-            this[_2_2_] = sZ;
-            return this;
+        
+        makeTranslation              (           in_vec3 ) { return mat3.makeTranslationValues( this,     in_vec3[_x_], in_vec3[_y_], in_vec3[_z_] ); }
+        makeTranslationValues        (           x, y, z ) { return mat3.makeTranslationValues( this,     x,            y,            z            ); }
+        static makeTranslation       ( out_mat3, in_vec3 ) { return mat3.makeTranslationValues( out_mat3, in_vec3[_x_], in_vec3[_y_], in_vec3[_z_] ); }
+        static makeTranslationValues ( out_mat3, x, y, z ) {
+            out_mat3[_0_0_] = 1;
+            out_mat3[_0_1_] = 0;
+            out_mat3[_0_2_] = 0;
+            out_mat3[_1_0_] = 0;
+            out_mat3[_1_1_] = 1;
+            out_mat3[_1_2_] = 0;
+            out_mat3[_2_0_] = x;
+            out_mat3[_2_1_] = y;
+            out_mat3[_2_2_] = z;
+            return out_mat3;
         }
 
-        static makeScale ( outM3, sX, sY, sZ ) {
-            return mat3.prototype.makeScale.call( outM3, sX, sY, sZ );
-        }
-        makeScale ( sX, sY, sZ ) {
-            if ( sX === undefined ) sX = 1;
-            if ( sY === undefined ) sY = sX;
-            if ( sZ === undefined ) sZ = sX;
+        makeScale              (           in_vec3 ) { return mat3.makeScaleValues( this,     in_vec3[_x_], in_vec3[_y_], in_vec3[_z_] ); }
+        makeScaleValues        (           x, y, z ) { return mat3.makeScaleValues( this,     x,            y,            z ); }
+        static makeScale       ( out_mat3, in_vec3 ) { return mat3.makeScaleValues( out_mat3, in_vec3[_x_], in_vec3[_y_], in_vec3[_z_] ); }
+        static makeScaleValues ( out_mat3, x, y, z ) {
+            if ( y === undefined ) y = x;
+            if ( z === undefined ) z = x;
 
-            this[_0_0_] = sX;
-            this[_0_1_] = 0;
-            this[_0_2_] = 0;
-            this[_1_0_] = 0;
-            this[_1_1_] = sY;
-            this[_1_2_] = 0;
-            this[_2_0_] = 0;
-            this[_2_1_] = 0;
-            this[_2_2_] = sZ;
-        }
-
-        static makeRotationX ( outM3, sDeg ) {
-            return mat3.prototype.makeRotationX.call( outM3, sDeg );
-        }
-        makeRotationX( sDeg ) {
-            if ( sDeg === undefined ) sDeg = 0;
-
-            let c = Math.cos( sDeg / 180 * Math.PI );
-            let s = Math.sin( sDeg / 180 * Math.PI );
-            this[_0_0_] = 1;
-            this[_0_1_] = 0;
-            this[_0_2_] = 0;
-            this[_1_0_] = 0;
-            this[_1_1_] = c;
-            this[_1_2_] = -s;
-            this[_2_0_] = 0;
-            this[_2_1_] = s;
-            this[_2_2_] = c;
-            return this;
-        }
-
-        static makeRotationY ( outM3, sDeg ) {
-            return mat3.prototype.makeRotationY.call( outM3, sDeg );
-        }
-        makeRotationY ( sDeg ) {
-            if ( sDeg === undefined ) sDeg = 0;
-
-            let c = Math.cos( sDeg / 180 * Math.PI );
-            let s = Math.sin( sDeg / 180 * Math.PI );
-            this[_0_0_] = c;
-            this[_0_1_] = 0;
-            this[_0_2_] = s;
-            this[_1_0_] = 0;
-            this[_1_1_] = 0;
-            this[_1_2_] = 1;
-            this[_2_0_] = -s;
-            this[_2_1_] = 0;
-            this[_2_2_] = c;
-            return this;
-        }
-
-        static makeRotationZ ( outM3, sDeg ) {
-            return mat3.prototype.makeRotationZ.call( outM3, sDeg );
-        }
-        makeRotationZ ( sDeg ) {
-            if ( sDeg === undefined ) sDeg = 0;
-
-            let c = Math.cos( sDeg / 180 * Math.PI );
-            let s = Math.sin( sDeg / 180 * Math.PI );
-            this[_0_0_] = c;
-            this[_0_1_] = -s;
-            this[_0_2_] = 0;
-            this[_1_0_] = s;
-            this[_1_1_] = c;
-            this[_1_2_] = 0;
-            this[_2_0_] = 0;
-            this[_2_1_] = 0;
-            this[_2_2_] = 1;
-            return this;
+            out_mat3[_0_0_] = x;
+            out_mat3[_0_1_] = 0;
+            out_mat3[_0_2_] = 0;
+            out_mat3[_1_0_] = 0;
+            out_mat3[_1_1_] = y;
+            out_mat3[_1_2_] = 0;
+            out_mat3[_2_0_] = 0;
+            out_mat3[_2_1_] = 0;
+            out_mat3[_2_2_] = z;
+            return out_mat3;
         }
     }
+
+
+    def.Properties( mat3, {
+        _00 : 0, _01 : 1, _02 : 2,
+        _10 : 3, _11 : 4, _12 : 5,
+        _20 : 6, _21 : 7, _22 : 8
+    });
 
     const CACHE_MAT3 = new mat3;
 

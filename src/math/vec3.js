@@ -18,132 +18,149 @@ define( [
 
     class vec3 extends Float32Array {
         constructor ( x, y, z ) {
-            super( 3 );
+             if ( x instanceof ArrayBuffer ) {
+                super( x, y, 3 );
+            } else {
 
-            if ( x === undefined ) x = 0;
-            if ( y === undefined ) y = x;
-            if ( z === undefined ) z = x;
+                super( 3 );
+                if ( x === undefined ) x = 0;
+                if ( y === undefined ) y = x;
+                if ( z === undefined ) z = x;
+                
+                this[_x_] = x;
+                this[_y_] = y;
+                this[_z_] = z;
+            }
 
-            this[_x_] = x;
-            this[_y_] = y;
-            this[_z_] = z;
         }
 
-        set ( inV3 ) { return vec3.set( this, inV3 ); }
-        static set ( outV3, inV3 ) {
-            outV3[_x_] = inV3[_x_];
-            outV3[_y_] = inV3[_y_];
-            outV3[_z_] = inV3[_z_];
-            return outV3;
+        set ( in_vec3 ) { return vec3.set( this, in_vec3 ); }
+        static set ( out_vec3, in_vec3 ) {
+            out_vec3[_x_] = in_vec3[_x_];
+            out_vec3[_y_] = in_vec3[_y_];
+            out_vec3[_z_] = in_vec3[_z_];
+            return out_vec3;
         }
         
 
         setValues ( x, y, z ) { return vec3.setValues( this, x, y, z ); }
-        static setValues ( outV3, x, y, z ) { 
-            outV3[_x_] = x;
-            outV3[_y_] = y;
-            outV3[_z_] = z;  
-            return outV3;
+        static setValues ( out_vec3, x, y, z ) { 
+            out_vec3[_x_] = x;
+            out_vec3[_y_] = y;
+            out_vec3[_z_] = z;  
+            return out_vec3;
         }
         
 
-        add ( vA, vB ) { return vec3.add( this, vA, vB ); }
-        static add ( outV3, vA, vB ) {
-            if ( vB === undefined ) vB = outV3;
+        add ( in_vec3_B, in_vec3_A ) { return vec3.add( this, in_vec3_B, in_vec3_A ); }
+        static add ( out_vec3, in_vec3_B, in_vec3_A ) {
+            if ( in_vec3_A === undefined ) in_vec3_A = out_vec3;
 
-            outV3[_x_] = vA[_x_] + vB[_x_];
-            outV3[_y_] = vA[_y_] + vB[_y_];
-            outV3[_z_] = vA[_z_] + vB[_z_];
-            return outV3;
+            out_vec3[_x_] = in_vec3_A[_x_] + in_vec3_B[_x_];
+            out_vec3[_y_] = in_vec3_A[_y_] + in_vec3_B[_y_];
+            out_vec3[_z_] = in_vec3_A[_z_] + in_vec3_B[_z_];
+            return out_vec3;
         }
         
 
         addValues( x, y, z ) { return vec3.addValues( this, x, y, z ); }
-        static addValues ( outV3, x, y, z ) {
-            outV3[_x_] += x;
-            outV3[_y_] += y;
-            outV3[_z_] += z;
-            return outV3;
+        static addValues ( out_vec3, x, y, z, in_vec3 ) {
+            if ( in_vec3 === undefined ) in_vec3 = out_vec3;
+
+            out_vec3[_x_] = in_vec3[_x_] + x;
+            out_vec3[_y_] = in_vec3[_y_] + y;
+            out_vec3[_z_] = in_vec3[_z_] + z;
+            return out_vec3;
         }
         
 
-        addScalar ( inS, inV3 ) { return vec3.addScalar( this, inS, inV3 ); }
-        static addScalar ( outV3, inS, inV3 ) {
-            if ( inV3 === undefined ) inV3 = outV3;
+        addScalar ( s, in_vec3 ) { return vec3.addScalar( this, s, in_vec3 ); }
+        static addScalar ( out_vec3, inS, in_vec3 ) {
+            if ( in_vec3 === undefined ) in_vec3 = out_vec3;
 
-            outV3[_x_] = inV3[_x_] + inS;
-            outV3[_y_] = inV3[_y_] + inS;
-            outV3[_z_] = inV3[_z_] + inS;
-            return outV3;
+            out_vec3[_x_] = in_vec3[_x_] + s;
+            out_vec3[_y_] = in_vec3[_y_] + s;
+            out_vec3[_z_] = in_vec3[_z_] + s;
+            return out_vec3;
         }
         
 
-        sub ( vA, vB ) { return vec3.sub( this, vA, vB ); }
-        static sub ( outV3, vA, vB ) {
-            if ( vB === undefined ) vB = outV3;
+        sub ( in_vec3_B, in_vec3_A ) { return vec3.sub( this, in_vec3_B, in_vec3_A ); }
+        static sub ( out_vec3, in_vec3_B, in_vec3_A ) {
+            if ( in_vec3_A === undefined ) in_vec3_A = out_vec3;
 
-            outV3[_x_] = vB[_x_] - vA[_x_];
-            outV3[_y_] = vB[_y_] - vA[_y_];
-            outV3[_z_] = vB[_z_] - vA[_z_];
-            return outV3;
+            out_vec3[_x_] = in_vec3_A[_x_] - in_vec3_B[_x_];
+            out_vec3[_y_] = in_vec3_A[_y_] - in_vec3_B[_y_];
+            out_vec3[_z_] = in_vec3_A[_z_] - in_vec3_B[_z_];
+            return out_vec3;
         }
         
 
-        multiply ( vA, vB ) { return vec3.multiply( this, vA, vB ); }
-        static multiply ( outV3, vA, vB ) {
-            if ( vB === undefined ) vB = outV3;
+        multiply ( in_vec3_B, in_vec3_A ) { return vec3.multiply( this, in_vec3_B, in_vec3_A ); }
+        static multiply ( out_vec3, in_vec3_B, in_vec3_A ) {
+            if ( in_vec3_A === undefined ) in_vec3_A = out_vec3;
 
-            outV3[_x_] = vA[_x_] * vB[_x_];
-            outV3[_y_] = vA[_y_] * vB[_y_];
-            outV3[_z_] = vA[_z_] * vB[_z_];
-            return outV3;
+            out_vec3[_x_] = in_vec3_A[_x_] * in_vec3_B[_x_];
+            out_vec3[_y_] = in_vec3_A[_y_] * in_vec3_B[_y_];
+            out_vec3[_z_] = in_vec3_A[_z_] * in_vec3_B[_z_];
+            return out_vec3;
+        }
+
+        multiplyValues ( x, y, z, in_vec3_A ) { return vec3.multiplyValues( this, x, y, z, in_vec3_A ); }
+        static multiplyValues ( out_vec3, x, y, z, in_vec3_A ) {
+            if ( in_vec3_A === undefined ) in_vec3_A = out_vec3;
+
+            out_vec3[_x_] = in_vec3_A[_x_] * x;
+            out_vec3[_y_] = in_vec3_A[_y_] * y;
+            out_vec3[_z_] = in_vec3_A[_z_] * z;
+            return out_vec3;
         }
         
 
-        multiplyScalar ( inS, inV3 ) { return vec3.multiplyScalar( this, inS, inV3 ); }
-        static multiplyScalar ( outV3, inS, inV3 ) {
-            if ( inV3 === undefined ) inV3 = outV3;
+        multiplyScalar ( s, in_vec3 ) { return vec3.multiplyScalar( this, s, in_vec3 ); }
+        static multiplyScalar ( out_vec3, s, in_vec3 ) {
+            if ( in_vec3 === undefined ) in_vec3 = out_vec3;
 
-            outV3[_x_] = inV3[_x_] * inS;
-            outV3[_y_] = inV3[_y_] * inS;
-            outV3[_z_] = inV3[_z_] * inS;
-            return outV3;
+            out_vec3[_x_] = in_vec3[_x_] * s;
+            out_vec3[_y_] = in_vec3[_y_] * s;
+            out_vec3[_z_] = in_vec3[_z_] * s;
+            return out_vec3;
         }
         
 
-        multiplyMat3 ( inM3, inV3 ) { return vec3.multiplyMat3( this, inM3, inV3 ); }
-        static multiplyMat3 ( outV3, inM3, inV3 ) {
-            if ( inV3 === undefined ) inV3 = outV3;
+        multiplyMat3 ( in_mat3, in_vec3 ) { return vec3.multiplyMat3( this, in_mat3, in_vec3 ); }
+        static multiplyMat3 ( out_vec3, in_mat3, in_vec3 ) {
+            if ( in_vec3 === undefined ) in_vec3 = out_vec3;
 
-            let x = outV3[_x_];
-            let y = outV3[_y_];
-            let z = outV3[_z_];
+            let x = out_vec3[_x_];
+            let y = out_vec3[_y_];
+            let z = out_vec3[_z_];
 
-            outV3[_x_] = x * inM3[ 0 ] + y * inM3[ 3 ] + z * inM3[ 6 ];
-            outV3[_y_] = x * inM3[ 1 ] + y * inM3[ 4 ] + z * inM3[ 7 ];
-            outV3[_z_] = x * inM3[ 2 ] + y * inM3[ 5 ] + z * inM3[ 9 ];
+            out_vec3[_x_] = x * in_mat3[ 0 ] + y * in_mat3[ 3 ] + z * in_mat3[ 6 ];
+            out_vec3[_y_] = x * in_mat3[ 1 ] + y * in_mat3[ 4 ] + z * in_mat3[ 7 ];
+            out_vec3[_z_] = x * in_mat3[ 2 ] + y * in_mat3[ 5 ] + z * in_mat3[ 9 ];
 
-            return outV3;
+            return out_vec3;
         }
         
         divide ( vA, vB ) { return vec3.divide( this, vA, vB ); }
-        static divide ( outV3, vA, vB ) {
-            if ( vB === undefined ) vB = outV3;
+        static divide ( out_vec3, vA, vB ) {
+            if ( vB === undefined ) vB = out_vec3;
 
-            outV3[_x_] = vA[_x_] / vB[_x_];
-            outV3[_y_] = vA[_y_] / vB[_y_];
-            outV3[_z_] = vA[_z_] / vB[_z_];
+            out_vec3[_x_] = vA[_x_] / vB[_x_];
+            out_vec3[_y_] = vA[_y_] / vB[_y_];
+            out_vec3[_z_] = vA[_z_] / vB[_z_];
             return this;
         }
 
-        divideScalar ( inS, inV3 ) { return vec3.divideScalar( this, inS, inV3 ); }
-        static divideScalar ( outV3, inS, inV3 ) {
-            if ( inV3 === undefined ) inV3 = outV3;
+        divideScalar ( s, in_vec3 ) { return vec3.divideScalar( this, s, in_vec3 ); }
+        static divideScalar ( out_vec3, s, in_vec3 ) {
+            if ( in_vec3 === undefined ) in_vec3 = out_vec3;
 
-            outV3[_x_] = inV3[_x_] / inS;
-            outV3[_y_] = inV3[_y_] / inS;
-            outV3[_z_] = inV3[_z_] / inS;
-            return outV3
+            out_vec3[_x_] = in_vec3[_x_] / s;
+            out_vec3[_y_] = in_vec3[_y_] / s;
+            out_vec3[_z_] = in_vec3[_z_] / s;
+            return out_vec3
         }
         
         dot ( vB ) { return vec3.dot( this, vB ); }
@@ -155,101 +172,85 @@ define( [
         }
         
         cross ( vA, vB ) { return vec3.cross( this, vA, vB ); }
-        static cross ( outV3, vA, vB ) {
-            if ( vB === undefined ) vB = CACHE_VEC3.set( outV3 );
+        static cross ( out_vec3, vA, vB ) {
+            if ( vB === undefined ) vB = CACHE_VEC3.set( out_vec3 );
 
-            outV3[_x_] = vA[_y_] * vB[_z_] - vA[_z_] * vB[_y_];
-            outV3[_y_] = vA[_z_] * vB[_x_] - vA[_x_] * vB[_z_];
-            outV3[_z_] = vA[_x_] * vB[_y_] - vA[_y_] * vB[_x_];  
-            return outV3;
+            out_vec3[_x_] = vA[_y_] * vB[_z_] - vA[_z_] * vB[_y_];
+            out_vec3[_y_] = vA[_z_] * vB[_x_] - vA[_x_] * vB[_z_];
+            out_vec3[_z_] = vA[_x_] * vB[_y_] - vA[_y_] * vB[_x_];  
+            return out_vec3;
         }
         
-        
-        
-        lerp ( s, vA, vB ) { return vec3.lerp( this, s, vA, vB ); }
-        static lerp ( outV3, s, vA, vB ) {
-            if ( vB === undefined ) vB = outV3;
-            let alpha = s;
+        lerp ( alpha, vA, vB ) { return vec3.lerp( this, alpha, vA, vB ); }
+        static lerp ( out_vec3, alpha, vA, vB ) {
+            if ( vB === undefined ) vB = out_vec3;
+            
 
-            outV3[_x_] = vA[_x_] + ( vB[_x_] - vA[_x_] ) * alpha;
-            outV3[_y_] = vA[_y_] + ( vB[_y_] - vA[_y_] ) * alpha;
-            outV3[_z_] = vA[_z_] + ( vB[_z_] - vA[_z_] ) * alpha;
-            return outV3;
+            out_vec3[_x_] = vA[_x_] + ( vB[_x_] - vA[_x_] ) * alpha;
+            out_vec3[_y_] = vA[_y_] + ( vB[_y_] - vA[_y_] ) * alpha;
+            out_vec3[_z_] = vA[_z_] + ( vB[_z_] - vA[_z_] ) * alpha;
+            return out_vec3;
         }
         
         normalize ( ) { return vec3.normalize( this ); } 
-        static normalize ( outV3 ) {
-            let length = vec3.getLength( outV3 );
-            if ( length === 0 ) return outV3;
-            else return vec3.multiplyScalar( outV3, 1 / length );
+        static normalize ( out_vec3 ) {
+            let length = vec3.getLength( out_vec3 );
+            if ( length === 0 ) return out_vec3;
+            else return vec3.multiplyScalar( out_vec3, 1 / length );
         }
         
-        multiplyQuat4 ( inQ4, inV3 ) { return vec3.applyQuat4( this, inQ4, inV3 ); }
-        static multiplyQuat4 ( outV3, inQ4, inV3 ) {
-            if ( inV3 === undefined ) inV3 = CACHE_VEC3.set( outV3 );
+        multiplyQuat ( in_quat, in_vec3 ) { return vec3.applyQuat( this, in_quat, in_vec3 ); }
+        static multiplyQuat4 ( out_vec3, in_quat, in_vec3 ) {
+            if ( in_vec3 === undefined ) in_vec3 = vec3.set( CACHE_VEC3, out_vec3 );
 
-            let q = inQ4;
-            let v = inV3;
+            let x = in_quat[_w_] * in_vec3[_x_] + in_quat[_y_] * in_vec3[_z_] - in_quat[_z_] * in_vec3[_y_];
+            let y = in_quat[_w_] * in_vec3[_y_] + in_quat[_z_] * in_vec3[_x_] - in_quat[_x_] * in_vec3[_z_];
+            let z = in_quat[_w_] * in_vec3[_z_] + in_quat[_x_] * in_vec3[_y_] - in_quat[_y_] * in_vec3[_x_];
+            let w = in_quat[_x_] * in_vec3[_x_] - in_quat[_y_] * in_vec3[_y_] - in_quat[_z_] * in_vec3[_z_];
 
-            let x = q[_w_] * v[_x_] + q[_y_] * v[_z_] - q[_z_] * v[_y_];
-            let y = q[_w_] * v[_y_] + q[_z_] * v[_x_] - q[_x_] * v[_z_];
-            let z = q[_w_] * v[_z_] + q[_x_] * v[_y_] - q[_y_] * v[_x_];
-            let w = q[_x_] * v[_x_] - q[_y_] * v[_y_] - q[_z_] * v[_z_];
-
-            outV3[_x_] = x * q[_w_] + w * -q[_x_] + y * -q[_z_] - z * -q[_y_];
-            outV3[_y_] = y * q[_w_] + w * -q[_y_] + z * -q[_x_] - x * -q[_z_];
-            outV3[_z_] = z * q[_w_] + w * -q[_z_] + x * -q[_y_] - y * -q[_x_];
-            
-            return outV3;
+            out_vec3[_x_] = x * in_quat[_w_] + w * -in_quat[_x_] + y * -in_quat[_z_] - z * -in_quat[_y_];
+            out_vec3[_y_] = y * in_quat[_w_] + w * -in_quat[_y_] + z * -in_quat[_x_] - x * -in_quat[_z_];
+            out_vec3[_z_] = z * in_quat[_w_] + w * -in_quat[_z_] + x * -in_quat[_y_] - y * -in_quat[_x_];
+            return out_vec3;
         }
         
-        applyProjection ( inM4 ) { return vec3.applyProjection( this, inM4 ); }
-        static applyProjection ( outV3, m ) {
-            let x = outV3[_x_];
-            let y = outV3[_y_];
-            let z = outV3[_z_];
+        applyProjection ( in_mat4 ) { return vec3.applyProjection( this, in_mat4 ); }
+        static applyProjection ( out_vec3, in_mat4 ) {
+            let x = out_vec3[_x_];
+            let y = out_vec3[_y_];
+            let z = out_vec3[_z_];
 
-            let d = 1 / ( m[_0_3_] * x + m[_1_3_] * y + m[_2_3_] * z + m[_3_3_] );
-            outV3[_x_] = ( m[_0_0_] * x + m[_1_0_] * y + m[_2_0_] * z + m[_3_0_] ) * d;
-            outV3[_y_] = ( m[_0_1_] * x + m[_1_1_] * y + m[_2_1_] * z + m[_3_1_] ) * d;
-            outV3[_z_] = ( m[_0_2_] * x + m[_1_2_] * y + m[_2_2_] * z + m[_3_2_] ) * d;
-
-            /*
-
-            let d = 1 / ( m[_3_0_] * x + m[_3_1_] * y + m[_3_2_] * z + m[_3_3_] );
-            
-            this[_x_] = ( m[_0_0_] * x + m[_0_1_] * y + m[_0_2_] * z + m[_0_3_] ) * d;
-            this[_y_] = ( m[_1_0_] * x + m[_1_1_] * y + m[_1_2_] * z + m[_1_3_] ) * d;
-            this[_z_] = ( m[_2_0_] * x + m[_2_1_] * y + m[_2_2_] * z + m[_2_3_] ) * d;
-            */
-            
-            return outV3;
+            let d = 1 / ( in_mat4[_0_3_] * x + in_mat4[_1_3_] * y + in_mat4[_2_3_] * z + in_mat4[_3_3_] );
+            out_vec3[_x_] = ( in_mat4[_0_0_] * x + in_mat4[_1_0_] * y + in_mat4[_2_0_] * z + in_mat4[_3_0_] ) * d;
+            out_vec3[_y_] = ( in_mat4[_0_1_] * x + in_mat4[_1_1_] * y + in_mat4[_2_1_] * z + in_mat4[_3_1_] ) * d;
+            out_vec3[_z_] = ( in_mat4[_0_2_] * x + in_mat4[_1_2_] * y + in_mat4[_2_2_] * z + in_mat4[_3_2_] ) * d;
+            return out_vec3;
         }
         
         getLength ( ) { return vec3.getLength( this ); }
-        static getLength ( inV3 ) {
+        static getLength ( in_vec3 ) {
             return Math.sqrt(
-                inV3[_x_] * inV3[_x_] +
-                inV3[_y_] * inV3[_y_] +
-                inV3[_z_] * inV3[_z_]
+                in_vec3[_x_] * in_vec3[_x_] +
+                in_vec3[_y_] * in_vec3[_y_] +
+                in_vec3[_z_] * in_vec3[_z_]
             );  
         }
         
         getLengthSq ( ) { return vec3.getLengthSq( this ); }
-        static getLengthSq ( inV3 ) {
+        static getLengthSq ( in_vec3 ) {
             return ( 
-                inV3[_x_] * inV3[_x_] +
-                inV3[_y_] * inV3[_y_] +
-                inV3[_z_] * inV3[_z_]
+                in_vec3[_x_] * in_vec3[_x_] +
+                in_vec3[_y_] * in_vec3[_y_] +
+                in_vec3[_z_] * in_vec3[_z_]
             );
         }
         
         getLengthManhattan ( ) { return vec3.getLengthManhattan( this ); }
-        static getLengthManhattan ( inV3 ) {
+        static getLengthManhattan ( in_vec3 ) {
             return (
-                Math.abs( inV3[_x_] ) +
-                Math.abs( inV3[_y_] ) +
-                Math.abs( inV3[_z_] )
+                Math.abs( in_vec3[_x_] ) +
+                Math.abs( in_vec3[_y_] ) +
+                Math.abs( in_vec3[_z_] )
             );
         }
         
