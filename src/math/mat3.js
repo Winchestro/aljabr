@@ -5,9 +5,9 @@ define( [
 ) {
     "use strict";
 
-    const _0_0_ = 0; const _1_0_ = 3; const _2_0_ = 6;
-    const _0_1_ = 1; const _1_1_ = 4; const _2_1_ = 7;
-    const _0_2_ = 2; const _1_2_ = 5; const _2_2_ = 8;
+    const _0_0_ = 0; const _0_1_ = 1; const _0_2_ = 2;
+    const _1_0_ = 3; const _1_1_ = 4; const _1_2_ = 5;
+    const _2_0_ = 6; const _2_1_ = 7; const _2_2_ = 8;
     
     const _x_ = 0;
     const _y_ = 1;
@@ -132,6 +132,50 @@ define( [
             return out_mat3;
         }
 
+        invert        (           in_mat3 ) { return mat3.invert( this, in_mat3 ); }
+        static invert ( out_mat3, in_mat3 ) {
+            if ( in_mat3 === undefined ) in_mat3 = mat3.transpose( CACHE_MAT3, out_mat3 );
+            else                         in_mat3 = mat3.transpose( in_mat3 );
+            
+            out_mat3[_0_0_] = in_mat3[_2_2_] * in_mat3[_1_1_] - in_mat3[_1_2_] * in_mat3[_2_1_];
+            out_mat3[_0_1_] = in_mat3[_2_0_] * in_mat3[_1_2_] - in_mat3[_2_2_] * in_mat3[_1_0_];
+            out_mat3[_0_2_] = in_mat3[_2_1_] * in_mat3[_1_0_] - in_mat3[_2_0_] * in_mat3[_1_1_];
+            out_mat3[_1_0_] = in_mat3[_2_1_] * in_mat3[_0_2_] - in_mat3[_2_2_] * in_mat3[_0_1_];
+            out_mat3[_1_1_] = in_mat3[_2_2_] * in_mat3[_0_0_] - in_mat3[_2_0_] * in_mat3[_0_2_];
+            out_mat3[_1_2_] = in_mat3[_2_0_] * in_mat3[_0_1_] - in_mat3[_2_1_] * in_mat3[_0_0_];
+            out_mat3[_2_0_] = in_mat3[_1_2_] * in_mat3[_0_1_] - in_mat3[_1_1_] * in_mat3[_0_2_];
+            out_mat3[_2_1_] = in_mat3[_1_0_] * in_mat3[_0_2_] - in_mat3[_0_0_] * in_mat3[_1_2_];
+            out_mat3[_2_2_] = in_mat3[_1_1_] * in_mat3[_0_0_] - in_mat3[_1_0_] * in_mat3[_0_1_];
+
+            let determinant = in_mat3[_0_0_] * out_mat3[_0_0_]
+                            + in_mat3[_1_0_] * out_mat3[_1_0_]
+                            + in_mat3[_2_0_] * out_mat3[_2_0_];
+            
+            if( abs( determinant ) < EPSILON ) return mat3.makeIdentity( out_mat3 );
+            else return mat3.multiplyScalar( out_mat3, 1 / determinant );
+        }
+
+        translate              (           in_vec2, in_mat3 ) { return mat3.translateValues( this,     in_vec2[_x_], in_vec2[_y_], in_mat3 ); }
+        translateValues        (           x, y,    in_mat3 ) { return mat3.translateValues( this,     x,            y,            in_mat3 ); }
+        static translate       ( out_mat3, in_vec2, in_mat3 ) { return mat3.translateValues( out_mat3, in_vec2[_x_], in_vec2[_y_], in_mat3 ); }
+        static translateValues ( out_mat3, x, y,    in_mat3 ) {
+            if ( in_mat3 === undefined ) in_mat3 = mat3.set( CACHE_MAT3, out_mat3 );
+
+            out_mat3[_0_0_] = in_mat3[_0_0_];
+            out_mat3[_0_1_] = in_mat3[_0_1_];
+            out_mat3[_0_2_] = in_mat3[_0_2_];
+
+            out_mat3[_1_0_] = in_mat3[_1_0_];
+            out_mat3[_1_1_] = in_mat3[_1_1_];
+            out_mat3[_1_2_] = in_mat3[_1_2_];
+
+            out_mat3[_2_0_] = in_mat3[_0_0_] * x + in_mat3[_1_0_] * y + in_mat3[_2_0_];
+            out_mat3[_2_1_] = in_mat3[_0_1_] * x + in_mat3[_1_1_] * y + in_mat3[_2_1_];
+            out_mat3[_2_2_] = in_mat3[_0_2_] * x + in_mat3[_1_2_] * y + in_mat3[_2_2_];
+
+            return out_mat3;
+        }
+
         makeIdentity (  ) { return mat3.makeIdentity( this ); }
         static makeIdentity ( out_mat3 ) {
             out_mat3[_0_0_] = 1;
@@ -150,6 +194,7 @@ define( [
         makeTranslationValues        (           x, y, z ) { return mat3.makeTranslationValues( this,     x,            y,            z            ); }
         static makeTranslation       ( out_mat3, in_vec3 ) { return mat3.makeTranslationValues( out_mat3, in_vec3[_x_], in_vec3[_y_], in_vec3[_z_] ); }
         static makeTranslationValues ( out_mat3, x, y, z ) {
+            if ( z === undefined ) z = 1;
             out_mat3[_0_0_] = 1;
             out_mat3[_0_1_] = 0;
             out_mat3[_0_2_] = 0;
@@ -167,7 +212,7 @@ define( [
         static makeScale       ( out_mat3, in_vec3 ) { return mat3.makeScaleValues( out_mat3, in_vec3[_x_], in_vec3[_y_], in_vec3[_z_] ); }
         static makeScaleValues ( out_mat3, x, y, z ) {
             if ( y === undefined ) y = x;
-            if ( z === undefined ) z = x;
+            if ( z === undefined ) z = 1;
 
             out_mat3[_0_0_] = x;
             out_mat3[_0_1_] = 0;
@@ -180,6 +225,8 @@ define( [
             out_mat3[_2_2_] = z;
             return out_mat3;
         }
+
+        
     }
 
 

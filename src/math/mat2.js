@@ -5,8 +5,8 @@ define ( [
 ) {
     "use strict";
 
-    const _0_0_ = 0; const _1_0_ = 2;
-    const _0_1_ = 1; const _1_1_ = 3;
+    const _0_0_ = 0; const _0_1_ = 1;
+    const _1_0_ = 2; const _1_1_ = 3;
 
     class mat2 extends Float32Array {
         constructor ( buffer, byteLength ) {
