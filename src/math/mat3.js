@@ -12,60 +12,54 @@ define ( function module ( ) {
             this.makeIdentity();
         }
 
-        static set ( outM3, inM3 ) {
-            return mat3.prototype.set.call( outM3 );
+        set ( in_mat3 ) { return mat3.set( this, in_mat3 );
         }
-        set ( inM3 ) {
-            this[_0_0_] = inM3[_0_0_];
-            this[_0_1_] = inM3[_0_1_];
-            this[_0_2_] = inM3[_0_2_];
-            this[_1_0_] = inM3[_1_0_];
-            this[_1_1_] = inM3[_1_1_];
-            this[_1_2_] = inM3[_1_2_];
-            this[_2_0_] = inM3[_2_0_];
-            this[_2_1_] = inM3[_2_1_];
-            this[_2_2_] = inM3[_2_2_];
-            return this;
-        }
-
-        static setValues ( outM3, s_0_0, s_0_1, s_0_2, s_1_0, s_1_1, s_1_2, s_2_0, s_2_1, s_2_2 ) {
-            return mat3.prototype.setValues.call( outM3, s_0_0, s_0_1, s_0_2, s_1_0, s_1_1, s_1_2, s_2_0, s_2_1, s_2_2 );
-        }
-        setValues ( s_0_0, s_0_1, s_0_2, s_1_0, s_1_1, s_1_2, s_2_0, s_2_1, s_2_2 ) {
-            this[_0_0_] = s_0_0;
-            this[_0_1_] = s_0_1;
-            this[_0_2_] = s_0_2;
-            this[_1_0_] = s_1_0;
-            this[_1_1_] = s_1_1;
-            this[_1_2_] = s_1_2;
-            this[_2_0_] = s_2_0;
-            this[_2_1_] = s_2_1;
-            this[_2_2_] = s_2_2;
-            return this;
+        static set ( out_mat3, in_mat3 ) {
+            out_mat3[_0_0_] = in_mat3[_0_0_];
+            out_mat3[_0_1_] = in_mat3[_0_1_];
+            out_mat3[_0_2_] = in_mat3[_0_2_];
+            out_mat3[_1_0_] = in_mat3[_1_0_];
+            out_mat3[_1_1_] = in_mat3[_1_1_];
+            out_mat3[_1_2_] = in_mat3[_1_2_];
+            out_mat3[_2_0_] = in_mat3[_2_0_];
+            out_mat3[_2_1_] = in_mat3[_2_1_];
+            out_mat3[_2_2_] = in_mat3[_2_2_];
+            return out_mat3;
         }
 
-        static transpose ( outM3 ) {
-            return mat3.prototype.transpose.call( outM3 );
+        setValues ( _00, _01, _02, _10, _11, _12, _20, _21, _22 ) { return mat3.setValues( this,  _00, _01, _02, _10, _11, _12, _20, _21, _22 );
         }
-        transpose ( inM3 ) {
-            if ( inM3 === undefined ) inM3 = CACHE_MAT3.set( this );
-
-            this[_0_0_] = inM3[_0_0_];
-            this[_0_1_] = inM3[_1_0_];
-            this[_0_2_] = inM3[_2_0_];
-            this[_1_0_] = inM3[_0_1_];
-            this[_1_1_] = inM3[_1_1_];
-            this[_1_2_] = inM3[_2_1_];
-            this[_2_0_] = inM3[_0_2_];
-            this[_2_1_] = inM3[_1_2_];
-            this[_2_2_] = inM3[_2_2_];
-            return this;
+        static setValues ( out_mat3, _00, _01, _02, _10, _11, _12, _20, _21, _22_2 ) {
+            out_mat3[_0_0_] = _00;
+            out_mat3[_0_1_] = _01;
+            out_mat3[_0_2_] = _02;
+            out_mat3[_1_0_] = _10;
+            out_mat3[_1_1_] = _11;
+            out_mat3[_1_2_] = _12;
+            out_mat3[_2_0_] = _20;
+            out_mat3[_2_1_] = _21;
+            out_mat3[_2_2_] = _22;
+            return out_mat3;
         }
 
-        static add ( outM3, inM3 ) {
-            return mat3.prototype.add.call( outM3, inM3 );
+        transpose ( ) { return mat3.transpose( this ); }
+        static transpose ( out_mat3, in_mat3 ) {
+            if ( in_mat3 === undefined ) in_mat3 = mat3.set( CACHE_MAT3, out_mat3 );
+
+            out_mat3[_0_0_] = in_mat3[_0_0_];
+            out_mat3[_0_1_] = in_mat3[_1_0_];
+            out_mat3[_0_2_] = in_mat3[_2_0_];
+            out_mat3[_1_0_] = in_mat3[_0_1_];
+            out_mat3[_1_1_] = in_mat3[_1_1_];
+            out_mat3[_1_2_] = in_mat3[_2_1_];
+            out_mat3[_2_0_] = in_mat3[_0_2_];
+            out_mat3[_2_1_] = in_mat3[_1_2_];
+            out_mat3[_2_2_] = in_mat3[_2_2_];
+            return out_mat3;
         }
-        add ( inM3_a, inM3_b ) {
+
+        add ( in_mat3 ) { return mat3.add( this, in_mat3 ); }
+        static add ( inM3_a, inM3_b ) {
             if ( inM3_b === undefined ) inM3_b = this;
 
             this[_0_0_] = inM3_a[_0_0_] + inM3_b[_0_0_];
