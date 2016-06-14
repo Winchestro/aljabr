@@ -401,45 +401,49 @@ define( [
             return a1 * b1 - a2 * b2 + a3 * b3 + a4 * b4 - a5 * b5 + a6 * b6;
         }
         
-        translate              (           in_vec3 ) { return mat4.translateValues( this,     in_vec3[_x_], in_vec3[_y_], in_vec3[_z_] ); }
-        translateValues        (           x, y, z ) { return mat4.translateValues( this,     x,            y,            z            ); }
-        static translate       ( out_mat4, in_vec3 ) { return mat4.translateValues( out_mat4, in_vec3[_x_], in_vec3[_y_], in_vec3[_z_] ); }
-        static translateValues ( out_mat4, x, y, z ) {
-            let a = mat4.set( CACHE_MAT4, out_mat4 );
+        translate              (           in_vec3, in_mat4 ) { return mat4.translateValues( this,     in_vec3[_x_], in_vec3[_y_], in_vec3[_z_], in_mat4 ); }
+        translateValues        (           x, y, z, in_mat4 ) { return mat4.translateValues( this,     x,            y,            z,            in_mat4 ); }
+        static translate       ( out_mat4, in_vec3, in_mat4 ) { return mat4.translateValues( out_mat4, in_vec3[_x_], in_vec3[_y_], in_vec3[_z_], in_mat4 ); }
+        static translateValues ( out_mat4, x, y, z, in_mat4 ) {
+            if ( in_mat4 === undefined ) in_mat4 = mat4.set( CACHE_MAT4, out_mat4 );
 
-            out_mat4[_3_0_] = a[_0_0_] * x + a[_1_0_] * y + a[_2_0_] * z + a[_3_0_];
-            out_mat4[_3_1_] = a[_0_1_] * x + a[_1_1_] * y + a[_2_1_] * z + a[_3_1_];
-            out_mat4[_3_2_] = a[_0_2_] * x + a[_1_2_] * y + a[_2_2_] * z + a[_3_2_];
-            out_mat4[_3_3_] = a[_0_3_] * x + a[_1_3_] * y + a[_2_3_] * z + a[_3_3_];
+            out_mat4[_3_0_] = in_mat4[_0_0_] * x + in_mat4[_1_0_] * y + in_mat4[_2_0_] * z + in_mat4[_3_0_];
+            out_mat4[_3_1_] = in_mat4[_0_1_] * x + in_mat4[_1_1_] * y + in_mat4[_2_1_] * z + in_mat4[_3_1_];
+            out_mat4[_3_2_] = in_mat4[_0_2_] * x + in_mat4[_1_2_] * y + in_mat4[_2_2_] * z + in_mat4[_3_2_];
+            out_mat4[_3_3_] = in_mat4[_0_3_] * x + in_mat4[_1_3_] * y + in_mat4[_2_3_] * z + in_mat4[_3_3_];
 
             return out_mat4;
         }
 
-        scale              (           in_vec3 ) { return mat4.scaleValues( this,     in_vec3[_x_], in_vec3[_y_], in_vec3[_z_] ); }
-        scaleValues        (           x, y, z ) { return mat4.scaleValues( this,     x,            y,            z            ); }
-        static scale       ( out_mat4, in_vec3 ) { return mat4.scaleValues( out_mat4, in_vec3[_x_], in_vec3[_y_], in_vec3[_z_] ); }
-        static scaleValues ( out_mat4, x, y, z ) {
+        scale              (           in_vec3, in_mat4 ) { return mat4.scaleValues( this,     in_vec3[_x_], in_vec3[_y_], in_vec3[_z_], in_mat4 ); }
+        scaleValues        (           x, y, z, in_mat4 ) { return mat4.scaleValues( this,     x,            y,            z,            in_mat4 ); }
+        static scale       ( out_mat4, in_vec3, in_mat4 ) { return mat4.scaleValues( out_mat4, in_vec3[_x_], in_vec3[_y_], in_vec3[_z_], in_mat4 ); }
+        static scaleValues ( out_mat4, x, y, z, in_mat4 ) {
             if ( y === undefined ) y = x;
             if ( z === undefined ) z = x;
-            out_mat4[_0_0_] *= x;
-            out_mat4[_0_1_] *= x;
-            out_mat4[_0_2_] *= x;
-            out_mat4[_0_3_] *= x;
-            out_mat4[_1_0_] *= y;
-            out_mat4[_1_1_] *= y;
-            out_mat4[_1_2_] *= y;
-            out_mat4[_1_3_] *= y;
-            out_mat4[_2_0_] *= z;
-            out_mat4[_2_1_] *= z;
-            out_mat4[_2_2_] *= z;
-            out_mat4[_2_3_] *= z;
+            if ( in_mat4 === undefined ) in_mat4 = out_mat4;
+            
+            out_mat4[_0_0_] = in_mat4[_0_0_] * x;
+            out_mat4[_0_1_] = in_mat4[_0_1_] * x;
+            out_mat4[_0_2_] = in_mat4[_0_2_] * x;
+            out_mat4[_0_3_] = in_mat4[_0_3_] * x;
+            out_mat4[_1_0_] = in_mat4[_1_0_] * y;
+            out_mat4[_1_1_] = in_mat4[_1_1_] * y;
+            out_mat4[_1_2_] = in_mat4[_1_2_] * y;
+            out_mat4[_1_3_] = in_mat4[_1_3_] * y;
+            out_mat4[_2_0_] = in_mat4[_2_0_] * z;
+            out_mat4[_2_1_] = in_mat4[_2_1_] * z;
+            out_mat4[_2_2_] = in_mat4[_2_2_] * z;
+            out_mat4[_2_3_] = in_mat4[_2_3_] * z;
             return out_mat4;
         }
 
-        rotate              (           rad, in_vec3 ) { return mat4.rotateValues( this,     rad, in_vec3[_x_], in_vec3[_y_], in_vec3[_z_] ); }
-        rotateValues        (           rad, x, y, z ) { return mat4.rotateValues( this,     rad, x,            y,            z            ); }
-        static rotate       ( out_mat4, rad, in_vec3 ) { return mat4.rotateValues( out_mat4, rad, in_vec3[_x_], in_vec3[_y_], in_vec3[_z_] ); }
-        static rotateValues ( out_mat4, rad, x, y, z ) {
+        rotate              (           rad, in_vec3, in_mat4 ) { return mat4.rotateValues( this,     rad, in_vec3[_x_], in_vec3[_y_], in_vec3[_z_], in_mat4 ); }
+        rotateValues        (           rad, x, y, z, in_mat4 ) { return mat4.rotateValues( this,     rad, x,            y,            z,            in_mat4 ); }
+        static rotate       ( out_mat4, rad, in_vec3, in_mat4 ) { return mat4.rotateValues( out_mat4, rad, in_vec3[_x_], in_vec3[_y_], in_vec3[_z_], in_mat4 ); }
+        static rotateValues ( out_mat4, rad, x, y, z, in_mat4 ) {
+            if ( in_mat4 === undefined ) in_mat4 = mat4.set( CACHE_MAT4, out_mat4 );
+
             let length = sqrt( x * x + y * y + z * z );
             
             if ( abs( length ) < EPSILON ) return mat4.makeIdentity( out_mat4 );
@@ -453,24 +457,25 @@ define( [
             y *= length;
             z *= length;
             
+
             let r00 = x * x * t + c;     let r01 = x * y * t + z * s; let r02 = x * z * t - y * s;
             let r10 = y * x * t - z * s; let r11 = y * y * t + c;     let r12 = y * z * t + x * s;
             let r20 = z * x * t + y * s; let r21 = z * y * t - x * s; let r22 = z * z * t + c;
 
-            let a = CACHE_MAT4.set( out_mat4 );
             
-            out_mat4[_0_0_] = r00 * a[_0_0_] + r01 * a[_1_0_] + r02 * a[_2_0_];
-            out_mat4[_0_1_] = r00 * a[_0_1_] + r01 * a[_1_1_] + r02 * a[_2_1_];
-            out_mat4[_0_2_] = r00 * a[_0_2_] + r01 * a[_1_2_] + r02 * a[_2_2_];
-            out_mat4[_0_3_] = r00 * a[_0_3_] + r01 * a[_1_3_] + r02 * a[_2_3_];
-            out_mat4[_1_0_] = r10 * a[_0_0_] + r11 * a[_1_0_] + r12 * a[_2_0_];
-            out_mat4[_1_1_] = r10 * a[_0_1_] + r11 * a[_1_1_] + r12 * a[_2_1_];
-            out_mat4[_1_2_] = r10 * a[_0_2_] + r11 * a[_1_2_] + r12 * a[_2_2_];
-            out_mat4[_1_3_] = r10 * a[_0_3_] + r11 * a[_1_3_] + r12 * a[_2_3_];
-            out_mat4[_2_0_] = r20 * a[_0_0_] + r21 * a[_1_0_] + r22 * a[_2_0_];
-            out_mat4[_2_1_] = r20 * a[_0_1_] + r21 * a[_1_1_] + r22 * a[_2_1_];
-            out_mat4[_2_2_] = r20 * a[_0_2_] + r21 * a[_1_2_] + r22 * a[_2_2_];
-            out_mat4[_2_3_] = r20 * a[_0_3_] + r21 * a[_1_3_] + r22 * a[_2_3_];
+            
+            out_mat4[_0_0_] = r00 * in_mat4[_0_0_] + r01 * in_mat4[_1_0_] + r02 * in_mat4[_2_0_];
+            out_mat4[_0_1_] = r00 * in_mat4[_0_1_] + r01 * in_mat4[_1_1_] + r02 * in_mat4[_2_1_];
+            out_mat4[_0_2_] = r00 * in_mat4[_0_2_] + r01 * in_mat4[_1_2_] + r02 * in_mat4[_2_2_];
+            out_mat4[_0_3_] = r00 * in_mat4[_0_3_] + r01 * in_mat4[_1_3_] + r02 * in_mat4[_2_3_];
+            out_mat4[_1_0_] = r10 * in_mat4[_0_0_] + r11 * in_mat4[_1_0_] + r12 * in_mat4[_2_0_];
+            out_mat4[_1_1_] = r10 * in_mat4[_0_1_] + r11 * in_mat4[_1_1_] + r12 * in_mat4[_2_1_];
+            out_mat4[_1_2_] = r10 * in_mat4[_0_2_] + r11 * in_mat4[_1_2_] + r12 * in_mat4[_2_2_];
+            out_mat4[_1_3_] = r10 * in_mat4[_0_3_] + r11 * in_mat4[_1_3_] + r12 * in_mat4[_2_3_];
+            out_mat4[_2_0_] = r20 * in_mat4[_0_0_] + r21 * in_mat4[_1_0_] + r22 * in_mat4[_2_0_];
+            out_mat4[_2_1_] = r20 * in_mat4[_0_1_] + r21 * in_mat4[_1_1_] + r22 * in_mat4[_2_1_];
+            out_mat4[_2_2_] = r20 * in_mat4[_0_2_] + r21 * in_mat4[_1_2_] + r22 * in_mat4[_2_2_];
+            out_mat4[_2_3_] = r20 * in_mat4[_0_3_] + r21 * in_mat4[_1_3_] + r22 * in_mat4[_2_3_];
             return out_mat4;
         }
 
@@ -578,21 +583,15 @@ define( [
             y *= length;
             z *= length;
 
-            let r = CACHE_MAT3;
-                r[ 0 ] = x * x * t + c;     r[ 1 ] = x * y * t + z * s; r[ 2 ] = x * z * t - y * s;
-                r[ 3 ] = y * x * t - z * s; r[ 4 ] = y * y * t + c;     r[ 5 ] = y * z * t + x * s;
-                r[ 6 ] = z * x * t + y * s; r[ 7 ] = z * y * t - x * s; r[ 8 ] = z * z * t + c;
+            
+            let r00 = x * x * t + c;     let r01 = x * y * t + z * s; let r02 = x * z * t - y * s;
+            let r10 = y * x * t - z * s; let r11 = y * y * t + c;     let r12 = y * z * t + x * s;
+            let r20 = z * x * t + y * s; let r21 = z * y * t - x * s; let r22 = z * z * t + c;
             
             
-            out_mat4[_0_0_] = r[ 0 ]; 
-            out_mat4[_0_1_] = r[ 1 ];
-            out_mat4[_0_2_] = r[ 2 ];
-            out_mat4[_1_0_] = r[ 3 ]; 
-            out_mat4[_1_1_] = r[ 4 ];
-            out_mat4[_1_2_] = r[ 5 ];
-            out_mat4[_2_0_] = r[ 6 ]; 
-            out_mat4[_2_1_] = r[ 7 ];
-            out_mat4[_2_2_] = r[ 8 ]; 
+            out_mat4[_0_0_] = r00; out_mat4[_0_1_] = r01; out_mat4[_0_2_] = r02;
+            out_mat4[_1_0_] = r10; out_mat4[_1_1_] = r11; out_mat4[_1_2_] = r12;
+            out_mat4[_2_0_] = r20; out_mat4[_2_1_] = r21; out_mat4[_2_2_] = r22;
 
             return out_mat4;
         }
@@ -731,16 +730,14 @@ define( [
             y *= length;
             z *= length;
 
-            let r = CACHE_MAT3;
-                r[ 0 ] = x * x * t + c;     r[ 1 ] = x * y * t + z * s; r[ 2 ] = x * z * t - y * s;
-                r[ 3 ] = y * x * t - z * s; r[ 4 ] = y * y * t + c;     r[ 5 ] = y * z * t + x * s;
-                r[ 6 ] = z * x * t + y * s; r[ 7 ] = z * y * t - x * s; r[ 8 ] = z * z * t + c;
+            let r00 = x * x * t + c;     let r01 = x * y * t + z * s; let r02 = x * z * t - y * s;
+            let r10 = y * x * t - z * s; let r11 = y * y * t + c;     let r12 = y * z * t + x * s;
+            let r20 = z * x * t + y * s; let r21 = z * y * t - x * s; let r22 = z * z * t + c;
             
-            
-            out_mat4[_0_0_] = r[ 0 ]; out_mat4[_0_1_] = r[ 1 ]; out_mat4[_0_2_] = r[ 2 ]; out_mat4[_0_3_] = 0;
-            out_mat4[_1_0_] = r[ 3 ]; out_mat4[_1_1_] = r[ 4 ]; out_mat4[_1_2_] = r[ 5 ]; out_mat4[_1_3_] = 0;
-            out_mat4[_2_0_] = r[ 6 ]; out_mat4[_2_1_] = r[ 7 ]; out_mat4[_2_2_] = r[ 8 ]; out_mat4[_2_3_] = 0;
-            out_mat4[_3_0_] = 0;      out_mat4[_3_1_] = 0;      out_mat4[_3_2_] = 0;      out_mat4[_2_3_] = 1;
+            out_mat4[_0_0_] = r00; out_mat4[_0_1_] = r01; out_mat4[_0_2_] = r02; out_mat4[_0_3_] = 0;
+            out_mat4[_1_0_] = r10; out_mat4[_1_1_] = r11; out_mat4[_1_2_] = r12; out_mat4[_1_3_] = 0;
+            out_mat4[_2_0_] = r20; out_mat4[_2_1_] = r21; out_mat4[_2_2_] = r22; out_mat4[_2_3_] = 0;
+            out_mat4[_3_0_] = 0;   out_mat4[_3_1_] = 0;   out_mat4[_3_2_] = 0;   out_mat4[_3_3_] = 1;
 
             return out_mat4;
         }

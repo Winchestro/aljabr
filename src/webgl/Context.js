@@ -16,8 +16,8 @@ define( [
         antialias : false,
         premultipliedAlpha : false,
         preserveDrawingBuffer : false,
-        preferLowPowerToHighPerformance : false,
-        failIfMajorPerformanceCaveat : false
+        preferLowPowerToHighPerformance : true,
+        failIfMajorPerformanceCaveat : true
     };
 
     var gl = canvas.getContext("webgl", defaultOptions ) || canvas.getContext("experimental-webgl", defaultOptions );

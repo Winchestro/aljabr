@@ -56,7 +56,8 @@ define ( [
             while ( count-- ) this.createItem();
         }
         
-        createItem ( outgoingHalfedge = null ) {
+        createItem ( outgoingHalfedge ) {
+            if  ( outgoingHalfedge === undefined ) outgoingHalfedge = null;
             // experimental dynamic growth. buffer dynamically doubles in size. slower than pre-allocating in most cases
             if ( !this.pool.length ) this.allocateItems( this.maxLength );
 

@@ -177,6 +177,7 @@ define ( [
             
             return this;
         }
+        
         get UintConstructor ( ) {
             switch ( this.dataType ) {
                 case gl.UNSIGNED_BYTE : return Uint8Array;

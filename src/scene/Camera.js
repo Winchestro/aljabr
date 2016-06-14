@@ -246,8 +246,6 @@ define( [
         }
     }
 
-    
-
     def.Properties( Camera, {
         Perspective,
         Orthographic

@@ -130,15 +130,12 @@ define( [
 
         multiplyMat3 ( in_mat3, in_vec3 ) { return vec3.multiplyMat3( this, in_mat3, in_vec3 ); }
         static multiplyMat3 ( out_vec3, in_mat3, in_vec3 ) {
-            if ( in_vec3 === undefined ) in_vec3 = out_vec3;
+            if ( in_vec3 === undefined ) in_vec3 = vec3.set( CACHE_VEC3, out_vec3 );
+            else                         in_vec3 = vec3.set( CACHE_VEC3, in_vec3 );
 
-            let x = out_vec3[_x_];
-            let y = out_vec3[_y_];
-            let z = out_vec3[_z_];
-
-            out_vec3[_x_] = x * in_mat3[ 0 ] + y * in_mat3[ 3 ] + z * in_mat3[ 6 ];
-            out_vec3[_y_] = x * in_mat3[ 1 ] + y * in_mat3[ 4 ] + z * in_mat3[ 7 ];
-            out_vec3[_z_] = x * in_mat3[ 2 ] + y * in_mat3[ 5 ] + z * in_mat3[ 9 ];
+            out_vec3[_x_] = in_vec3[_x_] * in_mat3[ 0 ] + in_vec3[_y_] * in_mat3[ 3 ] + in_vec3[_z_] * in_mat3[ 6 ];
+            out_vec3[_y_] = in_vec3[_x_] * in_mat3[ 1 ] + in_vec3[_y_] * in_mat3[ 4 ] + in_vec3[_z_] * in_mat3[ 7 ];
+            out_vec3[_z_] = in_vec3[_x_] * in_mat3[ 2 ] + in_vec3[_y_] * in_mat3[ 5 ] + in_vec3[_z_] * in_mat3[ 9 ];
 
             return out_vec3;
         }
