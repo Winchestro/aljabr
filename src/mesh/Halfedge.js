@@ -7,29 +7,31 @@ define( [
 
     class Halfedge {
         constructor ( toVertex, oppositeHalfedge, nextHalfedge, previousHalfedge, face ) {
+
             this.toVertex = toVertex;
             this.oppositeHalfedge = oppositeHalfedge;
             this.nextHalfedge = nextHalfedge;
             this.previousHalfedge = previousHalfedge;
             this.face = face;
-            Object.seal( this );
+            //Object.seal( this );
         }
-        remove ( ) {
+        delete ( ) {
 
             this.list.destroyItem( this );
         }
 
         extrude ( ) {
             /*
-            f1    f1
-       x -> a <-> b -> y
-            f2    f2
+            f1   f1      f1   f1
+            a -> (b) -> (c) -> d 
+            f2   f2     f2   f2
 
-            f1   f1 
-            a <-> b 
-            f3   f3 
-            c <-> d
-            f2   f2
+            f1   f1      f1   f1
+            a -> (b) -> (c) -> d 
+            f3   f3     f3   f3
+            b <- (e) <- (f) <- c
+            f2   f2     f2    
+
 
             extrude along an edge, creating a new face in between
             */
@@ -55,9 +57,6 @@ define( [
             let hBD = edges.createItem();
 
             let f3 = faces.createItem();
-
-
-
         }
 
         splitFace ( halfedgeXY ) {

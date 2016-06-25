@@ -26,7 +26,7 @@ define ( [
             
             super();
             delete this.length;
-
+            
             class ListHalfedge extends Halfedge {};
             def.Property( ListHalfedge.prototype, "list", this );
 

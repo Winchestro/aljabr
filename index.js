@@ -194,17 +194,19 @@ function main ( $$dependencies ) {
                     //camera.zoom -= delta * .01;
                 break;
                 case "resize" :
-                    gl.canvas.width = innerWidth;
-                    gl.canvas.height = innerHeight;
+                    let width = gl.canvas.clientWidth;
+                    let height = gl.canvas.clientHeight;
+                    gl.canvas.width = width;
+                    gl.canvas.height = height;
                     
-                    this.camera.updateViewport( 0, 0, innerWidth, innerHeight );
+                    this.camera.updateViewport( 0, 0, width, height );
                 break;
             }
         },
         initialize ( ) {
             document.body.appendChild( gl.canvas );
-            gl.canvas.width = innerWidth;
-            gl.canvas.height = innerHeight;
+            gl.canvas.width = gl.canvas.clientWidth;
+            gl.canvas.height = gl.canvas.clientHeight;
 
             gl.setPixelRatio( 1 );
             gl.clearColor( .0,.0,.0, 1 );
@@ -227,7 +229,7 @@ function main ( $$dependencies ) {
             scene.lights.push( light );
             //scene.lights.push( pointLight );
             console.time("voronoi mesh gen")
-            let voronoi = window.voronoi = new VoronoiMesh( 10000, 3 );
+            let voronoi = window.voronoi = new VoronoiMesh( 1000, 3 );
             console.timeEnd("voronoi mesh gen")
             let renderMesh = window.renderMesh = voronoi.renderMesh;
             scene.addChild( "voronoi", voronoi );
