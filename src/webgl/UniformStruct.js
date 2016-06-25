@@ -16,7 +16,7 @@ define( [
     window.MISS = 0;
     def.Properties( UniformStruct.prototype, {
         set ( object ) {
-            for ( var propertyName in object ) {
+            for ( var propertyName in this ) {
                 let ownProperty = this[ propertyName ];
                 if ( ownProperty ) COUNT++, ownProperty.set( object[ propertyName ] );
                 else MISS++;
