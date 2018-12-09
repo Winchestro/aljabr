@@ -1,8 +1,29 @@
-PolyGL
+Aljabr
 ================
 
-Made a lot of changes, went down a few new, very different paths. Settled for keeping the low level stuff in pure JS and focus on that for now, then discovered this wonderful technique of using iframes to get access to a new set of built-ins in a fresh execution environment.
+Aljabr is a modular 3d graphics toolkit that assists you in tailoring very specific solutions to your very specific problems if it can, but most importantly stepping aside if you think it can't. It's designed in different layers of abstraction, so you can solve your problems with the amount of control they individually deserve and have standard solutions to use for the parts you currently don't care about.
 
-So my current approach is heavily focused on extending built-ins, especially WebGL objects which allows a wonderfully minimal, insightful API with very little overhead (my classes still make heavily use of getters to get insight into the current state). I'm very pleased with this development even though it took multiple complete rewrites since the last update to get there. My coding style also changed drastically.
+WebGL-Layer :
 
-My long term goals for the project are still the same. Maybe I'll write more about it again once I finish the mesh.
+The lowest layer is pretty much WebGL, but in a somewhat cleaner API. It isn't required by any other final layer ( aka it's currently required by absolutely everything but won't be ), and you probably wouldn't want to ship with it, but it makes working with and debugging pure WebGL a lot easier. An experienced WebGL programmer can intuitively understand what's going on without reading any documentation - on the contrary. Another reason this layer exists is to reduce bounces back to documentation to a minumum, especially if it's just to look something up.
+
+It's pretty much what you'd expect - All WebGL objects, which are merely handlers to their GPU counterparts are extended to actual classes on that layer. Everything you can do with them becomes a method, any state you can query about them becomes a simple getter, essentially like a property of that object. You can just inspect whatever object you're curious about in the console and learn everything the GPU knows about it. This makes debugging a lot faster. There are some minor optimizations so it hopefully will never thrash your performance, but you should probably still always eventually rewrite any problem you are using this layer for into pure WebGL. Once you figured out exactly what you want to do and before shipping. Because at that point it's just overhead.
+
+Mesh-Layer :
+
+The Mesh-layer puts all the different components needed to render something together. There are a lot of different ways to write such a layer. The standard Mesh Layer for Aljabr is organizing the data into a Half-Edge Data Structure, which uses three types of primitives - Vertices, Halfedges and Faces. They are all handling their own allocation strategy and are not garbage collected, but pooled to allow for frequent updates. They all hold references to each other, so you can easily and cheaply navigate it.
+
+There is a variation of this ( MeshAsync and MeshWorker ) which are intended as the final solution for mesh manipulation, as you probably wouldn't want to do any of those computations on the main thread. But it makes everything a lot more difficult to debug, so it's a little bit like with the WebGL Layer. Use the default synchronous version for development and the parallelized version later. Other than not updating synchronously they are identical. Plan ahead and avoid writing code that relies on synchronous updates on different meshes depending on each other ( you still can do it of course, just be aware those parts will need to be rewritten later ).
+
+Vertices : This is the primitive that actually corresponds to what you would send to the GPU. It's as close to a client side array as you can get in WebGL. A Vertex Object actually does not hold any data itself, it merely has views into one giant ArrayBuffer backing the entire VertexList it's allocated in. The data is interleaved in this one VertexBufferObject (VBO), which is ideal if you want to update a specific range of vertices, rather than specific attributes. So if you have a giant mesh and make changes to some specific part of it ( and as long as the vertices are nearby in memory ) you can update them without wasting any bandwidth with vertices that didn't change.
+
+A VertexList is expected to pre-allocate however many Vertices it will ever need, but if that isn't and option you can also fall back on the List automatically doubling in size whenever it's exceeded. Especially in the synchronous mesh this may be a bit expensive and unnessecary, depending on the size of your mesh. The problem is re-creating all the views to view into the new buffer, which isn't exactly as cheap as it should be. If your meshes are huge and you want to avoid this at all costs you can turn that off ( actually you currently can't, just realized it when writing it ). Vertices are never deleted, only references to them are. If you want to free up memory, you will have to defragment them first by simply replacing unused from wherever they are with used ones from the end until all unused ones are at the end. Then allocate a smaller buffer and copy only the used ones over.
+
+From a data structure point of view vertices are just simply referencing any halfedge going out.
+
+Faces : A face is just a Javascript Object holding the reference to any Halfedge in the Halfedge Loop around them. Sometimes it makes sense to use it to store additional information, like a face normal to compute vertex normals from. Or if you want to send per-face data to the GPU you can use this primitive ( TODO: build something to make that easy ).
+
+
+Halfedges : As you would expect from the Halfedge Data Structure, they hold most of the connectivity information. In this implementation I'm using two Arrays as a Map allowing you to iterate over "edges". Even though edges don't really exist, any halfedge pair or singular "open" halfedge is considered an edge when iterating. Halfedges have references to the next (counterclockwise) and previous halfedge in a loop around a face. If you want to allow faces with more than 3 vertices, it makes sense to have a previous halfedge, otherwise it can be left out as it will always be equal to following the next-reference twice.
+
+They reference the face they belong to and the opposite halfedge, if they are "closed" ( not bordering a hole or border in the mesh ). And they reference the vertex they are pointing at. So by following those references you can easily get any mesh connectivity information. 

@@ -5,7 +5,7 @@
 
 struct Mesh {
     mat4 transform;
-    vec3 scale;
+    vec2 scale;
 };
 
 struct Camera {
@@ -16,7 +16,7 @@ struct Camera {
     mat4 projectionInverse;
 };
 
-attribute vec3 position;
+attribute vec2 position;
 attribute vec2 texCoord;
 
 uniform Mesh mesh;
@@ -27,7 +27,7 @@ varying vec2 v_texCoord;
 
 void main ( void ) {
 
-    vec4 worldVertex = vec4( position * mesh.scale, 1. );
+    vec4 worldVertex = vec4( position * mesh.scale, 1., 2. );
     
     mat4 transform = camera.transformInverse * mesh.transform;
 

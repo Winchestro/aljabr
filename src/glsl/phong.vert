@@ -6,6 +6,7 @@
 struct Mesh {
     mat4 transform;
     vec3 scale;
+    float pointSize;
 };
 struct Camera {
     int frame;
@@ -41,7 +42,7 @@ void main ( void ) {
     vec4 viewVertex = camera.transformInverse * v_worldVertex;
     
     gl_Position = camera.projection * viewVertex ;
-    gl_PointSize = 100. * 1./gl_Position.w;
+    gl_PointSize =  mesh.pointSize;
     
     v_modelMatrix = mat3( mesh.transform );
     v_color = color;

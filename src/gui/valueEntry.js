@@ -1,23 +1,13 @@
-define( [
-	"../utilities/PropertyDescriptors",
-	"../gui/objectView",
-	"../gui/booleanView",
-	"../gui/numberView",
-	"../gui/stringView"
-], function module (
-	def,
-	ObjectView,
-	BooleanView,
-	NumberView,
-	StringView
-) {
-	"use strict";
 
-	class ValueEntry {
-		constructor ( value ) {
-			
-		}
+import def from "../utilities/PropertyDescriptors.js";
+import ObjectView from "../gui/objectView.js";
+import BooleanView from "../gui/booleanView.js";
+import NumberView from "../gui/numberView.js";
+import StringView from "../gui/stringView.js";
+
+
+export default class ValueEntry {
+	constructor ( value ) {
+		
 	}
-
-	return ValueEntry;
-});
+}

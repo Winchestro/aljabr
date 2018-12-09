@@ -31,7 +31,7 @@ void main ( void ) {
     float dist_squared = dot( center, center );
     
   	if ( dist_squared > 0.25 ) discard;
-    gl_FragColor = v_color * material.ambient;
+    gl_FragColor = v_color * material.ambient * vec4( vec3( 1. ), ( 0.25 - dist_squared ) * 4. );
     //gl_FragColor = vec4( vec3( dist_squared ), 1.0 );
 
 }

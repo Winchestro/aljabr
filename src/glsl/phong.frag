@@ -41,6 +41,8 @@ uniform Scene scene;
 uniform Light lights[ MAX_LIGHTS ];
 uniform Material material;
 
+uniform sampler2D tex0;
+
 varying vec4 v_color;
 varying vec2 v_texCoord;
 varying vec4 v_worldVertex;
@@ -51,7 +53,7 @@ varying mat3 v_modelMatrix;
 vec3 applyLight ( vec3 color, Light light, Material material, vec3 worldVertex, vec3 viewVector, vec3 normal );
 
 void main ( void ) {
-    vec3 worldVertex = v_worldVertex.xyw;
+    vec3 worldVertex = v_worldVertex.xyz;
     vec3 viewVector = v_viewVector;
     vec3 normal = v_normal;
     vec3 vertexColor = v_color.rgb;
@@ -66,14 +68,15 @@ void main ( void ) {
 
         color = applyLight( color, lights[ i ], material, worldVertex, viewVector, normal );
     }
-   
-    gl_FragColor = clamp( vec4( color * vertexColor, ambientAlpha * vertexAlpha ), 0.0, 1.0 );
+    
+    gl_FragColor = vec4( color * vertexColor, ambientAlpha * vertexAlpha );
+    //gl_FragColor = clamp( gl_FragColor + vec4( texture2D( tex0, gl_FragCoord.xy / 8.0 ).r / 32.0 - (1.0 / 128.0)), 0.0, 1.0 );
 }
 
 vec3 applyLight ( vec3 color, Light light, Material material, vec3 worldVertex, vec3 viewVector, vec3 normal ) {
     
     if ( light.position.w == 0.0 ) {
-        //vec3 lightVec = normalize( light.position.xyz - worldVertex );
+        
 
         float intensity = dot( normal, normalize( light.position.xyz ) );
 
@@ -88,7 +91,7 @@ vec3 applyLight ( vec3 color, Light light, Material material, vec3 worldVertex, 
                 
                 spotlight = max( -dot( lightVec, light.direction ), 0.0 );
                 float spotlightFade = clamp( ( light.outerCutoff - spotlight ) / ( light.outerCutoff - light.innerCutoff ), 0.0, 1.0 );
-                spotlight = pow( spotlight * spotlightFade, light.exponent );
+                spotlight += pow( spotlight * spotlightFade, light.exponent );
             }
             
             vec3 r = -normalize( reflect( lightVec, normal ) );

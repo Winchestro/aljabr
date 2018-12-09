@@ -1,219 +1,203 @@
-define ( [
-    "../utilities/PropertyDescriptors",
-    "../webgl/Context",
-    "../mesh/FaceList",
-    "../mesh/EdgeList",
-    "../mesh/VertexList",
-    "../mesh/Renderable",
-    "../mesh/Element"
-], function module (
-    def,
-    gl,
-    FaceList,
-    EdgeList,
-    VertexList,
-    Renderable,
-    Element
-){
-    "use strict";
+import def from "../utilities/PropertyDescriptors.js";
+import allocateUint from "../kernel/allocateUint.js";
+import Renderable from "../mesh/Renderable.js";
+import Element from "../mesh/Element.js";
+import Geometry from "../mesh/Geometry.js";
+/*
+    Big Mesh Refactoring
 
 
-    class Mesh extends Renderable {
-        constructor ( uniforms, children ) {
-            super( children );
+    A mesh is a collection of everything related to updating and rendering a specific entity in the scene.
 
-            class MeshVertexList extends VertexList {};
-            def.Property( MeshVertexList.prototype, "mesh", this );
+    The mesh interface has 4 methods : bind, unbind, update and draw.
+    
+    bind : drawing started or resumed
+    unbind : drawing finished or paused
+    update : done before any drawing starts
+    draw : the drawing
 
+    Context-sensitive : A Redinering context for this class is required at instantiation and runtime.
 
-            class MeshEdgeList extends EdgeList {};
-            def.Property( MeshEdgeList.prototype, "mesh", this );
-            
-            class MeshFaceList extends FaceList {};
-            def.Property( MeshFaceList.prototype, "mesh", this );
+    Ideally all Context-Insensitive functionality should be refactored into a new class, like "geometry".
+    This way it can be instantiated and used outside of rendering context ( like a server or worker thread ).
 
-            
+    
 
-            def.Properties( this, {
-                MeshVertexList,
-                MeshEdgeList,
-                MeshFaceList
-            });
+*/   
 
-            
+export default class Mesh extends Renderable {
+    constructor ( geometry, uniforms, children ) {
+        super( children );
+        
 
-            if ( uniforms ) def.Properties( this, uniforms, def.ENUMERABLE | def.CONFIGURABLE | def.WRITABLE );
-            
-            def.Properties( this, {
-                vertices : new MeshVertexList,
-                faces : new MeshFaceList,
-                edges : new MeshEdgeList
-            }, def.CONFIGURABLE );
+        if ( uniforms ) def.Properties( this, uniforms, def.ENUMERABLE | def.CONFIGURABLE | def.WRITABLE );
+        
+        def.Properties( this, {
+            geometry
+        }, def.CONFIGURABLE );
 
-            def.Property( this, "visible", true, def.WRITABLE );
-            
+        def.Property( this, "visible", true, def.WRITABLE );
+        
+    }
+
+    bind ( ) {
+        this.geometry.vertices.bind( );
+    }
+
+    unbind ( ) {
+        this.geometry.vertices.unbind();
+    }
+
+    update ( camera, scene, lights, partentMesh ) {
+        for ( let drawable of this.children ) drawable.update( camera, scene, lights, this );
+    }
+
+    draw ( camera, scene, lights, partentMesh ) {
+        if ( !this.visible ) return;
+        if ( partentMesh ) partentMesh.unbind();
+        this.bind();
+        
+        for ( var element in scene.stacks ) {
+            if ( this[ element ] ) scene.stacks[ element ].push( this[ element ] );
         }
 
-        clearSelections ( ) {
-            this.vertices.selection.clear();
-            this.edges.selection.clear();
-            this.faces.selection.clear();
-            return this;
+        for ( let drawable of this.children ) drawable.draw( camera, scene, lights, this );
+
+        for ( var element in scene.stacks ) {
+            if ( this[ element ] ) scene.stacks[ element ].pop();
         }
 
-        setVertices ( vertexList ) {
-            def.Property( this, "vertices", vertexList, def.CONFIGURABLE );
-            return this.vertexList;
-        }
+        this.unbind();
+        if ( partentMesh ) partentMesh.bind();
+    }
+    // start todo : maybe refactor those methods
+    createFaceFromVertices ( ...vertices ) {
+        let halfedges = this.geometry.edges.createEdgeLoopFromVertices.apply( this.geometry.edges, vertices );
+        let face = this.geometry.faces.createFromHalfedgeLoop.apply( this.geometry.faces, halfedges );
+        return face;
+    }
 
-        update ( camera, scene, lights, partentMesh ) {
-            for ( let drawable of this.children ) drawable.update( camera, scene, lights, this );
-        }
+    createFace ( ...vertexPtr ) {
+        let vertices = this.geometry.vertices.dereference( vertexPtr );
+        let halfedges = this.geometry.edges.createEdgeLoopFromVertices.apply( this.geometry.edges, vertices );
+        let face = this.geometry.faces.createFromHalfedgeLoop.apply( this.geometry.faces, halfedges );
 
-        draw ( camera, scene, lights, partentMesh ) {
-            if ( !this.visible ) return;
-            if ( partentMesh ) partentMesh.vertices.unbind();
-            this.vertices.bind();
-            
-            for ( var element in scene.stacks ) {
-                if ( this[ element ] ) scene.stacks[ element ].push( this[ element ] );
-            }
+        return face;
+    }
+    mergeVertices ( ...vertexPtr ) {
+        let vertices = this.geometry.vertices.dereference( vertexPtr );
 
-            for ( let drawable of this.children ) drawable.draw( camera, scene, lights, this );
+        for ( let vertexA of vertices ) {
+            for ( let vertexB of vertices ) {
+                if ( vertexA.outgoingHalfedge !== vertexB.outgoingHalfedge ) {
 
-            for ( var element in scene.stacks ) {
-                if ( this[ element ] ) scene.stacks[ element ].pop();
-            }
+                    for ( let incoming of vertexA.incomingHalfedges() ) {
+                        for ( let outgoing of vertexB.outgoingHalfedges() ) {
 
-            this.vertices.unbind();
-            if ( partentMesh ) partentMesh.vertices.bind();
-        }
-        // start todo : maybe refactor those methods
-        createFaceFromVertices ( ) {
-            let halfedges = this.edges.createEdgeLoopFromVertices.apply( this.edges, arguments );
-            let face = this.faces.createFromHalfedgeLoop.apply( this.faces, halfedges );
-            return face;
-        }
-
-        createFace ( ) {
-            let vertices = this.vertices.dereference( arguments );
-            let halfedges = this.edges.createEdgeLoopFromVertices.apply( this.edges, vertices );
-            let face = this.faces.createFromHalfedgeLoop.apply( this.faces, halfedges );
-
-            return face;
-        }
-        mergeVertices ( ) {
-            let vertices = this.vertices.dereference( arguments );
-
-            for ( let vertexA of vertices ) {
-                for ( let vertexB of vertices ) {
-                    if ( vertexA.outgoingHalfedge !== vertexB.outgoingHalfedge ) {
-
-                        for ( let incoming of vertexA.incomingHalfedges() ) {
-                            for ( let outgoing of vertexB.outgoingHalfedges() ) {
-
-                                if ( incoming.fromVertex.outgoingHalfedge === outgoing.toVertex.outgoingHalfedge && incoming.oppositeHalfedge !== outgoing ) {
-                                    this.edges.join( incoming, outgoing );
-                                }
+                            if ( incoming.fromVertex.outgoingHalfedge === outgoing.toVertex.outgoingHalfedge && incoming.oppositeHalfedge !== outgoing ) {
+                                this.geometry.edges.join( incoming, outgoing );
                             }
                         }
                     }
                 }
             }
-            
-            this.vertices.join( vertices );
-
-            return this;
         }
-        // end todo
-
-        createPointElement ( material ) {
-            this.addChild( "points", this.vertices.createElement( material ) );
-            return this;
-        }
-        updatePointElement ( ) {
-            this.points.allocateBuffer( this.vertices.getData( this.points.view ) );
-            return this;
-        }
-
-        createLineElement ( material ) {
-            this.addChild( "lines", this.edges.createElement( material ) );
-            return this;
-        }
-        updateLineElement ( ) {
-            this.lines.allocateBuffer( this.edges.getData( this.lines.view ) );
-            return this;    
-        }
-
-
-        createTriangleElement ( material ) {
-            this.addChild( "triangles", this.faces.createElement( material ) );
-            return this;
-        }
-        updateTriangleElement ( ) {
-            this.triangles.allocateBuffer( this.faces.getData( this.triangles.view ) );
-            return this;    
-        }
-
-        createNormalElement ( material, normalLength ) {
-            if ( normalLength === undefined ) normalLength = 5;
-            
-            let size = this.vertices.length * 2;
-
-            let vertices = new VertexList({
-                position    : new Float32Array( 3 ),
-                color       : new Float32Array( 4 )
-            }, size );
-            let mesh = new Mesh( null, vertices );
-            
-            //let buffer = new Float32Array( vertices.buffer );
         
+        this.geometry.vertices.join( vertices );
 
-            for ( let index = 0; index < this.vertices.length; index++ ) {
-                let sourceVertex = this.vertices[ index ];
-
-                let baseVertex = vertices[ index * 2 ];
-
-                baseVertex.position.set( sourceVertex.position );
-                baseVertex.color.set( sourceVertex.color );
-
-                let normalVertex = vertices[ index * 2 + 1 ];
-                const _x_ = 0;
-                const _y_ = 1;
-                const _z_ = 2;
-
-                normalVertex.position.setValues(
-                    sourceVertex.position[_x_] + sourceVertex.normal[_x_] * normalLength,
-                    sourceVertex.position[_y_] + sourceVertex.normal[_y_] * normalLength,
-                    sourceVertex.position[_z_] + sourceVertex.normal[_z_] * normalLength
-                );
-                normalVertex.color.set( sourceVertex.color );
-            };
-            vertices.allocateVBO();
-
-            
-            let buffer = allocateUint( size );
-            for ( let offset = 0; offset < size; ) {
-                buffer[ offset ] = offset++;
-                buffer[ offset ] = offset++;
-            }
-
-            let normalElement = new Element( material, undefined, gl.LINES ).allocateBuffer(
-                buffer
-            )
-
-            mesh.children.push( normalElement );
-            this.addChild( "normals", mesh, material );
-            //def.Properties( mesh, this, def.ENUMERABLE | def.CONFIGURABLE | def.WRITABLE );
-            return this;
-        }
-
+        return this;
     }
 
-    def.Properties( Mesh.prototype, {
-        ondraw : null
-      
-    }, def.WRITABLE );
+    
 
-    return Mesh;
-});
+    createPointElement ( material, uniforms, usage, buffer ) {
+        this.addChild( "points", new Element.Points( material, uniforms ).allocateBuffer( this.geometry.vertices.getData( buffer ), usage ) );
+        return this;
+    }
+    updatePointElement ( ) {
+        this.points.allocateBuffer( this.geometry.vertices.getData( this.points.view ) );
+        return this;
+    }
+
+    createLineElement ( material, uniforms, usage, buffer ) {
+        this.addChild( "lines", new Element.Lines( material, uniforms ).allocateBuffer( this.geometry.edges.getData( buffer ), usage ) );
+        return this;
+    }
+    updateLineElement ( ) {
+        this.lines.allocateBuffer( this.geometry.edges.getData( this.lines.view ) );
+        return this;    
+    }
+
+
+    createTriangleElement ( material, uniforms, usage, buffer ) {
+        this.addChild( "triangles", new Element.Triangles( material, uniforms ).allocateBuffer( this.geometry.faces.getData( buffer ), usage ) );
+        return this;
+    }
+    updateTriangleElement ( ) {
+        this.triangles.allocateBuffer( this.geometry.faces.getData( this.triangles.view ) );
+        return this;    
+    }
+
+    createNormalElement ( material, normalLength ) {
+        if ( normalLength === undefined ) normalLength = 5;
+        
+        let size = this.geometry.vertices.length * 2;
+
+        
+        let geometry = new Geometry({
+            position    : new Float32Array( 3 ),
+            color       : new Float32Array( 4 )
+        });
+
+        let vertices = geometry.vertices;
+
+        vertices.allocateItems( size ).createItems();
+        
+        //let buffer = new Float32Array( vertices.buffer );
+        //console.log( vertices );
+
+        for ( let index = 0, sourceVertex; sourceVertex = this.geometry.vertices[ index ]; index++ ) {
+            
+            let baseVertex = vertices[ index * 2 ];
+
+            baseVertex.position.set( sourceVertex.position );
+            baseVertex.color.set( sourceVertex.color );
+
+            let normalVertex = vertices[ index * 2 + 1 ];
+            const _x_ = 0;
+            const _y_ = 1;
+            const _z_ = 2;
+
+            normalVertex.position.setValues(
+                sourceVertex.position[_x_] + sourceVertex.normal[_x_] * normalLength,
+                sourceVertex.position[_y_] + sourceVertex.normal[_y_] * normalLength,
+                sourceVertex.position[_z_] + sourceVertex.normal[_z_] * normalLength
+            );
+            normalVertex.color.set( sourceVertex.color );
+        };
+        vertices.allocateTarget();
+
+        
+        let buffer = allocateUint( size );
+        for ( let offset = 0; offset < size; ) {
+            buffer[ offset ] = offset++;
+            buffer[ offset ] = offset++;
+        }
+
+        let normalElement = new Element( material, undefined, gl.LINES ).allocateBuffer(
+            buffer
+        )
+
+        let mesh = new Mesh( geometry );
+        mesh.children.push( normalElement );
+        this.addChild( "normals", mesh );
+        //def.Properties( mesh, this, def.ENUMERABLE | def.CONFIGURABLE | def.WRITABLE );
+        return this;
+    }
+
+}
+
+def.Properties( Mesh.prototype, {
+    ondraw : null
+  
+}, def.WRITABLE );

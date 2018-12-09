@@ -1,39 +1,25 @@
-define ( [
-    "require",
-    "../utilities/PropertyDescriptors",
-    "../resource/HttpSourceProgram",
-    "../material/Material",
-    "../math/vec4",
-    "../math/vec3",
-], function module (
-    require,
-    def,
-    HttpSourceProgram,
-    Material,
-    vec4,
-    vec3
-) {
-    "use strict";
-    
-    const RESOURCE = new HttpSourceProgram( require.toUrl( "../glsl/vertexColors" ) );
+import def from "../utilities/PropertyDescriptors.js";
+import HttpSourceProgram from "../resource/HttpSourceProgram.js";
+import Material from "../material/Material.js";
+import vec4 from "../math/vec4.js";
+import vec3 from "../math/vec3.js";
 
-    class VertexColors extends Material {
-        constructor ( uniforms ) {
-            if ( uniforms === undefined ) uniforms                        = {};
-            if ( uniforms.ambient === undefined ) uniforms.ambient        = new vec4( 1.0, 1.0, 1.0, 1.0 );
-            
-            super( uniforms );
+const RESOURCE = new HttpSourceProgram( "src/glsl/vertexColors" );
 
-            this.depth.enable().enableWrite();
-            this.cullFace.enable();
+export default class VertexColors extends Material {
+    constructor ( uniforms ) {
+        if ( uniforms === undefined ) uniforms                        = {};
+        if ( uniforms.ambient === undefined ) uniforms.ambient        = new vec4( 1.0, 1.0, 1.0, 1.0 );
+        
+        super( uniforms );
 
-            this.setProgram( RESOURCE.program );
-        }
+        this.depth.enable().enableWrite();
+        this.cullFace.enable();
+
+        this.setProgram( RESOURCE.program );
     }
+}
 
-    def.Properties( Material, {
-        VertexColors
-    }, def.CONFIGURABLE );
-
-    return VertexColors;
-});
+def.Properties( Material, {
+    VertexColors
+}, def.CONFIGURABLE );

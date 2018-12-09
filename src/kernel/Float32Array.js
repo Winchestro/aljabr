@@ -1,20 +1,12 @@
-define ( [
-], function module (
-){
-	"use strict";
+export default class ClientFloat32Array extends Float32Array {
 
-	class ClientFloat32Array extends Float32Array {
-
-		update ( ) {
-			this.buffer.update( this );
-			return this;
-		}
-
-		setValues ( ) {
-			this.set.call( this, arguments );
-			return this;
-		}
+	update ( ) {
+		this.buffer.update( this );
+		return this;
 	}
 
-	return ClientFloat32Array;
-});
+	setValues ( ) {
+		this.set.call( this, arguments );
+		return this;
+	}
+}

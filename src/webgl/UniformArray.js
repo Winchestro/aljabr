@@ -1,16 +1,7 @@
-define( [
-    "../utilities/PropertyDescriptors",
-    "../webgl/Context",
-    "../webgl/UniformStruct"
-], function module (
-    def,
-    gl,
-    UniformStruct
-) {
-    "use strict";
+import def from "../utilities/PropertyDescriptors.js";
+import UniformStruct from "../webgl/UniformStruct.js";
 
-    class UniformArray extends UniformStruct {
+//TODO ???
+export default class UniformArray extends UniformStruct {
 
-    }
-    return UniformArray;
-});
+}

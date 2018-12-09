@@ -1,47 +1,31 @@
-define.dependencies = [
-	"../utilities/PropertyDescriptors"
-];
+import def from "../utilities/PropertyDescriptors.js";
 
-if ( !document.registerElement ) define.dependencies.push( "../../../lib/bower_components/webcomponentsjs/webcomponents.min" );
+export default class DOM {
 
-define ( define.dependencies, function module (
-	def
-) {
-
-	"use strict";
-
-	class DOM {
-
-		static createTemplateShadow( element, template ) {
-			element.createShadowRoot().appendChild( document.importNode( template.content, true ) );
-		}
-		static createStringShadow( element, template ) {
-			let shadowRoot = element.createShadowRoot();
-			shadowRoot.innerHTML = template;
-		}
+	static createTemplateShadow( element, template ) {
+		element.createShadowRoot().appendChild( document.importNode( template.content, true ) );
 	}
-
-	class StyleString {
-		constructor ( cssText ) {
-			let style = document.createElement( "style" );
-			style.innerHTML = cssText;
-
-			return style;
-		}
+	static createStringShadow( element, template ) {
+		let shadowRoot = element.createShadowRoot();
+		shadowRoot.innerHTML = template;
 	}
+}
 
-	class Template {
-		constructor ( children ) {
+class StyleString {
+	constructor ( cssText ) {
+		let style = document.createElement( "style" );
+		style.innerHTML = cssText;
 
-		}
+		return style;
 	}
+}
 
-	def.Properties( DOM, {
-		StyleString	
-	}, def.CONFIGURABLE );
+class Template {
+	constructor ( children ) {
 
-	return DOM;
-});
+	}
+}
 
-
-delete define.dependencies;
+def.Properties( DOM, {
+	StyleString	
+}, def.CONFIGURABLE );

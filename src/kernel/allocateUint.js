@@ -1,18 +1,10 @@
-define( [
-	"../kernel/Uint8Array",
-	"../kernel/Uint16Array",
-	"../kernel/Uint32Array"
-], function module (
-	Uint8Array,
-	Uint16Array,
-	Uint32Array
-) {
-	"use strict";
+import Uint8Array from "../kernel/Uint8Array.js";
+import Uint16Array from "../kernel/Uint16Array.js";
+import Uint32Array from "../kernel/Uint32Array.js";
 
-    return function allocateUint( length ) {
-        return ( length < ( 1 << 8 ) ? new Uint8Array( length )
-                : length < ( 1 << 16 ) ? new Uint16Array( length )
-                : new Uint32Array( length )
-        )
-    }
-});
+export default function allocateUint( length ) {
+    return ( length < ( 1 << 8 ) ? new Uint8Array( length )
+            : length < ( 1 << 16 ) ? new Uint16Array( length )
+            : new Uint32Array( length )
+    )
+}

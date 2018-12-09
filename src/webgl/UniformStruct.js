@@ -1,34 +1,25 @@
-define( [
-    "../utilities/PropertyDescriptors",
-    "../webgl/Context",
-    "../webgl/Uniform"
-], function module (
-    def,
-    gl,
-    Uniform
-) {
-    "use strict";
+import def from "../utilities/PropertyDescriptors.js";
+import gl from "../webgl/Context.js";
 
-    class UniformStruct extends Uniform {
-        
-    }
-    window.COUNT = 0;
-    window.MISS = 0;
-    def.Properties( UniformStruct.prototype, {
-        set ( object ) {
-            for ( var propertyName in this ) {
-                let ownProperty = this[ propertyName ];
-                if ( ownProperty ) COUNT++, ownProperty.set( object[ propertyName ] );
-                else MISS++;
-            }
-            return this;
-        },
-        instantiate ( ) {
-            let instance =  Object.create( this );
-            for ( let property in this ) instance[ property ] = this[ property ].instantiate();
-            return instance;
+import Uniform from "../webgl/Uniform.js";
+
+export default class UniformStruct extends Uniform {
+    
+}
+
+
+def.Properties( UniformStruct.prototype, {
+    set ( object ) {
+        for ( let propertyName in this ) {
+            let targetProperty = this[ propertyName ];
+            let sourceProperty = object[ propertyName ];
+            if ( targetProperty && sourceProperty ) targetProperty.set( sourceProperty );
         }
-    });
-
-    return UniformStruct;
+        return this;
+    },
+    instantiate ( ) {
+        let instance =  Object.create( this );
+        for ( let property in this ) instance[ property ] = this[ property ].instantiate();
+        return instance;
+    }
 });
