@@ -7,14 +7,10 @@ export default class Renderable {
         def.Property( this, "children", children, def.CONFIGURABLE );
     }
     update ( ) {
-        //update method may be empty
+        
     }
     draw ( ) {
-        if ( !this.warned ) {
-            console.warn( "a class implementing the Renderable interface must provide a draw method" );
-            console.trace( this );
-            this.warned = true;
-        }
+        
     }
     addChild ( name, child, index ) {
         if ( !child || !child.draw ) console.warn( "child added to Renderable null or lacking a draw method" );

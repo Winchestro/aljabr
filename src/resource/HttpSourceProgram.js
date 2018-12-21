@@ -47,8 +47,8 @@ export default class HttpSourceProgram {
         
         //linkProgram.setTarget( callback );
         linkProgram.program = program;
-
-
+        linkProgram.sourceVS = sourceVS.source;
+        linkProgram.sourceFS = sourceFS.source;
         return linkProgram;
     }
 }

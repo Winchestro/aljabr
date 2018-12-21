@@ -21,6 +21,7 @@ const _y_ = 1;
 const _z_ = 2;
 const _w_ = 3;
 
+
 export default class Camera {
     constructor ( scene ) {
         this.projection = new mat4;
@@ -131,7 +132,9 @@ export default class Camera {
 
 }
 
-class Perspective extends Camera {
+
+
+export class Perspective extends Camera {
     constructor( near, far, fov, aspect ) {
         if ( near === undefined ) near = 0.1;
         if ( far === undefined ) far = 1000;
@@ -176,7 +179,7 @@ class Perspective extends Camera {
     }
 }
 
-class Orthographic extends Camera {
+export class Orthographic extends Camera {
     constructor ( near, far, zoom ) {
         if ( near === undefined ) near = 0.1;
         if ( far === undefined ) far = 10;
@@ -240,8 +243,8 @@ class Orthographic extends Camera {
         this.updateProjection();
     }
 }
-
+/*
 def.Properties( Camera, {
     Perspective,
     Orthographic
-}, def.CONFIGURABLE );
+}, def.CONFIGURABLE );*/

@@ -165,7 +165,17 @@ export default class Resource {
             request     : XHR,
             options     : options,
             lastUpdated : 0,
-
+            timeout     : 0,
+            reroute     : function ( url ) {
+                this.abort();
+                this.url = url;
+                this.lastUpdated = 0;
+                this.send();
+            },
+            abort       : function ( ) {
+                clearTimeout( this.timeout );
+                XHR.abort();
+            },
             send        : function ( ) {
                 XHR.open( SOURCE.method, SOURCE.url, true );
                 for( var prop in options ) {
@@ -176,6 +186,7 @@ export default class Resource {
             }
         
         }
+        console.log( SOURCE );
         const RESOURCE = new Resource( SOURCE );
         
         SOURCE.send();
@@ -200,7 +211,7 @@ export default class Resource {
                     else {
                         XHR.abort();
                         //console.log("no change");
-                        if ( SOURCE.options.interval ) setTimeout(
+                        if ( SOURCE.options.interval ) SOURCE.timeout = setTimeout(
                             SOURCE.send,
                             SOURCE.options.interval
                         );
@@ -212,15 +223,18 @@ export default class Resource {
                     switch ( XHR.status ) {
                         case 200:
                             RESOURCE.next( XHR.response );
-                            //console.log("data changed")
-                            if ( SOURCE.options.interval ) setTimeout(
+                            console.log("data changed")
+                            if ( SOURCE.options.interval ) SOURCE.timeout = setTimeout(
                                 SOURCE.send,
                                 SOURCE.options.interval
                             );
                             break;
+                        case 0 :
+                            break;
                         default:
+                            console.log( "default" + XHR.status );
                             //console.error(XHR.status+":"+XHR.statusText);
-                            if ( SOURCE.options.interval ) setTimeout(
+                            if ( SOURCE.options.interval ) SOURCE.timeout = setTimeout(
                                 SOURCE.send,
                                 SOURCE.options.interval
                             );
