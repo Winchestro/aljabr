@@ -203,10 +203,8 @@ def.Properties( WebGLTexture.prototype, {
             level,
             xoffset,
             yoffset,
-            format,
             width,
             height,
-            0,
             format,
             type,
             data

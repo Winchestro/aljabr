@@ -186,7 +186,7 @@ export default class Resource {
             }
         
         }
-        console.log( SOURCE );
+        //console.log( SOURCE );
         const RESOURCE = new Resource( SOURCE );
         
         SOURCE.send();
@@ -223,7 +223,7 @@ export default class Resource {
                     switch ( XHR.status ) {
                         case 200:
                             RESOURCE.next( XHR.response );
-                            console.log("data changed")
+                            //console.log("data changed")
                             if ( SOURCE.options.interval ) SOURCE.timeout = setTimeout(
                                 SOURCE.send,
                                 SOURCE.options.interval
@@ -232,7 +232,7 @@ export default class Resource {
                         case 0 :
                             break;
                         default:
-                            console.log( "default" + XHR.status );
+                            //console.log( "default" + XHR.status );
                             //console.error(XHR.status+":"+XHR.statusText);
                             if ( SOURCE.options.interval ) SOURCE.timeout = setTimeout(
                                 SOURCE.send,
